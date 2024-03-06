@@ -191,7 +191,7 @@ def _build_review_app(repo_path: str):
 
 def _build_packages_mephisto_task_multipart(repo_path: str):
     webapp_path = os.path.join(repo_path, "packages")
-    print(f"[blue]Building '{webapp_path}'[/blue]")
+    print(f"[blue]Building '{webapp_path}/mephisto-task-multipart'[/blue]")
     build_custom_bundle(
         webapp_path,
         force_rebuild=True,
@@ -202,7 +202,7 @@ def _build_packages_mephisto_task_multipart(repo_path: str):
 
 def _build_packages_react_form_composer(repo_path: str):
     webapp_path = os.path.join(repo_path, "packages")
-    print(f"[blue]Building '{webapp_path}'[/blue]")
+    print(f"[blue]Building '{webapp_path}/react-form-composer'[/blue]")
     build_custom_bundle(
         webapp_path,
         force_rebuild=True,
