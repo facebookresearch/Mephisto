@@ -129,19 +129,17 @@ class TaskRunArgs:
         default="FIFO",
         metadata={
             "help": (
-                "Strategy that determines the scheduling strategy for units."
-                "Can be 'FIFO', 'LIFO' or 'Random'."
+                "Strategy to schedule launching of created units. "
+                "Supported values: 'FIFO' (default), 'LIFO', 'Random', 'RoundRobin'."
             )
         },
     )
-    scheduler_prefer_assigned_assignments: bool = field(
+    unit_scheduling_prioritize_started_assignments: bool = field(
         default=True,
         metadata={
             "help": (
-                "Determines if units in assignments with at least one already"
-                "assigned unit are preferred over all other units. This is"
-                "usefull for concurrent tasks as this leads to shorter wait"
-                "times."
+                "If True, prioritize units from assignments that's already been started. "
+                "This helps to obtain fully completed assignments faster."
             )
         },
     )

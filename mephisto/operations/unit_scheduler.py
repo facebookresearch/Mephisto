@@ -1,3 +1,6 @@
+import random
+from typing import List
+
 from abc import ABC, abstractmethod
 from mephisto.data_model.task_run import TaskRun
 from random import shuffle
@@ -5,97 +8,81 @@ from mephisto.data_model.constants.assignment_state import AssignmentState
 
 
 class UnitScheduler(ABC):
-    def __init__(self, task_run: "TaskRun", prefer_assigned_assignments: bool):
+
+    def __init__(self, task_run: "TaskRun", prioritize_started_assignments: bool):
         self.task_run = task_run
-        self.prefer_assigned_assignments = prefer_assigned_assignments
+        self.prioritize_started_assignments = prioritize_started_assignments
 
-    def reserve_unit(self, available_units):
+    def reserve_unit(self, available_units: List["Unit"]) -> Optional["Unit"]:
         """
-        This method wraps the internal strategy.
-
-        If 'prefer_assigned_assignments' is False, this method behaves exactly
-        like the internal strategy.
-
-        If 'prefer_assigned_assignments' is True, the scheduler prefers
-        assignments with assigned units over unassigned assignments. This is
-        usefull when dealing with concurrent assignments.
+        Reserve the next unit, according to the indicated `scheduling_strategy` task param
         """
-        if not self.prefer_assigned_assignments:
-            return self.reserve_unit(available_units)
-        else:
-            assignments = self.task_run.get_assignments()
+        started_assignment_ids = []  # TODO: make a DB query for this
+        available_units_from_started_assignments = [
+            unit
+            for unit in available_units
+            if unit.assignment_id in started_assignment_ids
+        ]
 
-            def hasAssignedUnit(assignment):
-                """
-                Returns if a given assignment has assigned units. Note that this
-                is different from 'assignemt.get_status() == assigned' as the
-                get_status() would return launched if the assignment has any
-                unit that is launched but not assigned.
-                """
-                units = assignment.get_units()
-                statuses = set(unit.get_status() for unit in units)
-                return any([s == AssignmentState.ASSIGNED for s in statuses])
+        unit_to_reserve = None
+        if self.prioritize_started_assignments:
+            # Before checking among all available units, check among prioritized one first
+            unit_to_reserve = self.find_next_unit_to_reserve(available_units_from_started_assignments)
+        if unit_to_reserve is None:
+            unit_to_reserve = self.find_next_unit_to_reserve(available_units)
 
-            ids_of_assigned_assignments = [
-                assignment.db_id for assignment in assignments if hasAssignedUnit(assignment)
-            ]
-            units_in_assigned_assignments = list(
-                filter(
-                    lambda unit: unit.assignment_id in ids_of_assigned_assignments, available_units
-                )
-            )
-            other_units = list(
-                filter(
-                    lambda unit: (not (unit.assignment_id in ids_of_assigned_assignments)),
-                    available_units,
-                )
-            )
+        available_units.remove(unit_to_reserve)
+        reserved_unit = self.task_run.reserve_unit(unit_to_reserve)
 
-            res = self._reserve_unit(units_in_assigned_assignments)
-            if res != None:
-                return res
-            else:
-                return self._reserve_unit(other_units)
+        return reserved_unit
 
-    @abstractmethod
-    def _reserve_unit(self, available_units):
+    def find_next_unit_to_reserve(self, available_units: List["Unit"]) -> Optional["Unit"]:
         """
-        Implementations of this method should choose one of 'available_units'
-        according to their scheduling strategy, reserve it in the task run and return it.
-        If there are no available_units left or none of them can succesfully be reserved
-        this method returns 'None'.
+        Identify the next unit to be reserved from `available_units`.
+        Abstract method to be overridden for each particular scheduling strategy.
         """
+        raise NotImplementedError
 
 
 class FIFOUnitScheduler(UnitScheduler):
-    def _reserve_unit(self, available_units):
-        reserved_unit = None
-
-        while len(available_units) > 0 and reserved_unit is None:
-            unit = available_units.pop(0)
-            reserved_unit = self.task_run.reserve_unit(unit)
-
-        return reserved_unit
+    def find_next_unit_to_reserve(self, available_units: List["Unit"]) -> Optional["Unit"]:
+        if available_units:
+            return available_units[0]
 
 
 class LIFOUnitScheduler(UnitScheduler):
-    def _reserve_unit(self, available_units):
-        reserved_unit = None
 
-        while len(available_units) > 0 and reserved_unit is None:
-            unit = available_units.pop()
-            reserved_unit = self.task_run.reserve_unit(unit)
-
-        return reserved_unit
+    def find_next_unit_to_reserve(self, available_units: List["Unit"]) -> Optional["Unit"]:
+        if available_units:
+            return available_units[-1]
 
 
 class RandomUnitScheduler(UnitScheduler):
-    def _reserve_unit(self, available_units):
-        reserved_unit = None
-        shuffle(available_units)
 
-        while len(available_units) > 0 and reserved_unit is None:
-            unit = available_units.pop()
-            reserved_unit = self.task_run.reserve_unit(unit)
+    def find_next_unit_to_reserve(self, available_units: List["Unit"]) -> Optional["Unit"]:
+        if available_units:
+            index = random.randint(0, len(available_units) - 1)
+            return available_units[index]
 
-        return reserved_unit
+
+class RoundRobinUnitScheduler(UnitScheduler):
+
+    def find_next_unit_to_reserve(self, available_units: List["Unit"]) -> Optional["Unit"]:
+        asignments_unscheduled_units = [] # TODO: run a GROUP BY query in the DB that would return list of tuples (assignment_id, ids_of_unscheduled_units), order by `assignment_id`
+        available_units_by_id = {u.id: u for u in available_units}
+
+        unscheduled_units_counts = set([
+            len(auu[1])
+            for auu in asignments_unscheduled_units
+            if len(auu[1])
+        ])
+        if not unscheduled_units_counts:
+            # Everything has already been scheduled
+            return None
+
+        target_units_count = min(unscheduled_units_counts)
+        for (assignment_id, unscheduled_units_ids) in asignments_unscheduled_units:
+            # Take the first assignemnt that has the taraget count of unscheduled units
+            if len(unscheduled_units_ids) == target_units_count:
+                unit_id = sorted(unscheduled_units_ids)[0]
+                return available_units_by_id[unit_id]
