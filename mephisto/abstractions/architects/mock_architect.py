@@ -94,9 +94,7 @@ class SocketHandler(WebSocketHandler):
         """
         message = json.loads(message_text)
         packet_type = message["packet_type"]
-        self.app.received_messages.append(
-            (packet_type, message)
-        )
+        self.app.received_messages.append((packet_type, message))
 
     def check_origin(self, origin):
         return True
