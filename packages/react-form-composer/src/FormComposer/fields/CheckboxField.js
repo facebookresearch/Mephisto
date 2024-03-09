@@ -5,16 +5,19 @@
  */
 
 import React from "react";
+import { runCustomTrigger } from "../utils";
 import { Errors } from "./Errors";
 
 function CheckboxField({
   field,
+  formData,
   updateFormData,
   disabled,
   initialFormData,
   inReviewState,
   invalid,
   validationErrors,
+  customTriggers,
 }) {
   const [lastCheckEvent, setLastCheckEvent] = React.useState(null);
   const [widgetValue, setWidgetValue] = React.useState({});
@@ -23,6 +26,23 @@ function CheckboxField({
 
   const [invalidField, setInvalidField] = React.useState(false);
   const [errors, setErrors] = React.useState([]);
+
+  // Methods
+  function _runCustomTrigger(triggerName) {
+    runCustomTrigger(
+      field.triggers,
+      triggerName,
+      customTriggers,
+      formData,
+      updateFormData,
+      field,
+      widgetValue
+    );
+  }
+
+  function onClick(e) {
+    _runCustomTrigger("onClick");
+  }
 
   function setDefaultWidgetValue() {
     const allItemsNotCheckedValue = Object.fromEntries(
@@ -52,7 +72,9 @@ function CheckboxField({
   }, [validationErrors]);
 
   React.useEffect(() => {
-    updateFormData(lastCheckEvent, field.name, widgetValue);
+    updateFormData(field.name, widgetValue, lastCheckEvent);
+
+    _runCustomTrigger("onChange");
   }, [widgetValue]);
 
   return (
@@ -63,7 +85,7 @@ function CheckboxField({
     //  - form-check-input
     //  - form-check-label
 
-    <>
+    <div onClick={onClick}>
       {field.options.map((option, index) => {
         const checked = initialFormData
           ? initialValue[option.value]
@@ -94,7 +116,7 @@ function CheckboxField({
       })}
 
       <Errors messages={errors} />
-    </>
+    </div>
   );
 }
 

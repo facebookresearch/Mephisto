@@ -12,6 +12,9 @@ import {
   TOKEN_START_SYMBOLS,
 } from "./constants";
 
+// This list can be expanded if needed
+const ACCEPTED_SCALAR_TRIGGER_ARGUMENT_TYPES = ["string", "boolean", "number", "object"]
+
 // TODO: Remove this after finding out what is the problem
 //  with not sending `agent_id` under `subject_id` field in websocket message
 const WAIT_FOR_AGENT_ID_MSEC = 1000;
@@ -297,4 +300,120 @@ export function prepareRemoteProcedures(remoteProcedureCollection) {
 export function setPageTitle(title) {
   const titleElement = document.querySelector("title");
   titleElement.innerText = title;
+}
+
+export function isObjectEmpty(_object) {
+  return Object.keys(_object).length === 0;
+}
+
+export function runCustomTrigger(
+  // Args used in this util
+  elementTriggersConfig, // 'triggers' value defined in 'form_config.json' file
+  elementTriggerName,
+  customTriggers,
+  // Args passed directly into the trigger function
+  formData, // React state for the entire form
+  updateFormData, // callback to set the React state
+  element, // "field", "section", or "submit button" element that invoked this trigger
+  fieldValue, // current field value, if the `element` is a form field (otherwise it's null)
+) {
+  // Exit if the element that doesn't have any triggers defined
+  if (!elementTriggersConfig || isObjectEmpty(elementTriggersConfig)) {
+    console.error(
+      `Ignoring trigger "${elementTriggerName}" invokation - element has no triggers defined.`
+    );
+    return;
+  }
+
+  const elementTriggerConfig = elementTriggersConfig[elementTriggerName];
+
+  // Exit if the element doesn't have this specific triggers defined
+  if (!elementTriggerConfig) {
+    console.error(
+      `Ignoring trigger "${elementTriggerName}" invokation - element doesn't have it defined.`
+    );
+    return;
+  }
+
+  // Exit if the element has this trigger set, but custom triggers were not passed
+  if (!customTriggers) {
+    console.error(
+      `Ignoring trigger "${elementTriggerName}" invokation - no custom triggers passed.`
+    );
+    return;
+  }
+
+  // Extract name of custom trigger function from the trigger config.
+  // Exit if trigger config doesn't contain custom function name
+  let triggerFnName;
+  const isArray = Array.isArray(elementTriggerConfig);
+  const isScalar = ACCEPTED_SCALAR_TRIGGER_ARGUMENT_TYPES.includes(typeof elementTriggerConfig);
+  if (isArray && [1, 2].includes(elementTriggerConfig.length)) {
+    triggerFnName = elementTriggerConfig[0];
+  } else if (isScalar) { // This statement must go second, because `typeof <array> === "object"`
+    triggerFnName = elementTriggerConfig;
+  } else {
+    console.error(
+      `Invalid format of trigger "${elementTriggerName}" config: ${elementTriggerConfig}. ` +
+      `It must be either a string (function name), ` +
+      `or a list (first element is function name, second element is its args).`
+    );
+    return;
+  }
+
+  // Get Custom trigger function
+  const triggerFn = customTriggers[triggerFnName];
+
+  // Exit if the custom function was not defined
+  if (!triggerFn) {
+    console.error(
+      `Function not found for trigger "${elementTriggerName}". ` +
+      `Please ensure a functionwith that name is defined in 'custom_triggers.js' file ` +
+      `and 'form_config.json' indicates correct custom function name for this trigger config.`
+    );
+    return;
+  }
+
+  // Extract arguments of custom trigger function from the trigger config.
+  let triggerFnArgs;
+  if (elementTriggerConfig.length == 1) {
+    // If trigger config doesn't contain arguments, we just won't pass any trigger arguments
+    triggerFnArgs = [];
+  } else if (elementTriggerConfig.length == 2) {
+    triggerFnArgs = elementTriggerConfig[1];
+    if (!Array.isArray(triggerFnArgs)) {
+      // if trigger function arg is a scalar, turn it into a 1-item array, for consistency
+      triggerFnArgs = [triggerFnArgs];
+    }
+  } else {
+    console.error(
+      `Trigger "${elementTriggerName}" config for "${elementTriggerName}" ` +
+      `is longer than 2 items: ${elementTriggerConfig}`
+    );
+    return;
+  }
+
+  // Run custom trigger
+  try {
+    triggerFn(
+      formData,
+      updateFormData,
+      element,
+      fieldValue,
+      ...triggerFnArgs
+    );
+  } catch (error) {
+    const textAboutElement = fieldValue
+      ? `Field "${element.name}" value: ${fieldValue}. `
+      : `Element config name: ${elementTriggerName}. `;
+    console.error(
+      `Running custom trigger error. ` +
+        textAboutElement +
+        `Element trigger name: ${elementTriggerName}. ` +
+        `Element trigger config: ${elementTriggerConfig}. ` +
+        `Trigger function name: ${triggerFnName}. ` +
+        `Trigger function args: ${triggerFnArgs}. ` +
+        `Error: ${error}.`
+    );
+  }
 }

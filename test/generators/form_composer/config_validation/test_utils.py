@@ -10,6 +10,12 @@ from urllib.parse import quote
 from botocore.exceptions import BotoCoreError
 
 from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    CUSTOM_TRIGGERS_JS_FILE_NAME,
+)
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    CUSTOM_TRIGGERS_JS_FILE_NAME_ENV_KEY,
+)
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
     CUSTOM_VALIDATORS_JS_FILE_NAME,
 )
 from mephisto.generators.form_composer.config_validation.config_validation_constants import (
@@ -29,6 +35,7 @@ from mephisto.generators.form_composer.config_validation.utils import is_inserti
 from mephisto.generators.form_composer.config_validation.utils import is_s3_url
 from mephisto.generators.form_composer.config_validation.utils import make_error_message
 from mephisto.generators.form_composer.config_validation.utils import read_config_file
+from mephisto.generators.form_composer.config_validation.utils import set_custom_triggers_js_env_var
 from mephisto.generators.form_composer.config_validation.utils import (
     set_custom_validators_js_env_var,
 )
@@ -303,4 +310,30 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(
             os.environ.get(CUSTOM_VALIDATORS_JS_FILE_NAME_ENV_KEY),
             custom_validators_js_path,
+        )
+
+    def test_set_custom_triggers_js_env_var_not_exists(self, *args, **kwargs):
+        set_custom_triggers_js_env_var(self.data_dir)
+
+        self.assertEqual(os.environ.get(CUSTOM_TRIGGERS_JS_FILE_NAME_ENV_KEY), "")
+
+    def test_set_custom_triggers_js_env_var_success(self, *args, **kwargs):
+        custom_triggers_js_path = os.path.abspath(
+            os.path.join(
+                self.data_dir,
+                INSERTIONS_PATH_NAME,
+                CUSTOM_TRIGGERS_JS_FILE_NAME,
+            )
+        )
+
+        os.makedirs(os.path.dirname(custom_triggers_js_path), exist_ok=True)
+        f = open(custom_triggers_js_path, "w")
+        f.write("")
+        f.close()
+
+        set_custom_triggers_js_env_var(self.data_dir)
+
+        self.assertEqual(
+            os.environ.get(CUSTOM_TRIGGERS_JS_FILE_NAME_ENV_KEY),
+            custom_triggers_js_path,
         )

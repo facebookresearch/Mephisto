@@ -12,7 +12,9 @@ TOKENS_VALUES_KEY = "tokens_values"
 FILE_URL_TOKEN_KEY = "file_location"
 INSERTIONS_PATH_NAME = "insertions"
 CUSTOM_VALIDATORS_JS_FILE_NAME = "custom_validators.js"
+CUSTOM_TRIGGERS_JS_FILE_NAME = "custom_triggers.js"
 CUSTOM_VALIDATORS_JS_FILE_NAME_ENV_KEY = "WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS"
+CUSTOM_TRIGGERS_JS_FILE_NAME_ENV_KEY = "WEBAPP__FORM_COMPOSER__CUSTOM_TRIGGERS"
 
 AVAILABLE_CONFIG_ATTRS: AvailableAttrsType = {
     "form": {
@@ -22,6 +24,14 @@ AVAILABLE_CONFIG_ATTRS: AvailableAttrsType = {
 }
 
 AVAILABLE_FORM_ATTRS: AvailableAttrsType = {
+    "classes": {
+        "type": str,
+        "required": False,
+    },
+    "id": {
+        "type": str,
+        "required": False,
+    },
     "instruction": {
         "type": str,
         "required": False,
@@ -41,6 +51,14 @@ AVAILABLE_FORM_ATTRS: AvailableAttrsType = {
 }
 
 AVAILABLE_SUBMIT_BUTTON_ATTRS: AvailableAttrsType = {
+    "classes": {
+        "type": str,
+        "required": False,
+    },
+    "id": {
+        "type": str,
+        "required": False,
+    },
     "instruction": {
         "type": str,
         "required": False,
@@ -53,9 +71,17 @@ AVAILABLE_SUBMIT_BUTTON_ATTRS: AvailableAttrsType = {
         "type": str,
         "required": False,
     },
+    "triggers": {
+        "type": dict,
+        "required": False,
+    },
 }
 
 AVAILABLE_SECTION_ATTRS: AvailableAttrsType = {
+    "classes": {
+        "type": str,
+        "required": False,
+    },
     "collapsable": {
         "type": bool,
         "required": False,
@@ -63,6 +89,10 @@ AVAILABLE_SECTION_ATTRS: AvailableAttrsType = {
     "fieldsets": {
         "type": list,
         "required": True,
+    },
+    "id": {
+        "type": str,
+        "required": False,
     },
     "initially_collapsed": {
         "type": bool,
@@ -80,10 +110,22 @@ AVAILABLE_SECTION_ATTRS: AvailableAttrsType = {
         "type": str,
         "required": True,
     },
+    "triggers": {
+        "type": dict,
+        "required": False,
+    },
 }
 
 AVAILABLE_FIELDSET_ATTRS: AvailableAttrsType = {
+    "classes": {
+        "type": str,
+        "required": False,
+    },
     "help": {
+        "type": str,
+        "required": False,
+    },
+    "id": {
         "type": str,
         "required": False,
     },
@@ -106,6 +148,10 @@ AVAILABLE_FIELDSET_ATTRS: AvailableAttrsType = {
 }
 
 AVAILABLE_ROW_ATTRS: AvailableAttrsType = {
+    "classes": {
+        "type": str,
+        "required": False,
+    },
     "fields": {
         "type": list,
         "required": True,
@@ -114,9 +160,17 @@ AVAILABLE_ROW_ATTRS: AvailableAttrsType = {
         "type": str,
         "required": False,
     },
+    "id": {
+        "type": str,
+        "required": False,
+    },
 }
 
 COMMON_AVAILABLE_FIELD_ATTRS: AvailableAttrsType = {
+    "classes": {
+        "type": str,
+        "required": False,
+    },
     "help": {
         "type": str,
         "required": False,
@@ -143,6 +197,10 @@ COMMON_AVAILABLE_FIELD_ATTRS: AvailableAttrsType = {
     },
     "tooltip": {
         "type": str,
+        "required": False,
+    },
+    "triggers": {
+        "type": dict,
         "required": False,
     },
     "type": {

@@ -5,24 +5,60 @@
  */
 
 import React from "react";
+import { runCustomTrigger } from "../utils";
 import { checkFieldRequiredness } from "../validation/helpers";
 import { Errors } from "./Errors";
 
 function InputField({
   field,
+  formData,
   updateFormData,
   disabled,
   initialFormData,
   inReviewState,
   invalid,
   validationErrors,
+  customTriggers,
 }) {
+  const [widgetValue, setWidgetValue] = React.useState("");
+
   const initialValue = initialFormData ? initialFormData[field.name] : "";
 
   const [invalidField, setInvalidField] = React.useState(false);
   const [errors, setErrors] = React.useState([]);
 
+  // Methods
+  function _runCustomTrigger(triggerName) {
+    runCustomTrigger(
+      field.triggers,
+      triggerName,
+      customTriggers,
+      formData,
+      updateFormData,
+      field,
+      widgetValue
+    );
+  }
+
+  function onBlur(e) {
+    _runCustomTrigger("onBlur");
+  }
+
+  function onFocus(e) {
+    _runCustomTrigger("onFocus");
+  }
+
+  function onClick(e) {
+    _runCustomTrigger("onClick");
+  }
+
   // Effects
+  React.useEffect(() => {
+    if (!widgetValue) {
+      setWidgetValue(initialValue || "");
+    }
+  }, []);
+
   React.useEffect(() => {
     setInvalidField(invalid);
   }, [invalid]);
@@ -30,6 +66,10 @@ function InputField({
   React.useEffect(() => {
     setErrors(validationErrors);
   }, [validationErrors]);
+
+  React.useEffect(() => {
+    _runCustomTrigger("onChange");
+  }, [widgetValue]);
 
   return (
     // bootstrap classes:
@@ -50,10 +90,14 @@ function InputField({
         required={checkFieldRequiredness(field)}
         defaultValue={initialValue}
         onChange={(e) => {
-          !disabled && updateFormData(e, field.name, e.target.value);
+          !disabled && updateFormData(field.name, e.target.value, e);
+          setWidgetValue(e.target.value);
           setInvalidField(false);
           setErrors([]);
         }}
+        onBlur={onBlur}
+        onFocus={onFocus}
+        onClick={onClick}
         disabled={disabled}
       />
 

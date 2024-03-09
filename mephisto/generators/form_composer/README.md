@@ -117,19 +117,33 @@ A few tips if you wish to embed FormComposer in your custom application:
 - To extrapolate form config (and generate the `task_data.json` file), call the extrapolator function `mephisto.generators.form_composer.configs_validation.extrapolated_config.create_extrapolated_config`
     - For a live example, you can explore the source code of [run_task_dynamic.py](/examples/form_composer_demo/run_task_dynamic.py) module
 - To use code insertions:
-    - Point `WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS` backend env variable to the location of `custom_validators.js` module (before building all webapp applications)
-    - When using `FormComposer` component, import validators with `import * as customValidators from "custom-validators";` and pass them to your `FormComposer` component as an argument: `customValidators={customValidators}`
-    - Set this alias in your webpack config (to avoid build-time exception that `custom-validators` cannot be found):
-    ```js
-    resolve: {
-      alias: {
-        ...
-        "custom-validators": path. resolve(
-          process.env.WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS
-        ),
-      },
-    }
-    ```
+    - for custom validators:
+        - Point `WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS` backend env variable to the location of `custom_validators.js` module (before building all webapp applications)
+        - When using `FormComposer` component, import validators with `import * as customValidators from "custom-validators";` and pass them to your `FormComposer` component as an argument: `customValidators={customValidators}`
+        - Set this alias in your webpack config (to avoid build-time exception that `custom-validators` cannot be found):
+        ```js
+        resolve: {
+          alias: {
+            ...
+            "custom-validators": path. resolve(
+              process.env.WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS
+            ),
+          },
+        }
+        ```
+    - for custom triggers:
+        - Point `WEBAPP__FORM_COMPOSER__CUSTOM_TRIGGERS` backend env variable to the location of `custom_triggers.js` module (before building all webapp applications)
+        - When using `FormComposer` component, import triggers with `import * as customTriggers from "custom-triggers";` and pass them to your `FormComposer` component as an argument: `customTriggers={customTriggers}`
+        - Set this alias in your webpack config (to avoid build-time exception that `custom-triggers` cannot be found):
+        ```js
+        resolve: {
+          alias: {
+            ...
+            "custom-triggers": path. resolve(
+              process.env.WEBAPP__FORM_COMPOSER__CUSTOM_TRIGGERS
+            ),
+          },
+        }
 
 ---
 
@@ -385,6 +399,7 @@ You can write your own remote procedures. A good place to start is looking at ho
 FormComposer allows for insertion of code into its config in these scenarios:
 - Specify lengthy content of an attribute (e.g. "instruction") in a separate HTML file
 - Define custom validators for form fileds in a JS file
+- Define custom triggers for form fileds, sections and submit button in a JS file
 
 The inserted code must reside in separate files (called "insertion files") located in `insertions` subdirectory of your form config directory.
 - _Remember that you can change default config directory path using `--directory` option of `form_composer_config` command_
@@ -397,7 +412,8 @@ An HTML insertion file is specified as a file path that's relative to the form c
 
 #### Insertion without token
 
-Simply set entire value of an attribute to the insertion file's path. This is equivalent to setting value of that attribute to content of the HTML file (except now you don't have to stitch all HTML content into a single unreadable JSON line).
+Simply set entire value of an attribute to the insertion file's path.
+This is equivalent to setting value of that attribute to content of the HTML file (except now you don't have to stitch all HTML content into a single unreadable JSON line).
 
 Attributes that support HTML insertions are the same ones that support tokens
 
@@ -412,7 +428,8 @@ Example in `form_config.json`:
 
 #### Insertion via token
 
-Use an extrapolated token as usual, and set that token's value to the insertion file's path. Upon extrapolation, value of such token will be automatically replaced with content of the HTML file.
+Use an extrapolated token as usual, and set that token's value to the insertion file's path.
+Upon extrapolation, value of such token will be automatically replaced with content of the HTML file.
 
 Example in `token_sets_values_config.json`:
 ```json
@@ -427,16 +444,21 @@ Example in `token_sets_values_config.json`:
 
 ## JS validator insertion
 
-You can define your own custom field validators as Javascript functions, and place them in a special file `insertions/custom_validators.js` inside your form config directory. When a Task is rendered in the browser, your functions will be imported from this file.
+You can define your own custom field validator as a Javascript function, and place it in a special file `insertions/custom_validators.js` inside your form config directory.
+When a Task is rendered in the browser, your validator function (let's call it `myValidator`) will be imported from this file.
 
-Each validator function must have the following signature:
-- Accept 2 required arguments `field` and `value`, and any number of optional arguments
+In form config, the validator function is associated with a field by adding this key-value pair under "validators" attribute:
+```json
+"myValidator": myValidatorArgument
+```
+
+In your custom code, each validator function must have the following signature:
+- Accept 2 required arguments `field` and `value`, and extra arguments as needed
     - `field` is a JS object representing a rendered form field
     - `value` is provided value of the field (format depends on the field type)
-    - optional arguments are the parameters you specified in the form config
-        - This can be a single value (Boolean, String, Number)
-        - This can also be an Array of values
-            - _In this case, note that Array-type arguments will be passed as separate positional arguments after the `value` argument. If you need to use them as an array in your code, combine them like so: `fn(field, value, ...optionalArgs)`._
+    - Extra arguments will be passed after the `value` argument (they come from the `myValidatorArgument` value you specified in the form config under `"myValidator"` key) :
+        - If the value is a non-Array (Boolean, String, Number, or non-array Object), it will be passed as-is
+        - If the value is an Array, the content of Array will be decostructed and passed as separate positional arguments.
 - Return value must be either:
     - `null` if validation passed successfully
     - String if validation failed
@@ -471,6 +493,86 @@ export { phoneValidatorFunction } from "./phone_validator_code.js";
     ...
     "fieldContainsWord": "Mephisto"
   },
+  ...
+}
+```
+
+## JS trigger insertion
+
+You can define your own custom trigger for a specific form element as a Javascript function, and place it in a special file `insertions/custom_triggers.js` inside your form config directory.
+When a Task is rendered in the browser, your validator function (let's call it `myTrigger`) will be imported from this file.
+
+In form config, the trigger function is associated with an element by adding this key-value pair under "triggers" attribute:
+```json
+"myTrigger": [myTriggerEventType, myTriggerArgument]
+```
+
+In your custom code, each trigger function must have the following signature:
+- Accept 4 required arguments `formData`, `updateFormData`, `element`, `fieldValue`, and extra arguments as needed
+    - `formData` is a React state with form data (`{<fieldName>: <fieldValue>, ...}`)
+        - This allows to lookup values of any form field by its `"name"` attribute
+    - `updateFormData` is a callback that sets value of any form field in the React state
+        - This allows to change values of any form field by its `"name"` attribute, e.g. `updateFormData("name_first", "Austin")`. Note that you will need change HTML-field value as well.
+    - `element` is the form object that fired the trigger (i.e. "field", "section" or "submit button" object defined in form config)
+    - `fieldValue` is the value of an element that fired the trigger, if it's a form field (otherwise it's null)
+    - Extra arguments will be passed after the `fieldValue` argument (they come from the `myTriggerArgument` value you specified in the form config under `"myTrigger"` key) :
+        - If the value is a non-Array (Boolean, String, Number, or non-array Object), it will be passed as-is
+        - If the value is an Array, the content of Array will be decostructed and passed as separate positional arguments.
+
+The `myTriggerEventType` parameter can take one of the following values, depending on the type of trigger element:
+- non-field elements:
+  - `"onClick"`
+- "field" element:
+  - `checkbox` field type:
+      - `"onChange"`
+      - `"onClick"` (triggered from any part of the entire field, not just the buttons)
+  - `file` field type:
+      - `"onChange"`
+      - `"onBlur"`
+      - `"onFocus"`
+      - `"onClick"`
+  - `input` field type:
+      - `"onChange"`
+      - `"onBlur"`
+      - `"onFocus"`
+      - `"onClick"`
+  - `radio` field type:
+      - `"onChange"`
+      - `"onClick"` (triggered from any part of the entire field, not just the buttons)
+  - `select` field type:
+      - `"onChange"`
+  - `textarea` field type:
+      - `"onChange"`
+      - `"onBlur"`
+      - `"onFocus"`
+      - `"onClick"`
+
+
+Example in `custom_triggers.js`...
+
+```js
+export function onClickSectionHeader(
+  formData, // React state for the entire form
+  updateFormData, // callback to set the React state
+  element, // "field", "section", or "submit button" element that invoked this trigger
+  fieldValue, // (optional) current field value, if the `element` is a form field
+  sectionName // Argument for this trigger (taken from form config)
+) {
+  alert(`${sectionName} section was clicked!`);
+}
+```
+
+...and its usage in `form_config.json`:
+```json
+{
+  ...,
+  "triggers": {
+    "onChange": ["onChangeName", [true, {"prefix": "_"}, 100]]
+  }
+  ...
+  "triggers": {
+    "onClick": ["onClickSectionHeader", "Triggerable"]
+  }
   ...
 }
 ```
@@ -551,7 +653,10 @@ Task data config file `task_data.json` specifies layout of all form versions tha
               ],
               "help": "This information will help us compile study statistics"
             }
-          ]
+          ],
+          "triggers": {
+            "onClick": ["onClickSectionHeader", "FIRST"]
+          }
         },
         { ... }
       ],

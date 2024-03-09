@@ -8,10 +8,12 @@ import React from "react";
 
 function HiddenField({
   field,
+  formData,
   updateFormData,
   disabled,
   initialFormData,
   inReviewState,
+  customTriggers,
 }) {
   const initialValue = initialFormData ? initialFormData[field.name] : "";
 
@@ -30,7 +32,7 @@ function HiddenField({
         required={false}
         defaultValue={initialValue}
         onChange={(e) => {
-          !disabled && updateFormData(e, field.name, e.target.value);
+          !disabled && updateFormData(field.name, e.target.value, e);
         }}
       />
     </>

@@ -19,6 +19,7 @@ from mephisto.data_model.qualification import QUAL_GREATER_EQUAL
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     create_extrapolated_config,
 )
+from mephisto.generators.form_composer.config_validation.utils import set_custom_triggers_js_env_var
 from mephisto.generators.form_composer.config_validation.utils import (
     set_custom_validators_js_env_var,
 )
@@ -117,6 +118,8 @@ def generate_data_json_config():
 
     # Set env var for `custom_validators.js`
     set_custom_validators_js_env_var(data_path)
+    # Set env var for `custom_triggers.js`
+    set_custom_triggers_js_env_var(data_path)
 
 
 if __name__ == "__main__":

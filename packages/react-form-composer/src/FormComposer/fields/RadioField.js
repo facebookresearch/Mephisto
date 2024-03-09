@@ -5,16 +5,19 @@
  */
 
 import React from "react";
+import { runCustomTrigger } from "../utils";
 import { Errors } from "./Errors";
 
 function RadioField({
   field,
+  formData,
   updateFormData,
   disabled,
   initialFormData,
   inReviewState,
   invalid,
   validationErrors,
+  customTriggers,
 }) {
   const [lastCheckEvent, setLastCheckEvent] = React.useState(null);
   const [widgetValue, setWidgetValue] = React.useState(null);
@@ -27,6 +30,23 @@ function RadioField({
   function updateFieldData(e, optionValue) {
     setLastCheckEvent(e);
     setWidgetValue(optionValue);
+  }
+
+  // Methods
+  function _runCustomTrigger(triggerName) {
+    runCustomTrigger(
+      field.triggers,
+      triggerName,
+      customTriggers,
+      formData,
+      updateFormData,
+      field,
+      widgetValue
+    );
+  }
+
+  function onClick(e) {
+    _runCustomTrigger("onClick");
   }
 
   function setDefaultWidgetValue() {
@@ -52,7 +72,9 @@ function RadioField({
   }, [validationErrors]);
 
   React.useEffect(() => {
-    updateFormData(lastCheckEvent, field.name, widgetValue);
+    updateFormData(field.name, widgetValue, lastCheckEvent);
+
+    _runCustomTrigger("onChange");
   }, [widgetValue]);
 
   return (
@@ -63,7 +85,7 @@ function RadioField({
     //  - form-check-input
     //  - form-check-label
 
-    <>
+    <div onClick={onClick}>
       {field.options.map((option, index) => {
         const checked = initialFormData
           ? initialValue === option.value
@@ -95,7 +117,7 @@ function RadioField({
       })}
 
       <Errors messages={errors} />
-    </>
+    </div>
   );
 }
 

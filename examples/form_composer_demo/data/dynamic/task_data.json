@@ -2,12 +2,12 @@
   {
     "form": {
       "title": "Form example",
-      "instruction": "<div class=\"instruction\">Please answer <b>all</b> questions to the best of your ability as part of our study.</div>\n\n<style>\n  .instruction {\n    font-style: italic;\n  }\n</style>\n",
+      "instruction": "<div class=\"instruction\">\n  Please answer <b>all</b> questions to the best of your ability as part of our\n  study.\n</div>\n\n<style>\n  .instruction {\n    font-style: italic;\n  }\n</style>\n",
       "sections": [
         {
           "name": "section_about",
           "title": "About you",
-          "instruction": "<p>Please introduce yourself. We would like to know more about your:</p>\n<ul>\n    <li>Background</li>\n    <li>Personal information</li>\n    <li>Etc</li>\n</ul>\n",
+          "instruction": "<ul>\n  <li>Background</li>\n  <li>Personal information</li>\n  <li>Etc</li>\n</ul>\n",
           "collapsable": false,
           "fieldsets": [
             {
@@ -95,6 +95,9 @@
                       ],
                       "placeholder": "",
                       "tooltip": "Country",
+                      "triggers": {
+                        "onChange": "onChangeCountry"
+                      },
                       "type": "select",
                       "validators": {
                         "required": true
@@ -134,6 +137,46 @@
                         "maxLength": 3
                       },
                       "value": ""
+                    }
+                  ]
+                },
+                {
+                  "fields": [
+                    {
+                      "classes": "hidden col-6",
+                      "help": "Select your region",
+                      "id": "id_region",
+                      "label": "Region",
+                      "name": "region",
+                      "options": [
+                        {
+                          "label": "---",
+                          "value": ""
+                        },
+                        {
+                          "label": "North-East",
+                          "value": "NE"
+                        },
+                        {
+                          "label": "North-West",
+                          "value": "NW"
+                        },
+                        {
+                          "label": "Mid-West",
+                          "value": "MW"
+                        },
+                        {
+                          "label": "South-East",
+                          "value": "SE"
+                        },
+                        {
+                          "label": "South-West",
+                          "value": "SW"
+                        }
+                      ],
+                      "placeholder": "",
+                      "tooltip": "Region",
+                      "type": "select"
                     }
                   ]
                 }
@@ -272,13 +315,17 @@
               ],
               "help": "Some additional details about your persona"
             }
-          ]
+          ],
+          "triggers": {
+            "onClick": ["onClickSectionHeader", "FIRST"]
+          }
         },
         {
           "name": "section_second",
           "title": "Second section",
           "instruction": "Example of another section",
           "initially_collapsed": true,
+          "id": "id_section_second",
           "fieldsets": [
             {
               "title": "Motivation",
@@ -293,7 +340,7 @@
                       "tooltip": "Your personal motto",
                       "type": "input",
                       "validators": {
-                        "required": true
+                        "required": false
                       }
                     }
                   ],
@@ -301,7 +348,10 @@
                 }
               ]
             }
-          ]
+          ],
+          "triggers": {
+            "onClick": ["onClickSectionHeader", "SECOND"]
+          }
         }
       ],
       "submit_button": {
@@ -314,12 +364,12 @@
   {
     "form": {
       "title": "Form example",
-      "instruction": "<div class=\"instruction\">Please answer <b>all</b> questions to the best of your ability as part of our study.</div>\n\n<style>\n  .instruction {\n    font-style: italic;\n  }\n</style>\n",
+      "instruction": "<div class=\"instruction\">\n  Please answer <b>all</b> questions to the best of your ability as part of our\n  study.\n</div>\n\n<style>\n  .instruction {\n    font-style: italic;\n  }\n</style>\n",
       "sections": [
         {
           "name": "section_about",
           "title": "About you",
-          "instruction": "<p>Please introduce yourself. We would like to know more about your:</p>\n<ul>\n    <li>Background</li>\n    <li>Personal information</li>\n    <li>Etc</li>\n</ul>\n",
+          "instruction": "<ul>\n  <li>Background</li>\n  <li>Personal information</li>\n  <li>Etc</li>\n</ul>\n",
           "collapsable": false,
           "fieldsets": [
             {
@@ -407,6 +457,9 @@
                       ],
                       "placeholder": "",
                       "tooltip": "Country",
+                      "triggers": {
+                        "onChange": "onChangeCountry"
+                      },
                       "type": "select",
                       "validators": {
                         "required": true
@@ -446,6 +499,46 @@
                         "maxLength": 3
                       },
                       "value": ""
+                    }
+                  ]
+                },
+                {
+                  "fields": [
+                    {
+                      "classes": "hidden col-6",
+                      "help": "Select your region",
+                      "id": "id_region",
+                      "label": "Region",
+                      "name": "region",
+                      "options": [
+                        {
+                          "label": "---",
+                          "value": ""
+                        },
+                        {
+                          "label": "North-East",
+                          "value": "NE"
+                        },
+                        {
+                          "label": "North-West",
+                          "value": "NW"
+                        },
+                        {
+                          "label": "Mid-West",
+                          "value": "MW"
+                        },
+                        {
+                          "label": "South-East",
+                          "value": "SE"
+                        },
+                        {
+                          "label": "South-West",
+                          "value": "SW"
+                        }
+                      ],
+                      "placeholder": "",
+                      "tooltip": "Region",
+                      "type": "select"
                     }
                   ]
                 }
@@ -584,13 +677,17 @@
               ],
               "help": "Some additional details about your persona"
             }
-          ]
+          ],
+          "triggers": {
+            "onClick": ["onClickSectionHeader", "FIRST"]
+          }
         },
         {
           "name": "section_second",
           "title": "Second section",
           "instruction": "Example of another section",
           "initially_collapsed": true,
+          "id": "id_section_second",
           "fieldsets": [
             {
               "title": "Motivation",
@@ -605,7 +702,7 @@
                       "tooltip": "Your personal motto",
                       "type": "input",
                       "validators": {
-                        "required": true
+                        "required": false
                       }
                     }
                   ],
@@ -613,7 +710,10 @@
                 }
               ]
             }
-          ]
+          ],
+          "triggers": {
+            "onClick": ["onClickSectionHeader", "SECOND"]
+          }
         }
       ],
       "submit_button": {

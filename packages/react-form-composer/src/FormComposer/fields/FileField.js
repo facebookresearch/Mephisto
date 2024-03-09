@@ -11,17 +11,20 @@ import {
   FileType,
   VIDEO_TYPES_BY_EXT,
 } from "../constants";
+import { runCustomTrigger } from "../utils";
 import { checkFieldRequiredness } from "../validation/helpers";
 import { Errors } from "./Errors";
 
 function FileField({
   field,
+  formData,
   updateFormData,
   disabled,
   initialFormData,
   inReviewState,
   invalid,
   validationErrors,
+  customTriggers,
   onReviewFileButtonClick,
 }) {
   const [widgetValue, setWidgetValue] = React.useState("");
@@ -35,6 +38,30 @@ function FileField({
   const fileType = FILE_TYPE_BY_EXT[fileExt];
 
   // Methods
+  function _runCustomTrigger(triggerName) {
+    runCustomTrigger(
+      field.triggers,
+      triggerName,
+      customTriggers,
+      formData,
+      updateFormData,
+      field,
+      widgetValue
+    );
+  }
+
+  function onBlur(e) {
+    _runCustomTrigger("onBlur");
+  }
+
+  function onFocus(e) {
+    _runCustomTrigger("onFocus");
+  }
+
+  function onClick(e) {
+    _runCustomTrigger("onClick");
+  }
+
   function onChange(e, fieldName) {
     let fieldValue = null;
     const input = e.target;
@@ -54,7 +81,7 @@ function FileField({
         setFileUrl(URL.createObjectURL(file));
       });
 
-    updateFormData(e, fieldName, fieldValue);
+    updateFormData(fieldName, fieldValue, e);
   }
 
   function setDefaultWidgetValue() {
@@ -82,6 +109,10 @@ function FileField({
   React.useEffect(() => {
     setErrors(validationErrors);
   }, [validationErrors]);
+
+  React.useEffect(() => {
+    _runCustomTrigger("onChange");
+  }, [widgetValue]);
 
   return (
     // bootstrap classes:
@@ -113,6 +144,9 @@ function FileField({
           setInvalidField(false);
           setErrors([]);
         }}
+        onBlur={onBlur}
+        onFocus={onFocus}
+        onClick={onClick}
         disabled={disabled}
       />
 

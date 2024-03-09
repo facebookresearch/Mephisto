@@ -4,22 +4,27 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React from "react";
-import $ from "jquery";
 import "bootstrap";
 import "bootstrap-select";
+import $ from "jquery";
+import React from "react";
+import { runCustomTrigger } from "../utils";
 import { checkFieldRequiredness } from "../validation/helpers";
 import { Errors } from "./Errors";
 
 function SelectField({
   field,
+  formData,
   updateFormData,
   disabled,
   initialFormData,
   inReviewState,
   invalid,
   validationErrors,
+  customTriggers,
 }) {
+  const [widgetValue, setWidgetValue] = React.useState("");
+
   const initialValue = initialFormData
     ? initialFormData[field.name]
     : field.multiple
@@ -30,6 +35,18 @@ function SelectField({
   const [errors, setErrors] = React.useState([]);
 
   // Methods
+  function _runCustomTrigger(triggerName) {
+    runCustomTrigger(
+      field.triggers,
+      triggerName,
+      customTriggers,
+      formData,
+      updateFormData,
+      field,
+      widgetValue
+    );
+  }
+
   function onChange(e, fieldName) {
     let fieldValue = e.target.value;
     if (field.multiple) {
@@ -39,7 +56,20 @@ function SelectField({
       );
     }
 
-    updateFormData(e, fieldName, fieldValue);
+    setWidgetValue(fieldValue);
+    updateFormData(fieldName, fieldValue, e);
+  }
+
+  function onBlur(e) {
+    _runCustomTrigger("onBlur");
+  }
+
+  function onFocus(e) {
+    _runCustomTrigger("onFocus");
+  }
+
+  function onClick(e) {
+    _runCustomTrigger("onClick");
   }
 
   // Effects
@@ -69,6 +99,23 @@ function SelectField({
     setErrors(validationErrors);
   }, [validationErrors]);
 
+  React.useEffect(() => {
+    _runCustomTrigger("onChange");
+  }, [widgetValue]);
+
+  React.useEffect(() => {
+    // Refresh plugin after value was set to empty
+    const fieldValue = formData[field.name];
+    if (
+      fieldValue === "" ||
+      (Array.isArray(fieldValue) && fieldValue.length === 0)
+    ) {
+      $(`.selectpicker.select-${field.name}`)
+        .selectpicker("refresh")
+        .selectpicker("deselectAll");
+    }
+  }, [formData[field.name]]);
+
   return (
     // bootstrap classes:
     //  - form-control
@@ -94,6 +141,9 @@ function SelectField({
           setInvalidField(false);
           setErrors([]);
         }}
+        onBlur={onBlur}
+        onFocus={onFocus}
+        onClick={onClick}
         multiple={field.multiple}
         disabled={disabled}
         data-actions-box={field.multiple ? true : null}

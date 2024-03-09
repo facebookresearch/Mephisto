@@ -43,6 +43,7 @@ from mephisto.generators.form_composer.config_validation.token_sets_values_confi
     update_token_sets_values_config_with_premutated_data,
 )
 from mephisto.generators.form_composer.config_validation.utils import is_s3_url
+from mephisto.generators.form_composer.config_validation.utils import set_custom_triggers_js_env_var
 from mephisto.generators.form_composer.config_validation.utils import (
     set_custom_validators_js_env_var,
 )
@@ -470,6 +471,8 @@ def form_composer(task_data_config_only: bool = True):
 
     # Set env var for `custom_validators.js`
     set_custom_validators_js_env_var(app_data_path)
+    # Set env var for `custom_triggers.js`
+    set_custom_triggers_js_env_var(app_data_path)
 
     verify_form_composer_configs(
         task_data_config_path=task_data_config_path,

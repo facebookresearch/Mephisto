@@ -34,6 +34,7 @@ examples/form_composer_demo/preview/*_preview.html
 # Form Composer
 mephisto/generators/form_composer/data/*
 !mephisto/generators/form_composer/data/insertions/custom_validators.js
+!mephisto/generators/form_composer/data/insertions/custom_triggers.js
 mephisto/generators/form_composer/hydra_configs/conf/*.yaml
 !mephisto/generators/form_composer/hydra_configs/conf/default.yaml
 

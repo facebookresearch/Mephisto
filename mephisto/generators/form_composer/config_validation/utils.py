@@ -20,6 +20,12 @@ from botocore.exceptions import NoCredentialsError
 from rich import print
 
 from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    CUSTOM_TRIGGERS_JS_FILE_NAME,
+)
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    CUSTOM_TRIGGERS_JS_FILE_NAME_ENV_KEY,
+)
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
     CUSTOM_VALIDATORS_JS_FILE_NAME,
 )
 from mephisto.generators.form_composer.config_validation.config_validation_constants import (
@@ -88,13 +94,25 @@ def is_insertion_file(path: str, ext: str = "html") -> bool:
     return False
 
 
+def _set_file_env_var(data_path: str, file_name: str, env_var_name: str):
+    file_path = os.path.abspath(os.path.join(data_path, INSERTIONS_PATH_NAME, file_name))
+    file_exists = os.path.exists(file_path)
+    os.environ[env_var_name] = file_path if file_exists else ""
+
+
 def set_custom_validators_js_env_var(data_path: str):
-    custom_validators_js_file_path = os.path.abspath(
-        os.path.join(data_path, INSERTIONS_PATH_NAME, CUSTOM_VALIDATORS_JS_FILE_NAME)
+    _set_file_env_var(
+        data_path=data_path,
+        file_name=CUSTOM_VALIDATORS_JS_FILE_NAME,
+        env_var_name=CUSTOM_VALIDATORS_JS_FILE_NAME_ENV_KEY,
     )
-    custom_validators_js_file_exists = os.path.exists(custom_validators_js_file_path)
-    os.environ[CUSTOM_VALIDATORS_JS_FILE_NAME_ENV_KEY] = (
-        custom_validators_js_file_path if custom_validators_js_file_exists else ""
+
+
+def set_custom_triggers_js_env_var(data_path: str):
+    _set_file_env_var(
+        data_path=data_path,
+        file_name=CUSTOM_TRIGGERS_JS_FILE_NAME,
+        env_var_name=CUSTOM_TRIGGERS_JS_FILE_NAME_ENV_KEY,
     )
 
 

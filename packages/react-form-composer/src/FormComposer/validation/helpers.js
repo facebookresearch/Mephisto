@@ -20,7 +20,7 @@ export function checkFieldRequiredness(field) {
 
 /**
  * Validate Form-elements
- * @param {HTMLElement[]} formFieldsValues HTML elements
+ * @param {object} formFieldsValues Form state data
  * @param {object} fields FormComposer fields
  * @param {module} customValidators optional module with custom validation functions
  * @return {object} invalid FormComposer fields
