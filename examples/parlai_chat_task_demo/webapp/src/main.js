@@ -1,9 +1,7 @@
 /*
- * Copyright (c) 2017-present, Facebook, Inc.
- * All rights reserved.
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 import React from "react";
@@ -27,7 +25,7 @@ function RenderChatMessage({ message, mephistoContext, appContext, idx }) {
         }
         message={message.text}
         taskData={message.task_data}
-        messageId={message.message_id}
+        messageId={message.update_id}
       />
     </div>
   );
@@ -42,7 +40,7 @@ function MainApp() {
           mephistoContext={mephistoContext}
           appContext={appContext}
           idx={idx}
-          key={message.message_id + "-" + idx}
+          key={message.update_id + "-" + idx}
         />
       )}
       renderSidePane={({ mephistoContext: { taskConfig } }) => (

@@ -1,0 +1,37 @@
+{
+  "name": "root",
+  "private": true,
+  "devDependencies": {
+    "lerna": "^5.5.1"
+  },
+  "scripts": {
+    "bootstrap": "lerna bootstrap --hoist='{react,react-dom}'",
+    "sb": "yarn workspace sb storybook",
+    "docs": "yarn docs:start",
+    "docs:start": "yarn workspace web docusaurus start",
+    "docs:static": "pdoc mephisto --logo https://mephisto.ai/img/logo.svg -o docs/web/static/python_api/ -t docs/web/pdoc_src",
+    "docs:build": "yarn workspace web build",
+    "docs:serve": "yarn workspace web serve",
+    "build-all": "yarn workspaces foreach -ptAv run build"
+  },
+  "workspaces": [
+    "packages/mephisto-task",
+    "packages/mephisto-worker-addons",
+    "packages/bootstrap-chat",
+    "packages/global-context-store",
+    "docs/web"
+  ],
+  "packageManager": "yarn@3.2.4",
+  "resolutions": {
+    "@pmmmwh/react-refresh-webpack-plugin": "patch:@pmmmwh/react-refresh-webpack-plugin@0.4.3#yarn-patches/react-refresh-webpack-plugin.patch",
+    "react-dev-utils": "patch:react-dev-utils@11.0.4#yarn-patches/react-dev-utils.patch",
+    "global-context-store": "link:packages/global-context-store/",
+    "immer": "9.0.7",
+    "ansi-html": "https://registry.yarnpkg.com/ansi-html-community/-/ansi-html-community-0.0.8.tgz",
+    "ansi-regex": "5.0.1",
+    "nth-check": "2.0.1",
+    "glob-parent": "6.0.1",
+    "browserslist": "4.18.1",
+    "node-fetch": "2.6.7"
+  }
+}

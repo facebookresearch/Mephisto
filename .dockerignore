@@ -1,0 +1,14 @@
+**/node_modules
+**/.git
+**/.mypy_cache
+**/build/*
+data/*
+**/*.mp4
+
+mephisto/scripts/metrics/*
+!mephisto/scripts/metrics/resources
+!mephisto/scripts/metrics/install_*.sh
+!mephisto/scripts/metrics/README.md
+!mephisto/scripts/metrics/view_metrics.py
+!mephisto/scripts/metrics/shutdown_metrics.py
+

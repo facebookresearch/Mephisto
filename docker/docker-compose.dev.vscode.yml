@@ -1,0 +1,35 @@
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+version: "3"
+
+services:
+  mephisto_dc_vscode:
+    container_name: mephisto_dc_vscode
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8000"
+      - "3001:3000"
+      - "5678:5678"
+    volumes:
+      - ..:/mephisto
+      - ./entrypoints/server.sh:/entrypoint.sh
+      - ./aws_credentials:/root/.aws/credentials
+      - ./ssh_known_hosts:/root/.ssh/known_hosts
+    entrypoint: /entrypoint.sh
+    env_file: envs/env.local
+    command: [
+        "sh",
+        "-c",
+        "pip install debugpy -t /tmp
+        &&
+        python
+        /tmp/debugpy
+        --wait-for-client
+        --listen 0.0.0.0:5678
+        /mephisto/examples/simple_static_task/run_task.py
+        ",
+      ]

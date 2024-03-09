@@ -1,0 +1,55 @@
+name: Test docs deployment
+
+on:
+  pull_request:
+    paths:
+      - "docs/web/**"
+    branches:
+      - main
+    # Review gh actions docs if you want to further define triggers, paths, etc
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on
+
+jobs:
+  test-deploy:
+    name: Test docs deployment
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs/web
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16.16.0
+          cache: yarn
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: 🤖 Install Mephisto
+        run: |
+          cd ../../
+          curl -fsS -o get-poetry.py https://install.python-poetry.org
+          python3 get-poetry.py -y
+          echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+          poetry config virtualenvs.create false
+          poetry install
+
+      - name: 🖋 Create data directory
+        run: mkdir -p ~/mephisto/data
+
+      - name: 📂 Set the data directory
+        run: mephisto config core.main_data_directory ~/mephisto/data
+
+      - name: 📝 Auto Generate Blueprint Docs
+        run: |
+          cd ../../mephisto/scripts/local_db/gh_actions
+          python auto_generate_blueprint.py
+          python auto_generate_architect.py
+          python auto_generate_requester.py
+          python auto_generate_provider.py
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Test build website
+        run: yarn build

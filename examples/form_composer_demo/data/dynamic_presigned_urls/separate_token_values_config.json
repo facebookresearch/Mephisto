@@ -1,0 +1,8 @@
+{
+  "company_name": ["Mephisto"],
+  "file_location": [
+    "{{getMultiplePresignedUrls(\"https%3A//your-bucket.s3.amazonaws.com/your/folder/path/file1.jpg\")}}",
+    "{{getMultiplePresignedUrls(\"https%3A//your-bucket.s3.amazonaws.com/your/folder/path/file2.jpg\")}}"
+  ],
+  "since_age": [18]
+}

@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+
 # Until dependabot seems to be running, this script will automatically update any
 # dependencies that appear to be vulnerabilities across our javascript packages
 
@@ -21,7 +26,7 @@ do
   if [ $DRY_RUN = 1 ]; then
     (cd "$d" && echo "Checking directory $d" && npm audit)
   else
-    (cd "$d" && echo "Updating packages for directory $d" && npm install && npm audit fix && yarn install)
+    (cd "$d" && echo ">> Updating packages for directory $d" && npm i --package-lock-only && npm audit fix)
   fi
 done
 

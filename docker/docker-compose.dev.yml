@@ -1,0 +1,23 @@
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+version: "3"
+
+services:
+  mephisto_dc:
+    container_name: mephisto_dc
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8000"
+      - "3001:3000"
+    volumes:
+      - ..:/mephisto
+      - ./entrypoints/server.prolific.sh:/entrypoint.sh
+      - ./aws_credentials:/root/.aws/credentials
+      - ./ssh_known_hosts:/root/.ssh/known_hosts
+    entrypoint: /entrypoint.sh
+    env_file: envs/env.dev
+    command: tail -f /dev/null

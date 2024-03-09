@@ -1,0 +1,37 @@
+#@package _global_
+
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+defaults:
+  - /mephisto/blueprint: static_react_task
+  - /mephisto/architect: ec2
+  - /mephisto/provider: mturk_sandbox
+
+mephisto:
+  architect:
+    _architect_type: ec2
+    profile_name: mephisto-router-iam
+    subdomain: "0123"
+  blueprint:
+    data_json: ${task_dir}/data/dynamic/task_data.json
+    task_source: ${task_dir}/webapp/build/bundle.js
+    task_source_review: ${task_dir}/webapp/build/bundle.review.js
+    preview_source: ${task_dir}/preview/mturk_preview.html
+    link_task_source: false
+    extra_source_dir: ${task_dir}/webapp/src/static
+    units_per_assignment: 1
+  log_level: "debug"
+  task:
+    task_name: "Form Builder Sample"
+    task_title: "Dynamic form-based Tasks for Mturk"
+    task_description: "In this Task, we use dynamic FormComposer feature."
+    task_reward: 0.05
+    task_tags: "dynamic,form,testing"
+    assignment_duration_in_seconds: 3600
+    force_rebuild: true
+    max_num_concurrent_units: 1
+    maximum_units_per_worker: 2
+  provider:
+    requester_name: NoahTurkProject1030v2_sandbox

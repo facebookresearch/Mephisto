@@ -1,0 +1,23 @@
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+# python logging configuration for tasks
+version: 1
+formatters:
+  simple:
+    format: "[%(asctime)s][%(name)s][%(levelname)s] - %(message)s"
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: simple
+  file:
+    class: logging.FileHandler
+    formatter: simple
+    # absolute file path
+    filename: ${hydra.runtime.output_dir}/${hydra.job.name}.log
+root:
+  level: INFO
+  handlers: [console, file]
+
+disable_existing_loggers: false

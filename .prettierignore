@@ -1,2 +1,5 @@
 *.md
 **/build/*
+docs/web/static/python_api/*
+wrap_crowd_source.js
+packages/mephisto-worker-addons/lib

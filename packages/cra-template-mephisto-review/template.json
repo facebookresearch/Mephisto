@@ -1,0 +1,17 @@
+{
+  "package": {
+    "dependencies": {
+      "@blueprintjs/core": "^4.7.0",
+      "mephisto-review-hook": "^2.0.1",
+      "react-router-dom": "^5.2.0"
+    },
+    "scripts": {
+      "serve": "serve -s build",
+      "build-and-serve": "npm run build && npm run serve"
+    },
+    "eslintConfig": {
+      "extends": ["react-app", "plugin:jsx-a11y/recommended"],
+      "plugins": ["jsx-a11y"]
+    }
+  }
+}

@@ -1,15 +1,17 @@
 /*
- * Copyright (c) 2017-present, Facebook, Inc.
- * All rights reserved.
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 import React from "react";
 import ReactDOM from "react-dom";
-import { BaseFrontend, LoadingScreen } from "./components/core_components.jsx";
-import { useMephistoTask } from "mephisto-task";
+import {
+  BaseFrontend,
+  OnboardingComponent,
+  LoadingScreen,
+} from "./components/core_components.jsx";
+import { useMephistoTask, ErrorBoundary } from "mephisto-task";
 
 /* ================= Application Components ================= */
 
@@ -21,6 +23,7 @@ function MainApp() {
     isLoading,
     initialTaskData,
     handleSubmit,
+    handleFatalError,
     isOnboarding,
   } = useMephistoTask();
 
@@ -32,9 +35,6 @@ function MainApp() {
         </div>
       </section>
     );
-  }
-  if (isLoading) {
-    return <LoadingScreen />;
   }
   if (isPreview) {
     return (
@@ -50,14 +50,23 @@ function MainApp() {
       </section>
     );
   }
+  if (isLoading || !initialTaskData) {
+    return <LoadingScreen />;
+  }
+  if (isOnboarding) {
+    return <OnboardingComponent onSubmit={handleSubmit} />;
+  }
 
   return (
     <div>
-      <BaseFrontend
-        taskData={initialTaskData}
-        onSubmit={handleSubmit}
-        isOnboarding={isOnboarding}
-      />
+      <ErrorBoundary handleError={handleFatalError}>
+        <BaseFrontend
+          taskData={initialTaskData}
+          onSubmit={handleSubmit}
+          isOnboarding={isOnboarding}
+          onError={handleFatalError}
+        />
+      </ErrorBoundary>
     </div>
   );
 }

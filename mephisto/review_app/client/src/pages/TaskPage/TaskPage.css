@@ -1,0 +1,133 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/* Buttons  */
+.task .review-board {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  padding: 10px 20px;
+  background-color: #ecdadf;
+  display: flex;
+}
+
+.task .review-board .left-side {
+  flex: 0 50%;
+}
+
+.task .review-board .left-side .review-controls {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.task .review-board .right-side {
+  flex: 0 50%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.task .review-board .right-side .info {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.task .review-board .right-side .info .grey {
+  color: #999;
+}
+
+.task .review-board .right-side .info .black {
+  color: black;
+}
+
+/* Content */
+.task .content {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.task .content pre {
+  white-space: normal;
+}
+
+.task .content .unit-preview-container {
+  position: relative;
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+  cursor: default;
+}
+
+.task .content .results {
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  padding: 10px 30px;
+  border-radius: 5px;
+}
+
+.task .content .results:hover {
+  background-color: #eeeeee;
+}
+
+.task .content .results .results-header {
+  cursor: pointer;
+}
+
+.task .content .results .results-icon {
+  display: inline-block;
+  margin-left: 10px;
+  font-style: normal;
+  font-size: 40px;
+  line-height: 0.5;
+}
+
+.task .content .results .results-closed {
+  display: none;
+}
+
+.task .content .results .results-table {
+  max-width: 1000px;
+}
+
+.task .content .results .results-table th,
+.task .content .results .results-table td {
+  max-width: 1000px;
+  background-color: #f5f5f5;
+}
+
+.task .content .results .results-table .results-row .current-annotation,
+.task .content .results .results-table .results-row .is-correct {
+  width: 185px;
+  max-width: 185px;
+  text-align: center;
+}
+
+.task .loading {
+  width: 100%;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.unit-preview-iframe {
+  width: 100%;
+}
+
+.json-pretty .__json-pretty__ {
+  white-space: pre !important;
+  border-top: 1px solid #cccccc;
+  padding-top: 15px;
+}
+
+.json-pretty .__json-pretty__ .__json-key__ {
+  font-weight: bold;
+}

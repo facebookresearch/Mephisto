@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -11,16 +11,22 @@ import tempfile
 from typing import List, Iterable
 import time
 
-from mephisto.data_model.test.utils import get_test_task_run
-from mephisto.core.local_database import LocalMephistoDB
-from mephisto.core.task_launcher import TaskLauncher
+from mephisto.utils.testing import get_test_task_run
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
+from mephisto.operations.task_launcher import TaskLauncher
 from mephisto.data_model.assignment import InitializationData
-from mephisto.data_model.assignment_state import AssignmentState
-from mephisto.data_model.task import TaskRun
+from mephisto.data_model.constants.assignment_state import AssignmentState
+from mephisto.data_model.task_run import TaskRun
 
-from mephisto.providers.mock.mock_provider import MockProvider
-from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
-from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
+from mephisto.abstractions.providers.mock.mock_provider import MockProvider
+from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprint
+from mephisto.abstractions.blueprints.mock.mock_task_runner import MockTaskRunner
+
+from typing import Type, ClassVar, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mephisto.abstractions.database import MephistoDB
 
 MAX_WAIT_TIME_UNIT_LAUNCH = 15
 NUM_GENERATED_ASSIGNMENTS = 10
@@ -40,17 +46,20 @@ class LimitedDict(dict):
         super().__setitem__(key, value)
 
 
-class TestTaskLauncher(unittest.TestCase):
+class BaseTestTaskLauncher:
     """
     Unit testing for the Mephisto TaskLauncher
     """
 
+    DB_CLASS: ClassVar[Type["MephistoDB"]]
+
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()
         database_path = os.path.join(self.data_dir, "mephisto.db")
-        self.db = LocalMephistoDB(database_path)
+        assert self.DB_CLASS is not None, "Did not specify db to use"
+        self.db = self.DB_CLASS(database_path)
         self.task_run_id = get_test_task_run(self.db)
-        self.task_run = TaskRun(self.db, self.task_run_id)
+        self.task_run = TaskRun.get(self.db, self.task_run_id)
 
     def tearDown(self):
         self.db.shutdown()
@@ -68,9 +77,7 @@ class TestTaskLauncher(unittest.TestCase):
 
     def test_init_on_task_run(self):
         """Initialize a launcher on a task_run"""
-        launcher = TaskLauncher(
-            self.db, self.task_run, self.get_mock_assignment_data_array()
-        )
+        launcher = TaskLauncher(self.db, self.task_run, self.get_mock_assignment_data_array())
         self.assertEqual(self.db, launcher.db)
         self.assertEqual(self.task_run, launcher.task_run)
         self.assertEqual(len(launcher.assignments), 0)
@@ -130,9 +137,7 @@ class TestTaskLauncher(unittest.TestCase):
             launcher.launch_units("dummy-url:3000")
 
             start_time = time.time()
-            while set([u.get_status() for u in launcher.units]) != {
-                AssignmentState.COMPLETED
-            }:
+            while set([u.get_status() for u in launcher.units]) != {AssignmentState.COMPLETED}:
                 for unit in launcher.units:
                     if unit.get_status() == AssignmentState.LAUNCHED:
                         unit.set_db_status(AssignmentState.COMPLETED)
@@ -156,6 +161,14 @@ class TestTaskLauncher(unittest.TestCase):
             end_time - start_time,
             (NUM_GENERATED_ASSIGNMENTS * WAIT_TIME_TILL_NEXT_ASSIGNMENT) / 2,
         )
+
+
+class TestTaskLauncherLocal(BaseTestTaskLauncher, unittest.TestCase):
+    DB_CLASS = LocalMephistoDB
+
+
+class TestTaskLauncherSingleton(BaseTestTaskLauncher, unittest.TestCase):
+    DB_CLASS = MephistoSingletonDB
 
 
 if __name__ == "__main__":

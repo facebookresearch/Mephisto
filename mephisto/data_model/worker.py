@@ -1,26 +1,35 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from mephisto.data_model.blueprint import AgentState
-from typing import Any, List, Optional, Mapping, Tuple, Dict, Type, Tuple, TYPE_CHECKING
-from mephisto.core.logger_core import get_logger
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Mapping
+from typing import Optional
+from typing import Tuple
+from typing import Type
+from typing import TYPE_CHECKING
 
-logger = get_logger(name=__name__, verbose=True, level="info")
+from mephisto.abstractions.blueprint import AgentState
+from mephisto.data_model._db_backed_meta import MephistoDataModelComponentMixin
+from mephisto.data_model._db_backed_meta import MephistoDBBackedABCMeta
+from mephisto.utils.logger_core import get_logger
+
+logger = get_logger(name=__name__)
 
 
 if TYPE_CHECKING:
-    from mephisto.data_model.database import MephistoDB
+    from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.agent import Agent
-    from mephisto.data_model.assignment import Unit
+    from mephisto.data_model.unit import Unit
     from mephisto.data_model.requester import Requester
-    from mephisto.data_model.task import TaskRun
+    from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.qualification import GrantedQualification
-    from argparse import _ArgumentGroup as ArgumentGroup
 
 
 @dataclass
@@ -37,14 +46,23 @@ class WorkerArgs:
     )
 
 
-class Worker(ABC):
+class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
     """
     This class represents an individual - namely a person. It maintains components of ongoing identity for a user.
     """
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            raise AssertionError(
+                "Direct Worker and data model access via ...Worker(db, id) is "
+                "now deprecated in favor of calling Worker.get(db, id). "
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_worker(db_id)
@@ -52,10 +70,14 @@ class Worker(ABC):
         self.db_id: str = row["worker_id"]
         self.provider_type = row["provider_type"]
         self.worker_name = row["worker_name"]
-        # TODO(#101) Do we want any other attributes here?
+        # TODO(#568) Do we want any other attributes here?
 
     def __new__(
-        cls, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        cls,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ) -> "Worker":
         """
         The new method is overridden to be able to automatically generate
@@ -64,7 +86,7 @@ class Worker(ABC):
         as you will instead be returned the correct Worker class according to
         the crowdprovider associated with this Worker.
         """
-        from mephisto.core.registry import get_crowd_provider_from_type
+        from mephisto.operations.registry import get_crowd_provider_from_type
 
         if cls == Worker:
             # We are trying to construct a Worker, find what type to use and
@@ -80,7 +102,7 @@ class Worker(ABC):
             # We are constructing another instance directly
             return super().__new__(cls)
 
-    # TODO(#101) make getters for helpful worker statistics
+    # TODO(#568) make getters for helpful worker statistics
 
     def get_agents(self, status: Optional[str] = None) -> List["Agent"]:
         """
@@ -91,19 +113,17 @@ class Worker(ABC):
         return self.db.find_agents(worker_id=self.db_id, status=status)
 
     @staticmethod
-    def _register_worker(
-        db: "MephistoDB", worker_name: str, provider_type: str
-    ) -> "Worker":
+    def _register_worker(db: "MephistoDB", worker_name: str, provider_type: str) -> "Worker":
         """
         Create an entry for this worker in the database
         """
         db_id = db.new_worker(worker_name, provider_type)
-        return Worker(db, db_id)
+        worker = Worker.get(db, db_id)
+        logger.debug(f"Registered new worker {worker}")
+        return worker
 
     @classmethod
-    def new_from_provider_data(
-        cls, db: "MephistoDB", creation_data: Dict[str, Any]
-    ) -> "Worker":
+    def new_from_provider_data(cls, db: "MephistoDB", creation_data: Dict[str, Any]) -> "Worker":
         """
         Given the parameters passed through wrap_crowd_source.js, construct
         a new worker
@@ -162,6 +182,7 @@ class Worker(ABC):
         if granted_qualification is None:
             return False
 
+        logger.debug(f"Revoking qualification {qualification_name} from worker {self}.")
         self.db.revoke_qualification(granted_qualification.qualification_id, self.db_id)
         try:
             self.revoke_crowd_qualification(qualification_name)
@@ -174,9 +195,7 @@ class Worker(ABC):
             return False
         return True
 
-    def grant_qualification(
-        self, qualification_name: str, value: int = 1, skip_crowd=False
-    ):
+    def grant_qualification(self, qualification_name: str, value: int = 1, skip_crowd=False):
         """
         Grant a positive or negative qualification to this worker
 
@@ -185,9 +204,9 @@ class Worker(ABC):
         """
         found_qualifications = self.db.find_qualifications(qualification_name)
         if len(found_qualifications) == 0:
-            raise Exception(
-                f"No qualification by the name {qualification_name} found in the db"
-            )
+            raise Exception(f"No qualification by the name {qualification_name} found in the db")
+
+        logger.debug(f"Granting worker {self} qualification {qualification_name}: {value}")
         qualification = found_qualifications[0]
         self.db.grant_qualification(qualification.db_id, self.db_id, value=value)
         if not skip_crowd:
@@ -201,11 +220,12 @@ class Worker(ABC):
                 )
                 return False
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.db_id})"
+
     # Children classes can implement the following methods
 
-    def grant_crowd_qualification(
-        self, qualification_name: str, value: int = 1
-    ) -> None:
+    def grant_crowd_qualification(self, qualification_name: str, value: int = 1) -> None:
         """
         Grant a qualification by the given name to this worker
 
@@ -255,6 +275,10 @@ class Worker(ABC):
     def register(self, args: Optional[Dict[str, str]] = None) -> None:
         """Register this worker with the crowdprovider, if necessary"""
         pass
+
+    def send_feedback_message(self, text: str, unit: "Unit") -> bool:
+        """Send feedback message to a worker"""
+        raise NotImplementedError()
 
     @staticmethod
     def new(db: "MephistoDB", worker_name: str) -> "Worker":

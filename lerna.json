@@ -1,0 +1,11 @@
+{
+  "packages": ["packages/*", "docs/storybook"],
+  "version": "independent",
+  "npmClient": "yarn",
+  "useWorkspaces": true,
+  "command": {
+    "bootstrap": {
+      "npmClientArgs": ["--legacy-peer-deps", "--no-package-lock"]
+    }
+  }
+}

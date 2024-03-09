@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms and its affiliates.
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -21,9 +21,11 @@ module.exports = {
     "react-dom": "react-dom",
     "mephisto-task": "mephisto-task",
   },
-  node: {
-    net: "empty",
-    dns: "empty",
+  resolve: {
+    fallback: {
+      net: false,
+      dns: false,
+    },
   },
   module: {
     rules: [
@@ -35,11 +37,18 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        loader: "style-loader!css-loader",
+        use: ["style-loader", "css-loader"],
       },
       {
         test: /\.(svg|png|jpe?g|ttf)$/,
-        loader: "url-loader?limit=100000",
+        use: [
+          {
+            loader: "url-loader",
+            options: {
+              limit: 100000,
+            },
+          },
+        ],
       },
       {
         test: /\.jpg$/,

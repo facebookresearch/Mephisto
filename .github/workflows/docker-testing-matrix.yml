@@ -1,0 +1,47 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Docker Testing Matrix
+
+# Controls when the action will run.
+on:
+  schedule:
+    # Run once a week, in this case on Sundays
+    - cron: "0 0 * * 0"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  check:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false # Run all combos, don't skip on failures
+      matrix:
+        # from: https://hub.docker.com/r/nikolaik/python-nodejs
+        python-version: ["3.9", "3.8", "3.9", "3.10", "3.11", "latest"]
+        nodejs-version: ["15", "14", "12", "10"]
+        image-suffix: ["", "-slim"]
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Build docker image - python${{ matrix.python-version }}-nodejs${{ matrix.nodejs-version }}${{ matrix.image-suffix }}
+        run: docker build -t mephisto --build-arg BASE_TAG=python${{ matrix.python-version }}-nodejs${{ matrix.nodejs-version }}${{ matrix.image-suffix }} .
+
+      - name: Print out version numbers
+        run: docker run mephisto bash -c 'python --version && node --version && npm --version'
+
+      # Runs a set of commands using the runners shell
+      - name: Check that Mephisto was installed correctly
+        run: |
+          docker run mephisto
+
+      - name: Run npm install for static_html_task
+        run: |
+          docker run mephisto bash -c 'cd /mephisto/mephisto/abstractions/blueprints/static_html_task/source && npm install'

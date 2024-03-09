@@ -1,0 +1,65 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.task-header {
+  max-width: 100%;
+  margin: 0;
+  background-color: rgba(236, 218, 223, 0.3);
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+}
+
+.task-header .logo {
+  display: flex;
+  align-items: center;
+  min-height: 120px;
+  padding-left: 20px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+}
+
+.task-header .logo:hover {
+  opacity: 0.7;
+}
+
+.task-header .logo img {
+  max-width: 100%;
+}
+
+.task-header .table tr {
+  border: transparent;
+}
+
+.task-header .table tr.total td {
+  color: #aaaaaa;
+}
+
+.task-header .table tr th.center,
+.task-header .table tr td.center {
+  text-align: center;
+}
+
+.task-header .table th,
+.task-header .table td {
+  background: transparent;
+  line-height: 0.8;
+}
+
+.task-header .table td .percentage {
+  font-size: 85%;
+}
+
+.task-header .table tr td:nth-child(1) {
+  border-right: 1px solid grey;
+}
+
+.task-header .table .title b {
+  display: inline-block;
+  line-height: 2;
+  border-bottom: 1px solid grey;
+}

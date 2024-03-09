@@ -1,0 +1,47 @@
+#@package _global_
+
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+defaults:
+  - /mephisto/blueprint: static_task
+  - /mephisto/architect: ec2
+  - /mephisto/provider: prolific
+mephisto:
+  architect:
+    _architect_type: ec2
+    profile_name: mephisto-router-iam
+    subdomain: "0802.1"
+  blueprint:
+    data_csv: ${task_dir}/data/data_prolific.csv
+    task_source: ${task_dir}/server_files/demo_task.html
+    preview_source: ${task_dir}/server_files/demo_preview.html
+    extra_source_dir: ${task_dir}/server_files/extra_refs
+    units_per_assignment: 2
+  log_level: "debug"
+  task:
+    task_name: "0802"
+    task_title: "0802 Task"
+    task_description: "This is a simple test of static Prolific tasks."
+    task_reward: 70
+    task_tags: "static,task,testing"
+    max_num_concurrent_units: 1
+  provider:
+    prolific_external_study_url: "https://example.com?participant_id={{%PROLIFIC_PID%}}&study_id={{%STUDY_ID%}}&submission_id={{%SESSION_ID%}}"
+    prolific_id_option: "url_parameters"
+    prolific_workspace_name: "My Workspace"
+    prolific_project_name: "Project"
+    prolific_allow_list_group_name: "Allow list"
+    prolific_block_list_group_name: "Block list"
+    prolific_eligibility_requirements:
+      - name: "CustomWhitelistEligibilityRequirement"
+        white_list:
+          - 6463d32f50a18041930b71be
+          - 6463d3922d7d99360896228f
+          - 6463d40e8d5d2f0cce2b3b23
+          - 6463d44ed1b61a8fb4e0765a
+          - 6463d488c2f2821eaa2fa13f
+      - name: "ApprovalRateEligibilityRequirement"
+        minimum_approval_rate: 1
+        maximum_approval_rate: 100

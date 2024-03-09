@@ -1,236 +1,74 @@
-## API specifications
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
 
-All of the endpoints below are **`GET`** unless specified otherwise.
+TODO: [form-builder-app] Complete this reamde with details about each command
 
-These specs are to be implemented in `mephisto/client/api.py`.
+## Commands
 
-Key: `💚 - Data Complete / 💛 - Data Mocked / 💜 - Consumed by UI / 🖤 - Not consumed by UI`
-
-#### WIP Endpoints / Backlog
-
-- Endpoints for actions to modify the review state of a Unit
-- Endpoint for getting the URL of a task and it's data to show
-- Make error reponse format more consistent across all endpoints / types of errors. Some stuff from the wild:
-  - https://stripe.com/docs/api/errors
-  - https://cloud.google.com/apis/design/errors#http_mapping
-
----
-## 🕵️‍♀️ Requesters
-
-#### `/requesters`
-💚💜 *Shows a list of all the requesters that are available on the local system*
-
-Sample response:
-```
-{
-  "requesters": [
-    {
-      "provider_type": "mturk",
-      "registered": false,
-      "requester_id": "1",
-      "requester_name": "Bob"
-    },
-    {
-      "provider_type": "mturk",
-      "registered": true,
-      "requester_id": "2",
-      "requester_name": "sally"
-    }
-  ]
-}
-```
-
-#### `/requester/<type>`
-
-💚💜 *Provides information on what params to provide if you'd like to set up a requester.*
-
-Sample response:
-```
-[
-  {
-    "args": {
-      "access_key_id": {
-        "choices": null,
-        "default": null,
-        "dest": "access_key_id",
-        "help": "IAM Access Key ID",
-        "option_string": "--access-key-id",
-        "type": "str"
-      },
-      // ...
-    },
-    "desc": "\n            MTurkRequester: AWS are required to create a new Requester.\n            Please create an IAM user with programmatic access and\n            AmazonMechanicalTurkFullAccess policy at\n            'https://console.aws.amazon.com/iam/ (On the \"Set permissions\"\n            page, choose \"Attach existing policies directly\" and then select\n            \"AmazonMechanicalTurkFullAccess\" policy). After creating\n            the IAM user, you should get an Access Key ID\n            and Secret Access Key.\n        "
-  }
-]
-```
-
-#### `/<requester_name>/get_balance` - TODO: Change to `/requester/balance/<requester_name>`
-
-💚💜
-
-[Discussion] Instead of `balance` should we make the endpoint a bit more generic, e.g. `info` or `metadata` instead? [Yes] This is because perhaps not every requester may have the concept of having a budget, although most might.
-
-Sample response:
-```
-# Success:
-
-{ "balance": 3000 }
-
-# Error:
-
-{ message: "Could not find the requester" } # [501]
-```
-
-#### **`POST`** `/requester/<type>/register`
-
-💛🖤
-
-Sample response:
-```
-# Success:
-
-{
-  "success": true
-}
-
-# Error:
-
-{
-  "msg": "No name was specified for the requester.",
-  "success": false
-}
-```
-
----
-## 🚀 Launching
-
-#### `/launch/options`
-💛💜
-
-Sample response:
-```
-{
-  "blueprints": [
-    { "name": "Test Blueprint", "rank": 1 },
-    { "name": "Simple Q+A", "rank": 2 }
-  ],
-  "architects": ["Local", "Heroku"]
-}
-```
-
-#### `/blueprints/<blueprint_name>/arguments`
-💛💜
-
-Sample response:
-```
-{ 
-  "args": [
-    {
-      "name": "Task name",
-      "defaultValue": "Default Task Name",
-      "helpText": "This is what your task will be named."
-    }
-  ]
-}
-```
+- [Commands](#commands)
+  - [mephisto config](#mephisto-config)
+  - [mephisto check](#mephisto-check)
+  - [mephisto requesters](#mephisto-requesters)
+  - [mephisto register](#mephisto-register)
+  - [mephisto wut](#mephisto-wut)
+  - [mephisto scripts](#mephisto-scripts)
+  - [mephisto metrics](#mephisto-metrics)
+  - [mephisto review\_app](#mephisto-review_app)
+  - [mephisto form\_composer](#mephisto-form_composer)
 
 
-#### `/architects/<architect_name>/arguments`
-💛💜
+### mephisto config
 
-Sample response:
-```
-{
-  "args": [
-    {
-      "name": "Port number",
-      "defaultValue": 8888,
-      "helpText": "Your task will be run on this port."
-    }
-  ]
-}
-```
+Sets up a data directory to store results of your crowdsourcing tasks.
+For more details you can consult [Setup section in quickstart.md](docs/web/docs/guides/quickstart.md#setup).
 
-#### **`POST`** `/task_runs/launch`
-💛🖤
 
-Sample request:
-```
-{
-  "blueprint_name": "Test Blueprint",
-  "blueprint_args": [ { ... } ],
-  "architect": "Test Architect",
-  "architect_args": [ { ... } ],
-  "requester": <requester_id>
-}
-```
+### mephisto check
 
-Sample response:
-```
-# Success:
+Check that Mephisto is set up correctly.
+For more details you can consult [Setup section in quickstart.md](docs/web/docs/guides/quickstart.md#setup).
 
-{
-  "success": true
-}
 
-# Error:
+### mephisto requesters
 
-{
-  "success": false,
-  # TODO: How should the server provide validation feedback?
-}
-```
+Use the command to list registered requesters (Mock, Mturk, Prolific, etc.).
+For more details you can consult [Docs for Requesters](docs/web/docs/reference/requesters.md#requesters).
 
----
-## 📥 Review
 
-#### `/task_runs/running`
-💛🖤
+### mephisto register
 
-[Discussion] We need to confirm and communicate what exactly we mean by a "running" task. Based on prior discussions, my suspicion is that this categorization is a little difficult. Let's settle on a technical definition.
+Register a new requester within your current Mephisto instance (Mock, Mturk, Prolific, etc.).
+For more details you can consult [Docs for Requesters](docs/web/docs/reference/requesters.md#requesters) and
+[Setup section in quickstart.md](docs/web/docs/guides/quickstart.md#setup).
 
-Sample response:
-```
-{
-  live_task_count: 1,
-  task_count: 1,
-  task_runs: TaskRun[]
-}
 
-# For full example payload, see `task_runs__running` in mephisto/webapp/src/mocks.ts
-```
+### mephisto wut
 
-#### `/task_runs/reviewable`
-💛🖤
+Find more information about specific configuration arguments.
+For more details you can consult [First Task Tutorial](docs/web/docs/guides/tutorials/first_task.md#21-discovering-options-with-mephisto-wut).
 
-*Shows tasks with atleast 1 unit that is reviewable.*
 
-Sample response:
-```
-{
-  "total_reviewable": 8,
-  "task_runs": TaskRun[]
-}
-```
+### mephisto scripts
 
-#### `/task_runs/<task_id>/units`
-💛🖤
+Run a script from `mephisto/scripts` directory.
 
-Sample response:
-```
-{
-  "unit_id": <unit_id>,
-  "view_path": "https://google.com",
-  "data": {
-    "name": "me"
-  }
-}
-```
 
-#### **`POST`** `/task_runs/<task_id>/units/<unit_id>/accept`
-💛🖤
+### mephisto metrics
 
-[Discussion] Accept params here to allow giving a bonus?
+Extension to view task health metrics via dashboard using [Prometheus](https://prometheus.io/) and [Grafana](https://grafana.com/oss/grafana/).
+For more details you can consult [Docs for Metrics](docs/web/docs/guides/how_to_use/efficiency_organization/metrics_dashboarding.md).
 
-#### **`POST`** `/task_runs/<task_id>/units/<unit_id>/reject`
-💛🖤
+
+### mephisto review_app
+
+Run TaskReview app (a web application) to review your task results.
+The UI is fairly intuitive; for more details you can consult [README.md for TaskReview app](mephisto/review_app/README.md).
+
+
+### mephisto form_composer
+
+Compose and launch a simple form-based data collection task, based on your form configuration.
+For more details you can consult [Docs for Form Composer generator](mephisto/generators/form_composer/README.md).
