@@ -29,6 +29,7 @@ const useMephistoRemoteProcedureTask = function (props) {
   // mapping of request ID to the callback object
   const requestCallbacks = {};
   const [disconnectIssueText, setDisconnectIssueText] = React.useState();
+  const [connectedAgentId, setConnectedAgentId] = React.useState();
 
   // We register a ref so that the liveUpdate handler has access
   // to the current set of callbacks
@@ -70,9 +71,9 @@ const useMephistoRemoteProcedureTask = function (props) {
     connect,
     destroy,
     sendLiveUpdate,
+    agentId,
     ...otherMephistoProps
   } = mephistoProps;
-  let { agentId } = mephistoProps;
 
   // They're still exposed in a separate manner though
   const _fullSocketProps = {
@@ -85,6 +86,7 @@ const useMephistoRemoteProcedureTask = function (props) {
     if (agentId) {
       console.log("connecting...");
       connect(agentId);
+      setConnectedAgentId(agentId);
     }
   }, [agentId]);
 
@@ -133,6 +135,7 @@ const useMephistoRemoteProcedureTask = function (props) {
 
   return {
     ...otherMephistoProps,
+    agentId: connectedAgentId, // only show connected agent Ids
     remoteProcedure,
     disconnectIssueText,
     _fullSocketProps,
