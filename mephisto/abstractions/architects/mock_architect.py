@@ -31,7 +31,7 @@ from mephisto.data_model.packet import (
 )
 from mephisto.operations.registry import register_mephisto_abstraction
 from mephisto.abstractions.architects.channels.websocket_channel import WebsocketChannel
-from typing import List, Dict, Any, Optional, TYPE_CHECKING, Callable
+from typing import List, Dict, Tuple, Optional, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
     from mephisto.abstractions._subcomponents.channel import Channel
@@ -93,14 +93,8 @@ class SocketHandler(WebSocketHandler):
                 attachment dict structure.
         """
         message = json.loads(message_text)
-        if message["packet_type"] == PACKET_TYPE_ALIVE:
-            self.app.last_alive_packet = message
-        elif message["packet_type"] == PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE:
-            self.app.actions_observed += 1
-        elif message["packet_type"] == PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE:
-            self.app.actions_observed += 1
-        elif message["packet_type"] != PACKET_TYPE_REQUEST_STATUSES:
-            self.app.last_packet = message
+        packet_type = message["packet_type"]
+        self.app.received_messages.append((packet_type, message))
 
     def check_origin(self, origin):
         return True
@@ -123,9 +117,9 @@ class MockServer(tornado.web.Application):
         self.subs = {}
         self.port = port
         self.running_instance = None
-        self.last_alive_packet: Optional[Dict[str, Any]] = None
-        self.actions_observed = 0
-        self.last_packet: Optional[Dict[str, Any]] = None
+        # Saving past server messages for debugging purposes
+        self.received_messages: List[Tuple[str, dict]] = []
+
         tornado_settings = {
             "autoescape": None,
             "debug": "/dbg/" in __file__,
@@ -262,6 +256,41 @@ class MockServer(tornado.web.Application):
 
         self.running_instance.add_callback(stop_and_free)
         self.__server_thread.join()
+
+    def get_messages_with_packet_types(self, packet_types: List[str]) -> Optional[List[dict]]:
+        """
+        Get chronologically sorted list of messages that have one of the provided `packet_types`
+        """
+        return [
+            message
+            for (packet_type, message) in self.received_messages or []
+            if packet_type in packet_types
+        ] or None
+
+    def get_last_message(self) -> Optional[dict]:
+        """Get the last received message among all Packet Types"""
+        received_messages = self.received_messages
+        return received_messages[-1][1] if received_messages else None
+
+    def get_last_message_among_packet_types(
+        self,
+        packet_types: Optional[List[str]] = None,
+        exclude_packet_types: Optional[List[str]] = None,
+    ) -> Optional[dict]:
+        """
+        Get the last received message with packet_type being one of the `packet_types`
+        """
+        for (packet_type, message) in reversed(self.received_messages or []):
+            if packet_types:
+                if packet_type in packet_types:
+                    return message
+            else:
+                if packet_type not in exclude_packet_types:
+                    return message
+        return None
+
+    def reset_received_messages(self):
+        self.received_messages = []
 
 
 @register_mephisto_abstraction()

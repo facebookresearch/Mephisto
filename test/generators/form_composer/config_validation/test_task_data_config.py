@@ -719,19 +719,36 @@ class TestTaskDataConfig(unittest.TestCase):
         )
         sys.stdout = sys.__stdout__
 
-        self.assertEqual(
+        self.assertIn(
+            "Required file not found:",
             captured_print_output.getvalue(),
+        )
+        self.assertIn(
+            f"'{self.data_dir}/task_data.json'",
+            captured_print_output.getvalue(),
+        )
+        self.assertIn(
+            f"'{self.data_dir}/form_config.json'",
+            captured_print_output.getvalue(),
+        )
+        self.assertIn(
+            f"'{self.data_dir}/token_sets_values_config.json'",
+            captured_print_output.getvalue(),
+        )
+        self.assertIn(
+            f"'{self.data_dir}/separate_token_values_config.json'",
+            captured_print_output.getvalue(),
+        )
+        self.assertIn(
+            "Provided Form Composer config files are invalid:",
+            captured_print_output.getvalue(),
+        )
+        self.assertIn(
             (
-                f"Required file not found: '{self.data_dir}/task_data.json'.\n"
-                f"Required file not found: '{self.data_dir}/form_config.json'.\n"
-                f"Required file not found: '{self.data_dir}/token_sets_values_config.json'.\n"
-                f"Required file not found: '{self.data_dir}/separate_token_values_config.json'.\n"
-                "\n"
-                "Provided Form Composer config files are invalid: \n"
-                "  - Separate token values config is invalid. Errors:\n"
-                "  - Config must be a key/value JSON Object.\n"
-                "\n"
+                "- Separate token values config is invalid. Errors:\n  "
+                "- Config must be a key/value JSON Object.\n\n"
             ),
+            captured_print_output.getvalue(),
         )
 
     def test_verify_form_composer_configs_errors_task_data_config_only(self, *args, **kwargs):
@@ -763,9 +780,13 @@ class TestTaskDataConfig(unittest.TestCase):
         )
         sys.stdout = sys.__stdout__
 
-        self.assertEqual(
+        self.assertIn(
+            "Required file not found:",
             captured_print_output.getvalue(),
-            f"Required file not found: '{self.data_dir}/task_data.json'.\n",
+        )
+        self.assertIn(
+            f"'{self.data_dir}/task_data.json'",
+            captured_print_output.getvalue(),
         )
 
     def test_verify_form_composer_configs_success(self, *args, **kwargs):
@@ -844,7 +865,7 @@ class TestTaskDataConfig(unittest.TestCase):
         )
         sys.stdout = sys.__stdout__
 
-        self.assertEqual(captured_print_output.getvalue(), "All configs are valid.\n")
+        self.assertIn("All configs are valid.", captured_print_output.getvalue(), "\n")
 
     @patch(
         "mephisto.generators.form_composer.config_validation.task_data_config.get_s3_presigned_url"

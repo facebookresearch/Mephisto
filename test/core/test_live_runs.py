@@ -5,48 +5,49 @@
 # LICENSE file in the root directory of this source tree.
 
 
-import unittest
-import shutil
+import asyncio
 import os
+import shutil
 import tempfile
 import time
-import asyncio
+import unittest
+from typing import Callable
+from typing import ClassVar
+from typing import List
+from typing import Type
+from typing import TYPE_CHECKING
 
-from typing import List, Callable
+from omegaconf import OmegaConf
 
+from mephisto.abstractions.architects.mock_architect import MockArchitect
+from mephisto.abstractions.architects.mock_architect import MockArchitectArgs
 from mephisto.abstractions.blueprint import AgentState
-from mephisto.abstractions.blueprints.mock.mock_task_runner import MockTaskRunner
-from mephisto.abstractions.databases.local_database import LocalMephistoDB
-from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
-from mephisto.operations.task_launcher import TaskLauncher, SCREENING_UNIT_INDEX
 from mephisto.abstractions.blueprints.mixins.screen_task_required import (
     ScreenTaskRequired,
 )
-from mephisto.utils.testing import get_test_task_run
-from mephisto.data_model.assignment import InitializationData
-from mephisto.data_model.worker import Worker
-from mephisto.data_model.task_run import TaskRun
-from mephisto.operations.datatypes import LiveTaskRun, LoopWrapper
-from mephisto.operations.client_io_handler import ClientIOHandler
-from mephisto.operations.worker_pool import WorkerPool
-
-from mephisto.abstractions.architects.mock_architect import (
-    MockArchitect,
-    MockArchitectArgs,
-)
-from mephisto.operations.hydra_config import MephistoConfig
+from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprint
+from mephisto.abstractions.blueprints.mock.mock_blueprint import MockSharedState
+from mephisto.abstractions.blueprints.mock.mock_task_runner import MockTaskRunner
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
 from mephisto.abstractions.providers.mock.mock_provider import (
     MockProvider,
-    MockProviderArgs,
 )
-from mephisto.abstractions.blueprints.mock.mock_blueprint import (
-    MockBlueprint,
-    MockBlueprintArgs,
-    MockSharedState,
-)
-from omegaconf import OmegaConf
-
-from typing import Type, ClassVar, TYPE_CHECKING
+from mephisto.data_model.assignment import InitializationData
+from mephisto.data_model.packet import PACKET_TYPE_ALIVE
+from mephisto.data_model.packet import PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE
+from mephisto.data_model.packet import PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE
+from mephisto.data_model.packet import PACKET_TYPE_REQUEST_STATUSES
+from mephisto.data_model.task_run import TaskRun
+from mephisto.data_model.worker import Worker
+from mephisto.operations.client_io_handler import ClientIOHandler
+from mephisto.operations.datatypes import LiveTaskRun
+from mephisto.operations.datatypes import LoopWrapper
+from mephisto.operations.hydra_config import MephistoConfig
+from mephisto.operations.task_launcher import SCREENING_UNIT_INDEX
+from mephisto.operations.task_launcher import TaskLauncher
+from mephisto.operations.worker_pool import WorkerPool
+from mephisto.utils.testing import get_test_task_run
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
@@ -104,6 +105,42 @@ class BaseTestLiveRuns:
             self.client_io.shutdown()
         self.db.shutdown()
         shutil.rmtree(self.data_dir, ignore_errors=True)
+
+    def _get_last_alive_message(self):
+        return self.architect.server.get_last_message_among_packet_types(
+            packet_types=[PACKET_TYPE_ALIVE],
+        )
+
+    def _get_last_message(self):
+        return self.architect.server.get_last_message_among_packet_types(
+            exclude_packet_types=[
+                PACKET_TYPE_ALIVE,
+                PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE,
+                PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE,
+                PACKET_TYPE_REQUEST_STATUSES,
+            ],
+        )
+
+    def _reset_observed_messages(self):
+        exclude_packet_types = [
+            PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE,
+            PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE,
+        ]
+        messages_without_observed = [
+            rm
+            for rm in self.architect.server.received_messages
+            if rm[0] not in exclude_packet_types
+        ]
+        self.architect.server.received_messages = messages_without_observed
+
+    def _get_observed_messages_number(self):
+        observed_messages = self.architect.server.get_messages_with_packet_types(
+            packet_types=[
+                PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE,
+                PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE,
+            ],
+        )
+        return len(observed_messages)
 
     def get_mock_run(self, blueprint, task_runner) -> LiveTaskRun:
         live_run = LiveTaskRun(
@@ -249,7 +286,7 @@ class BaseTestLiveRuns:
         task_runner = live_run.task_runner
         self.assert_server_subbed_in_time(self.architect.server)
         self.assertIsNotNone(
-            self.architect.server.last_alive_packet,
+            self._get_last_alive_message(),
             "No alive packet received by server",
         )
 
@@ -325,7 +362,7 @@ class BaseTestLiveRuns:
         self.assertTrue(
             self._run_loop_until(
                 live_run,
-                lambda: self.architect.server.actions_observed == 2,
+                lambda: self._get_observed_messages_number() == 2,
                 1,
             ),
             "Not all actions observed in time",
@@ -353,7 +390,7 @@ class BaseTestLiveRuns:
         task_runner = live_run.task_runner
         self.assert_server_subbed_in_time(self.architect.server)
         self.assertIsNotNone(
-            self.architect.server.last_alive_packet,
+            self._get_last_alive_message(),
             "No alive packet received by server",
         )
 
@@ -425,7 +462,7 @@ class BaseTestLiveRuns:
         self.assertTrue(
             self._run_loop_until(
                 live_run,
-                lambda: self.architect.server.actions_observed == 2,
+                lambda: self._get_observed_messages_number() == 2,
                 1,
             ),
             "Not all actions observed in time",
@@ -461,7 +498,7 @@ class BaseTestLiveRuns:
         task_runner = live_run.task_runner
         self.assert_server_subbed_in_time(self.architect.server)
         self.assertIsNotNone(
-            self.architect.server.last_alive_packet,
+            self._get_last_alive_message(),
             "No alive packet received by server",
         )
 
@@ -481,11 +518,11 @@ class BaseTestLiveRuns:
         onboard_agents = self.db.find_onboarding_agents()
         self.assertEqual(len(onboard_agents), 1, "Onboarding agent should have been created")
 
-        last_packet = self.architect.server.last_packet
+        last_packet = self._get_last_message()
         self.assertIsNotNone(last_packet)
         if not last_packet["data"].get("status") == "onboarding":
             self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
-        self.architect.server.last_packet = None
+        self._reset_observed_messages()
 
         # Submit onboarding from the agent
         onboard_data = {"should_pass": False}
@@ -524,7 +561,7 @@ class BaseTestLiveRuns:
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 0, "Agent should not be created yet, failed onboarding")
 
-        last_packet = self.architect.server.last_packet
+        last_packet = self._get_last_message()
         self.assertIsNotNone(last_packet)
         self.assertNotIn(
             "onboard_data",
@@ -532,7 +569,7 @@ class BaseTestLiveRuns:
             "Onboarding triggered for disqualified worker",
         )
         self.assertIsNone(last_packet["data"]["agent_id"], "worker assigned real agent id")
-        self.architect.server.last_packet = None
+        self._reset_observed_messages()
         self.db.revoke_qualification(qualification_id, worker_1.db_id)
 
         # Register an onboarding agent successfully
@@ -544,11 +581,11 @@ class BaseTestLiveRuns:
         onboard_agents = self.db.find_onboarding_agents()
         self.assertEqual(len(onboard_agents), 2, "Onboarding agent should have been created")
 
-        last_packet = self.architect.server.last_packet
+        last_packet = self._get_last_message()
         self.assertIsNotNone(last_packet)
         if not last_packet["data"].get("status") == "onboarding":
             self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
-        self.architect.server.last_packet = None
+        self._reset_observed_messages()
 
         # Submit onboarding from the agent
         onboard_data = {"should_pass": True}
@@ -584,7 +621,7 @@ class BaseTestLiveRuns:
         self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.await_channel_requests(live_run)
 
-        last_packet = self.architect.server.last_packet
+        last_packet = self._get_last_message()
         self.assertIsNotNone(last_packet)
         self.assertNotIn(
             "onboard_data",
@@ -639,7 +676,7 @@ class BaseTestLiveRuns:
         self.assertTrue(
             self._run_loop_until(
                 live_run,
-                lambda: self.architect.server.actions_observed == 2,
+                lambda: self._get_observed_messages_number() == 2,
                 1,
             ),
             "Not all actions observed in time",
@@ -675,7 +712,7 @@ class BaseTestLiveRuns:
         task_runner = live_run.task_runner
         self.assert_server_subbed_in_time(self.architect.server)
         self.assertIsNotNone(
-            self.architect.server.last_alive_packet,
+            self._get_last_alive_message(),
             "No alive packet received by server",
         )
 
@@ -694,7 +731,7 @@ class BaseTestLiveRuns:
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 0, "Agent should not be created yet, failed onboarding")
 
-        last_packet = self.architect.server.last_packet
+        last_packet = self._get_last_message()
         self.assertIsNotNone(last_packet)
         self.assertNotIn(
             "onboard_data",
@@ -702,7 +739,7 @@ class BaseTestLiveRuns:
             "Onboarding triggered for disqualified worker",
         )
         self.assertIsNone(last_packet["data"]["agent_id"], "worker assigned real agent id")
-        self.architect.server.last_packet = None
+        self._reset_observed_messages()
         self.db.revoke_qualification(qualification_id, worker_1.db_id)
 
         # Register an agent successfully
@@ -714,11 +751,11 @@ class BaseTestLiveRuns:
         onboard_agents = self.db.find_onboarding_agents()
         self.assertEqual(len(onboard_agents), 1, "Onboarding agent should have been created")
 
-        last_packet = self.architect.server.last_packet
+        last_packet = self._get_last_message()
         self.assertIsNotNone(last_packet)
         if not last_packet["data"].get("status") == "onboarding":
             self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
-        self.architect.server.last_packet = None
+        self._reset_observed_messages()
 
         # Submit onboarding from the agent
         onboard_data = {"should_pass": False}
@@ -754,7 +791,7 @@ class BaseTestLiveRuns:
         self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.await_channel_requests(live_run)
 
-        last_packet = self.architect.server.last_packet
+        last_packet = self._get_last_message()
         self.assertIsNotNone(last_packet)
         self.assertNotIn(
             "onboard_data",
@@ -783,11 +820,11 @@ class BaseTestLiveRuns:
         onboard_agents = self.db.find_onboarding_agents()
         self.assertEqual(len(onboard_agents), 2, "Onboarding agent should have been created")
         self._await_current_tasks(live_run, 2)
-        last_packet = self.architect.server.last_packet
+        last_packet = self._get_last_message()
         self.assertIsNotNone(last_packet)
         if not last_packet["data"].get("status") == "onboarding":
             self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
-        self.architect.server.last_packet = None
+        self._reset_observed_messages()
 
         # Submit onboarding from the agent
         onboard_data = {"should_pass": True}
@@ -850,7 +887,7 @@ class BaseTestLiveRuns:
         self.assertTrue(
             self._run_loop_until(
                 live_run,
-                lambda: self.architect.server.actions_observed == 2,
+                lambda: self._get_observed_messages_number() == 2,
                 1,
             ),
             "Not all actions observed in time",
@@ -910,7 +947,7 @@ class BaseTestLiveRuns:
         task_runner = live_run.task_runner
         self.assert_server_subbed_in_time(self.architect.server)
         self.assertIsNotNone(
-            self.architect.server.last_alive_packet,
+            self._get_last_alive_message(),
             "No alive packet received by server",
         )
 
