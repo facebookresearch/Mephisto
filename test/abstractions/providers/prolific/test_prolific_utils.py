@@ -17,6 +17,7 @@ from omegaconf import DictConfig
 
 from mephisto.abstractions.providers.prolific.api import constants
 from mephisto.abstractions.providers.prolific.api.data_models import BonusPayments
+from mephisto.abstractions.providers.prolific.api.data_models import Message
 from mephisto.abstractions.providers.prolific.api.data_models import Participant
 from mephisto.abstractions.providers.prolific.api.data_models import ParticipantGroup
 from mephisto.abstractions.providers.prolific.api.data_models import Project
@@ -1484,14 +1485,22 @@ class TestProlificUtils(unittest.TestCase):
         self.assertEqual(cm.exception.message, exception_message)
 
     @patch(f"{API_PATH}.messages.Messages.send")
-    def test_send_message_success(self, *args):
+    def test_send_message_success(self, mock_send, *args):
         study_id = "test"
         participant_id = "test2"
         text = "test3"
 
+        expected_value = Message(
+            body=text,
+            recipient_id=participant_id,
+            study_id=study_id,
+        )
+
+        mock_send.return_value = expected_value
+
         result = send_message(self.client, study_id, participant_id, text)
 
-        self.assertIsNone(result)
+        self.assertEqual(result, expected_value)
 
     @patch(f"{API_PATH}.messages.Messages.send")
     def test_send_message_exception(self, mock_send, *args):

@@ -191,7 +191,7 @@ class MockServer(tornado.web.Application):
                 "data": {
                     "request_id": agent_details,
                     "provider_data": {
-                        "worker_id": worker_name,
+                        "worker_name": worker_name,
                         "agent_registration_id": agent_details,
                     },
                 },
@@ -272,13 +272,21 @@ class MockServer(tornado.web.Application):
         received_messages = self.received_messages
         return received_messages[-1][1] if received_messages else None
 
-    def get_last_message_among_packet_types(self, packet_types: List[str]) -> Optional[dict]:
+    def get_last_message_among_packet_types(
+        self,
+        packet_types: Optional[List[str]] = None,
+        exclude_packet_types: Optional[List[str]] = None,
+    ) -> Optional[dict]:
         """
         Get the last received message with packet_type being one of the `packet_types`
         """
         for (packet_type, message) in reversed(self.received_messages or []):
-            if packet_type in packet_types:
-                return message
+            if packet_types:
+                if packet_type in packet_types:
+                    return message
+            else:
+                if packet_type not in exclude_packet_types:
+                    return message
         return None
 
     def reset_received_messages(self):

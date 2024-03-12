@@ -37,6 +37,7 @@ from mephisto.data_model.assignment import InitializationData
 from mephisto.data_model.packet import PACKET_TYPE_ALIVE
 from mephisto.data_model.packet import PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE
 from mephisto.data_model.packet import PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE
+from mephisto.data_model.packet import PACKET_TYPE_REQUEST_STATUSES
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.worker import Worker
 from mephisto.operations.client_io_handler import ClientIOHandler
@@ -112,11 +113,34 @@ class BaseTestLiveRuns:
 
     def _get_last_message(self):
         return self.architect.server.get_last_message_among_packet_types(
+            exclude_packet_types=[
+                PACKET_TYPE_ALIVE,
+                PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE,
+                PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE,
+                PACKET_TYPE_REQUEST_STATUSES,
+            ],
+        )
+
+    def _reset_observed_messages(self):
+        exclude_packet_types = [
+            PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE,
+            PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE,
+        ]
+        messages_without_observed = [
+            rm
+            for rm in self.architect.server.received_messages
+            if rm[0] not in exclude_packet_types
+        ]
+        self.architect.server.received_messages = messages_without_observed
+
+    def _get_observed_messages_number(self):
+        observed_messages = self.architect.server.get_messages_with_packet_types(
             packet_types=[
                 PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE,
                 PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE,
             ],
         )
+        return len(observed_messages)
 
     def get_mock_run(self, blueprint, task_runner) -> LiveTaskRun:
         live_run = LiveTaskRun(
@@ -338,7 +362,7 @@ class BaseTestLiveRuns:
         self.assertTrue(
             self._run_loop_until(
                 live_run,
-                lambda: self.architect.server.actions_observed == 2,
+                lambda: self._get_observed_messages_number() == 2,
                 1,
             ),
             "Not all actions observed in time",
@@ -438,7 +462,7 @@ class BaseTestLiveRuns:
         self.assertTrue(
             self._run_loop_until(
                 live_run,
-                lambda: self.architect.server.actions_observed == 2,
+                lambda: self._get_observed_messages_number() == 2,
                 1,
             ),
             "Not all actions observed in time",
@@ -498,7 +522,7 @@ class BaseTestLiveRuns:
         self.assertIsNotNone(last_packet)
         if not last_packet["data"].get("status") == "onboarding":
             self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
-        self.architect.server.reset_received_messages()
+        self._reset_observed_messages()
 
         # Submit onboarding from the agent
         onboard_data = {"should_pass": False}
@@ -545,7 +569,7 @@ class BaseTestLiveRuns:
             "Onboarding triggered for disqualified worker",
         )
         self.assertIsNone(last_packet["data"]["agent_id"], "worker assigned real agent id")
-        self.architect.server.reset_received_messages()
+        self._reset_observed_messages()
         self.db.revoke_qualification(qualification_id, worker_1.db_id)
 
         # Register an onboarding agent successfully
@@ -561,7 +585,7 @@ class BaseTestLiveRuns:
         self.assertIsNotNone(last_packet)
         if not last_packet["data"].get("status") == "onboarding":
             self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
-        self.architect.server.reset_received_messages()
+        self._reset_observed_messages()
 
         # Submit onboarding from the agent
         onboard_data = {"should_pass": True}
@@ -652,7 +676,7 @@ class BaseTestLiveRuns:
         self.assertTrue(
             self._run_loop_until(
                 live_run,
-                lambda: self.architect.server.actions_observed == 2,
+                lambda: self._get_observed_messages_number() == 2,
                 1,
             ),
             "Not all actions observed in time",
@@ -715,7 +739,7 @@ class BaseTestLiveRuns:
             "Onboarding triggered for disqualified worker",
         )
         self.assertIsNone(last_packet["data"]["agent_id"], "worker assigned real agent id")
-        self.architect.server.reset_received_messages()
+        self._reset_observed_messages()
         self.db.revoke_qualification(qualification_id, worker_1.db_id)
 
         # Register an agent successfully
@@ -731,7 +755,7 @@ class BaseTestLiveRuns:
         self.assertIsNotNone(last_packet)
         if not last_packet["data"].get("status") == "onboarding":
             self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
-        self.architect.server.reset_received_messages()
+        self._reset_observed_messages()
 
         # Submit onboarding from the agent
         onboard_data = {"should_pass": False}
@@ -800,7 +824,7 @@ class BaseTestLiveRuns:
         self.assertIsNotNone(last_packet)
         if not last_packet["data"].get("status") == "onboarding":
             self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
-        self.architect.server.reset_received_messages()
+        self._reset_observed_messages()
 
         # Submit onboarding from the agent
         onboard_data = {"should_pass": True}
@@ -863,7 +887,7 @@ class BaseTestLiveRuns:
         self.assertTrue(
             self._run_loop_until(
                 live_run,
-                lambda: self.architect.server.actions_observed == 2,
+                lambda: self._get_observed_messages_number() == 2,
                 1,
             ),
             "Not all actions observed in time",
