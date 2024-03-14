@@ -5,12 +5,20 @@
 # LICENSE file in the root directory of this source tree.
 
 import time
+from dataclasses import dataclass
+from dataclasses import fields
 from functools import partial
-from dataclasses import dataclass, fields
-from prometheus_client import Histogram, Gauge, Counter  # type: ignore
-from mephisto.data_model.worker import Worker
-from mephisto.data_model.agent import Agent, OnboardingAgent
-from mephisto.utils.qualifications import worker_is_qualified
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import TYPE_CHECKING
+from typing import Union
+
+from prometheus_client import Counter  # type: ignore
+from prometheus_client import Gauge
+from prometheus_client import Histogram
+
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.abstractions.blueprints.mixins.onboarding_required import (
     OnboardingRequired,
@@ -19,24 +27,20 @@ from mephisto.abstractions.blueprints.mixins.screen_task_required import (
     ScreenTaskRequired,
 )
 from mephisto.abstractions.blueprints.mixins.use_gold_unit import UseGoldUnit
-from mephisto.operations.task_launcher import (
-    SCREENING_UNIT_INDEX,
-    GOLD_UNIT_INDEX,
-)
-from mephisto.operations.datatypes import LiveTaskRun, WorkerFailureReasons
-from mephisto.operations.unit_scheduler import (
-    UnitScheduler,
-    FIFOUnitScheduler,
-    LIFOUnitScheduler,
-    RandomUnitScheduler,
-)
-
-from typing import Sequence, Dict, Union, Optional, List, Any, TYPE_CHECKING
+from mephisto.data_model.agent import Agent
+from mephisto.data_model.agent import OnboardingAgent
+from mephisto.data_model.worker import Worker
+from mephisto.operations.datatypes import LiveTaskRun
+from mephisto.operations.datatypes import WorkerFailureReasons
+from mephisto.operations.unit_prioritizer import FIFOUnitPrioritizer
+from mephisto.operations.unit_prioritizer import LIFOUnitPrioritizer
+from mephisto.operations.unit_prioritizer import RandomAssignmentUnitPrioritizer
+from mephisto.operations.unit_prioritizer import RandomUnitPrioritizer
+from mephisto.utils.qualifications import worker_is_qualified
 
 if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
     from mephisto.abstractions.database import MephistoDB
-    from mephisto.data_model.task_run import TaskRun
 
 from mephisto.utils.logger_core import get_logger
 
@@ -125,21 +129,19 @@ class WorkerPool:
         ), "Cannot associate more than one live run to a worker pool at a time"
         self._live_run = live_run
 
-        scheduling_strategy = live_run.task_run.args.task.unit_scheduling_strategy
-        prioritize_started_assignments = (
-            live_run.task_run.args.task.unit_scheduling_prioritize_started_assignments
-        )
+        unit_prioritizing_strategy = live_run.task_run.args.task.unit_prioritizing_strategy
 
-        scheduler_class = {
-            "FIFO": FIFOUnitScheduler,
-            "LIFO": LIFOUnitScheduler,
-            "Random": RandomUnitScheduler,
-        }.get(scheduling_strategy)
+        prioritizer_class = {
+            "FIFO": FIFOUnitPrioritizer,
+            "LIFO": LIFOUnitPrioritizer,
+            "Random": RandomUnitPrioritizer,
+            "RandomAssignment": RandomAssignmentUnitPrioritizer,
+        }.get(unit_prioritizing_strategy)
 
-        if not scheduler_class:
-            raise f"Unknown scheduling strategy '{scheduling_strategy}'"
+        if not prioritizer_class:
+            raise f"Unknown prioritizing strategy '{unit_prioritizing_strategy}'"
 
-        self.unit_scheduler = scheduler_class(live_run.task_run, prioritize_started_assignments)
+        self.unit_prioritizer = prioritizer_class(live_run.task_run)
 
     def get_live_run(self) -> "LiveTaskRun":
         """Get the associated live run for this worker pool, asserting it's set"""
@@ -206,20 +208,13 @@ class WorkerPool:
         units: List["Unit"],
     ):
         live_run = self.get_live_run()
-        task_run = live_run.task_run
         loop = live_run.loop_wrap.loop
         task_runner = live_run.task_runner
         crowd_provider = live_run.provider
 
         logger.debug(f"Worker {worker.db_id} is being assigned one of {len(units)} units.")
 
-        ## replace this block of code
-        # reserved_unit = None
-        # while len(units) > 0 and reserved_unit is None:
-        #    unit = units.pop(0)
-        #    reserved_unit = task_run.reserve_unit(unit)
-        ## block end
-        reserved_unit = self.unit_scheduler.reserve_unit(units)
+        reserved_unit = self.unit_prioritizer.reserve_unit(units)
 
         if reserved_unit is None:
             AGENT_DETAILS_COUNT.labels(response="no_available_units").inc()

@@ -97,24 +97,28 @@ def get_test_task_run(db: MephistoDB) -> str:
     return db.new_task_run(task_id, requester_id, json.dumps(init_params), "mock", "mock")
 
 
-def get_test_assignment(db: MephistoDB) -> str:
+def get_test_assignment(db: MephistoDB, task_run: Optional[TaskRun] = None) -> str:
     """Helper to create an assignment for tests"""
-    task_run_id = get_test_task_run(db)
-    task_run = TaskRun.get(db, task_run_id)
+    if not task_run:
+        task_run_id = get_test_task_run(db)
+        task_run = TaskRun.get(db, task_run_id)
+
     return db.new_assignment(
         task_run.task_id,
-        task_run_id,
+        task_run.db_id,
         task_run.requester_id,
         task_run.task_type,
         task_run.provider_type,
     )
 
 
-def get_test_unit(db: MephistoDB, unit_index=0) -> str:
+def get_test_unit(db: MephistoDB, unit_index=0, assignment: Optional[Assignment] = None) -> str:
     # Check creation and retrieval of a unit
-    assignment_id = get_test_assignment(db)
+    if not assignment:
+        assignment_id = get_test_assignment(db)
+        assignment = Assignment.get(db, assignment_id)
+
     pay_amount = 15.0
-    assignment = Assignment.get(db, assignment_id)
     return db.new_unit(
         assignment.task_id,
         assignment.task_run_id,

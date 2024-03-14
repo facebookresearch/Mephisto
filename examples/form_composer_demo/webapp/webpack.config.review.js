@@ -17,6 +17,10 @@ module.exports = {
     alias: {
       react: path.resolve("./node_modules/react"),
       // Use local library with code that can submit FormData
+      "mephisto-task-multipart": path.resolve(
+        __dirname,
+        "../../../packages/mephisto-task-multipart"
+      ),
       "react-form-composer": path.resolve(
         __dirname,
         "../../../packages/react-form-composer"
