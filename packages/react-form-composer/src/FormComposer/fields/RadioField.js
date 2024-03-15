@@ -8,6 +8,8 @@ import React from "react";
 import { runCustomTrigger } from "../utils";
 import { Errors } from "./Errors";
 
+const DEFAULT_VALUE = "";
+
 function RadioField({
   field,
   formData,
@@ -17,23 +19,20 @@ function RadioField({
   inReviewState,
   invalid,
   validationErrors,
+  formFields,
   customTriggers,
 }) {
-  const [lastCheckEvent, setLastCheckEvent] = React.useState(null);
-  const [widgetValue, setWidgetValue] = React.useState(null);
-
-  const initialValue = initialFormData ? initialFormData[field.name] : "";
+  const [value, setValue] = React.useState(DEFAULT_VALUE);
 
   const [invalidField, setInvalidField] = React.useState(false);
   const [errors, setErrors] = React.useState([]);
 
-  function updateFieldData(e, optionValue) {
-    setLastCheckEvent(e);
-    setWidgetValue(optionValue);
-  }
-
   // Methods
   function _runCustomTrigger(triggerName) {
+    if (inReviewState) {
+      return;
+    }
+
     runCustomTrigger(
       field.triggers,
       triggerName,
@@ -41,7 +40,8 @@ function RadioField({
       formData,
       updateFormData,
       field,
-      widgetValue
+      value,
+      formFields,
     );
   }
 
@@ -49,20 +49,12 @@ function RadioField({
     _runCustomTrigger("onClick");
   }
 
-  function setDefaultWidgetValue() {
-    field.options.map((option) => {
-      if (option.checked) {
-        setWidgetValue(option.value);
-      }
-    });
+  function onChange(e, optionValue) {
+    updateFormData(field.name, optionValue, e);
+    _runCustomTrigger("onChange");
   }
 
-  React.useEffect(() => {
-    if (!widgetValue) {
-      setDefaultWidgetValue();
-    }
-  }, []);
-
+  // --- Effects ---
   React.useEffect(() => {
     setInvalidField(invalid);
   }, [invalid]);
@@ -71,11 +63,10 @@ function RadioField({
     setErrors(validationErrors);
   }, [validationErrors]);
 
+  // Value in formData is updated
   React.useEffect(() => {
-    updateFormData(field.name, widgetValue, lastCheckEvent);
-
-    _runCustomTrigger("onChange");
-  }, [widgetValue]);
+    setValue(formData[field.name] || DEFAULT_VALUE);
+  }, [formData[field.name]]);
 
   return (
     // bootstrap classes:
@@ -85,11 +76,9 @@ function RadioField({
     //  - form-check-input
     //  - form-check-label
 
-    <div onClick={onClick}>
+    <div name={field.name} onClick={onClick}>
       {field.options.map((option, index) => {
-        const checked = initialFormData
-          ? initialValue === option.value
-          : widgetValue === option.value;
+        const checked = value === option.value;
 
         return (
           <div
@@ -101,7 +90,7 @@ function RadioField({
               ${invalidField ? "is-invalid" : ""}
             `}
             onClick={(e) => {
-              !disabled && updateFieldData(e, option.value);
+              !disabled && onChange(e, option.value);
               setInvalidField(false);
               setErrors([]);
             }}

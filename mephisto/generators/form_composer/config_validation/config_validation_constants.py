@@ -224,6 +224,10 @@ AVAILABLE_FIELD_ATTRS_BY_TYPE: Dict[str, AvailableAttrsType] = {
             "type": list,
             "required": True,
         },
+        "value": {
+            "type": dict,
+            "required": False,
+        },
     },
     "email": COMMON_AVAILABLE_FIELD_ATTRS,
     "file": COMMON_AVAILABLE_FIELD_ATTRS,
@@ -245,6 +249,10 @@ AVAILABLE_FIELD_ATTRS_BY_TYPE: Dict[str, AvailableAttrsType] = {
         "options": {
             "type": list,
             "required": True,
+        },
+        "value": {
+            "type": (str, list),
+            "required": False,
         },
     },
     "textarea": COMMON_AVAILABLE_FIELD_ATTRS,

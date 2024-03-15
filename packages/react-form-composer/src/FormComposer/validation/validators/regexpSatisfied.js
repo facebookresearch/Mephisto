@@ -4,6 +4,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { FieldType } from "../../constants";
 import {
   REGEXP_ERROR_MESSAGE_KEY,
   validationErrorMessagesByName,
@@ -18,7 +19,9 @@ import {
  * @return {string|null} error message or `null`
  */
 export default function regexpSatisfied(field, value, regexp, regexpFlags) {
-  if (["input", "textarea", "email"].includes(field.type)) {
+  if (
+    [FieldType.INPUT, FieldType.TEXTAREA, FieldType.EMAIL].includes(field.type)
+  ) {
     const _value = (value || "").trim();
 
     const _regexpParams = regexpFlags || "igm";

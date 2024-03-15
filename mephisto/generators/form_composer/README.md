@@ -144,6 +144,7 @@ A few tips if you wish to embed FormComposer in your custom application:
             ),
           },
         }
+        ```
 
 ---
 
@@ -352,13 +353,6 @@ After extrapolating attributes from `form_config.json` with token sets from `tok
 ---
 
 
-# Custom field handlers
-
-TBD
-
----
-
-
 # Form callbacks
 
 During rendering of a Task in the browser, we may send calls to the server-side for additional data. In Mephisto, API views servicing such requests are called "remote procedures".
@@ -501,6 +495,7 @@ export { phoneValidatorFunction } from "./phone_validator_code.js";
 
 You can define your own custom trigger for a specific form element as a Javascript function, and place it in a special file `insertions/custom_triggers.js` inside your form config directory.
 When a Task is rendered in the browser, your validator function (let's call it `myTrigger`) will be imported from this file.
+NOTE: triggers are called synchronously in the current implementation and your code inside trigger funtion must be synchronous too.
 
 In form config, the trigger function is associated with an element by adding this key-value pair under "triggers" attribute:
 ```json
@@ -576,6 +571,36 @@ export function onClickSectionHeader(
   ...
 }
 ```
+
+#### JS trigger helpers
+
+During development of your form config, you can use a few available helper functions.
+
+1. `validateFieldValue` - checks whether you're assigning a valid value to a field
+(in case you want to change them programmatically).
+
+    Example of use:
+    1. Add `react-form-composer` in webpack config
+
+    ```js
+    resolve: {
+      alias: {
+        ...
+        "react-form-composer": path.resolve(
+          __dirname,
+          "<relativePath>/packages/react-form-composer"
+        ),
+      },
+    }
+    ```
+    2. Add import
+    ```js
+    import { validateFieldValue } from "react-form-composer";
+    ```
+    3. Validate a value before assigning it to form field
+    ```js
+    const valueIsValid = validateFieldValue(formFields.languageRadioSelector, {"en": true, "fr": false}, true);
+    ```
 
 -----
 
@@ -692,6 +717,12 @@ While attributes values are limited to numbers and text, these fields (at any hi
 
 _Note that, due to limitations of JSON format, HTML content needs to be converted into a single long string of text._
 
+You can style fields with HTML-classes in `classes` attribute. You can use any bootstrap classes or our built-in classes:
+- `hidden` - if you need to hide element and show it later with custom triggerm, but you do not need it be a fully hidden field (`"type": "hidden"`)
+- `centered` - centered horizontally
+
+TBD: Other classes and styles insertions
+
 
 ---
 
@@ -699,12 +730,16 @@ _Note that, due to limitations of JSON format, HTML content needs to be converte
 
 `form` is a top-level config object with the following attributes:
 
+- `id` - Unique HTML id of the form, in case we need to refer to it from custom handlers code (String, Optional)
+- `classes` = Custom classes that you can use to restyle element or refer to it from custom handlers code (String, Optional)
 - `instruction` - HTML content describing this form; it is located before all contained sections (String, Optional)
 - `title` - HTML header of the form (String)
 - `submit_button` - Button to submit the whole form and thus finish a task (Object)
+    - `id` - Unique HTML id of the button, in case we need to refer to it from custom handlers code (String, Optional)
     - `instruction` - Text shown above the "Submit" button (String, Optional)
     - `text` - Label shown on the button (String)
     - `tooltip` - Browser tooltip shown on mouseover (String, Optional)
+    - `triggers` - Functions that are being called on available React-events (`onClick`, see [JS trigger insertion](#js-trigger-insertion))
 - `sections` - **List of containers** into which form content is divided, for convenience; each section has its own validation messages, and is collapsible (Array[Object])
 
 ---
@@ -713,12 +748,15 @@ _Note that, due to limitations of JSON format, HTML content needs to be converte
 
 Each item of `sections` list is an object with the following attributes:
 
+- `id` - Unique HTML id of the section, in case we need to refer to it from custom handlers code (String, Optional)
+- `classes` = Custom classes that you can use to restyle element or refer to it from custom handlers code (String, Optional)
 - `collapsable` - Whether the section will toggle when its title is clicked (Boolean, Optional, Default: true)
 - `initially_collapsed` - Whether the section display will initially be collapsed (Boolean, Optional, Default: false)
 - `instruction` - HTML content describing this section; it is located before all contained fieldsets (String, Optional)
 - `name` - Unique string that serves as object reference when using dynamic form config (String)
 - `title` - Header of the section (String)
 - `fieldsets` - **List of containers** into which form fields are grouped by meaning (Array[Object])
+- `triggers` - Functions that are being called on available React-events (`onClick` on header, see [JS trigger insertion](#js-trigger-insertion))
 
 ---
 
@@ -726,6 +764,8 @@ Each item of `sections` list is an object with the following attributes:
 
 Each item of `fieldsets` list is an object with the following attributes:
 
+- `id` - Unique HTML id of the fieldset, in case we need to refer to it from custom handlers code (String, Optional)
+- `classes` = Custom classes that you can use to restyle element or refer to it from custom handlers code (String, Optional)
 - `instruction` - HTML content describing this fieldset; it is located before all contained field rows (String, Optional)
 - `title` - Header of the section (String)
 - `rows` - **List of horizontal lines** into which section's form fields are organized (Array[Object])
@@ -736,6 +776,8 @@ Each item of `fieldsets` list is an object with the following attributes:
 
 Each item of `rows` list is an object with the following attributes:
 
+- `id` - Unique HTML id of the row, in case we need to refer to it from custom handlers code (String, Optional)
+- `classes` = Custom classes that you can use to restyle element or refer to it from custom handlers code (String, Optional)
 - `fields` - **List of fields** that will be lined up into one horizontal line
 
 ---
@@ -765,12 +807,25 @@ Here's example of a single field config:
 }
 ```
 
+######## `value` attribute
+
+The `value` attribute specifies initial value of a field, and has the following format:
+
+- String for `input`, `textarea`, `email`, `hidden`, `number`, `password`, `radio`, and `select` with `"multiple": false` field types
+    - For `radio` and `select` fields, it must be one of the input options' values
+- Object for `checkbox`
+    - The object should consist of all checkbox options with their Boolean value, e.g. `{"react": true, "python": true, "sql": false}`
+- Array<String> for `select` with `"multiple": true`
+    - All array items must be input options' values, e.g. `["python", "sql"]`
+
+
 ######## Attributes - all fields
 
 The most important attributes are: `label`, `name`, `type`, `validators`
 
 - `help` - HTML explanation of the field/fieldset displayed in small font below the field (String, Optional)
 - `id` - Unique HTML id of the field, in case we need to refer to it from custom handlers code (String, Optional)
+- `classes` = Custom classes that you can use to restyle element or refer to it from custom handlers code (String, Optional)
 - `label` - Field name displayed above the field (String)
 - `name` - Unique name under which this field's data will be sent to the server (String)
 - `placeholder` - Text faintly displayed in the field before user provides a value (String, Optional)
@@ -785,6 +840,7 @@ The most important attributes are: `label`, `name`, `type`, `validators`
         - (2-item Array[String, String]): a regexp string followed by matching flags (e.g. `["^[a-zA-Z0-9._-]+$", "ig"]`)
     - `fileExtension`: Ensure uploaded file has specified extension(s) (e.g. `["doc", "pdf"]`) (Array<String>)
 - `value` - Initial value of the field (String, Optional)
+- `triggers` - Functions that are being called on available React-events (`onClick`, `onChange`, `onBlur`, `onFocus`, see [JS trigger insertion](#js-trigger-insertion))
 
 
 ######## Attributes - file field

@@ -487,6 +487,15 @@ app.post("/submit_task", upload.any(), function (req, res) {
   }
   if (req.files) {
     extracted_data.files = req.files;
+
+    // Group files by fieldname to link them with fields
+    const filesByFields = {};
+    req.files.forEach((file) => {
+      const _file = {...file};
+      delete _file.fieldname;
+      filesByFields[file.fieldname] = _file;
+    });
+    extracted_data.filesByFields = filesByFields;
   }
   let submit_packet = {
     packet_type: PACKET_TYPE_SUBMIT_UNIT,

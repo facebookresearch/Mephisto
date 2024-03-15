@@ -4,6 +4,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { FieldType } from "../../constants";
 import {
   MIN_LENGTH_ERROR_MESSAGE_KEY,
   MIN_LENGTH_ITEMS_ERROR_MESSAGE_KEY,
@@ -24,12 +25,14 @@ export default function minLengthSatisfied(field, value, minLength) {
     MIN_LENGTH_ERROR_MESSAGE_KEY
   ](_minLength);
 
-  if (["input", "textarea", "email"].includes(field.type)) {
+  if (
+    [FieldType.INPUT, FieldType.TEXTAREA, FieldType.EMAIL].includes(field.type)
+  ) {
     const _value = (value || "").trim();
     valueLength = _value.length;
   }
 
-  if (field.type === "checkbox") {
+  if (field.type === FieldType.CHECKBOX) {
     const _value = value || {};
     valueLength = Object.entries(_value).filter(([k, v]) => v === true).length;
     errorMessage = validationErrorMessagesByName[
@@ -37,7 +40,7 @@ export default function minLengthSatisfied(field, value, minLength) {
     ](_minLength);
   }
 
-  if (field.type === "select" && field.multiple === true) {
+  if (field.type === FieldType.SELECT && field.multiple === true) {
     const _value = value || [];
     valueLength = _value.length;
     errorMessage = validationErrorMessagesByName[

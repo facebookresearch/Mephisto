@@ -8,6 +8,8 @@ import React from "react";
 import { runCustomTrigger } from "../utils";
 import { Errors } from "./Errors";
 
+const DEFAULT_VALUE = {};
+
 function CheckboxField({
   field,
   formData,
@@ -17,18 +19,20 @@ function CheckboxField({
   inReviewState,
   invalid,
   validationErrors,
+  formFields,
   customTriggers,
 }) {
-  const [lastCheckEvent, setLastCheckEvent] = React.useState(null);
-  const [widgetValue, setWidgetValue] = React.useState({});
-
-  const initialValue = initialFormData ? initialFormData[field.name] : {};
+  const [value, setValue] = React.useState(DEFAULT_VALUE);
 
   const [invalidField, setInvalidField] = React.useState(false);
   const [errors, setErrors] = React.useState([]);
 
   // Methods
   function _runCustomTrigger(triggerName) {
+    if (inReviewState) {
+      return;
+    }
+
     runCustomTrigger(
       field.triggers,
       triggerName,
@@ -36,7 +40,8 @@ function CheckboxField({
       formData,
       updateFormData,
       field,
-      widgetValue
+      value,
+      formFields,
     );
   }
 
@@ -44,25 +49,17 @@ function CheckboxField({
     _runCustomTrigger("onClick");
   }
 
-  function setDefaultWidgetValue() {
-    const allItemsNotCheckedValue = Object.fromEntries(
-      field.options.map((o) => [o.value, !!o.checked])
+  function onChange(e, optionValue, checkValue) {
+    updateFormData(
+      field.name,
+      { ...formData[field.name], ...{ [optionValue]: checkValue } },
+      e
     );
-    setWidgetValue(allItemsNotCheckedValue);
+
+    _runCustomTrigger("onChange");
   }
 
-  function updateFieldData(e, optionValue, checkValue) {
-    setLastCheckEvent(e);
-    setWidgetValue({ ...widgetValue, ...{ [optionValue]: checkValue } });
-  }
-
-  // Effects
-  React.useEffect(() => {
-    if (Object.keys(widgetValue).length === 0) {
-      setDefaultWidgetValue();
-    }
-  }, []);
-
+  // --- Effects ---
   React.useEffect(() => {
     setInvalidField(invalid);
   }, [invalid]);
@@ -71,11 +68,10 @@ function CheckboxField({
     setErrors(validationErrors);
   }, [validationErrors]);
 
+  // Value in formData is updated
   React.useEffect(() => {
-    updateFormData(field.name, widgetValue, lastCheckEvent);
-
-    _runCustomTrigger("onChange");
-  }, [widgetValue]);
+    setValue(formData[field.name] || DEFAULT_VALUE);
+  }, [formData[field.name]]);
 
   return (
     // bootstrap classes:
@@ -85,11 +81,9 @@ function CheckboxField({
     //  - form-check-input
     //  - form-check-label
 
-    <div onClick={onClick}>
+    <div name={field.name} onClick={onClick}>
       {field.options.map((option, index) => {
-        const checked = initialFormData
-          ? initialValue[option.value]
-          : widgetValue[option.value];
+        const checked = value[option.value];
 
         return (
           <div
@@ -100,7 +94,7 @@ function CheckboxField({
               ${invalidField ? "is-invalid" : ""}
             `}
             onClick={(e) => {
-              !disabled && updateFieldData(e, option.value, !checked);
+              !disabled && onChange(e, option.value, !checked);
               setInvalidField(false);
               setErrors([]);
             }}

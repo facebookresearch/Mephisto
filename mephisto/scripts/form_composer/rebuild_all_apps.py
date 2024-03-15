@@ -17,8 +17,10 @@ To run this command:
     mephisto scripts form_composer rebuild_all_apps
 """
 
+import argparse
 import os
 import shutil
+from pathlib import Path
 
 from rich import print
 
@@ -29,7 +31,7 @@ from mephisto.generators.form_composer.config_validation.utils import (
 from mephisto.tools.scripts import build_custom_bundle
 
 
-def _clean_examples_form_composer_demo(repo_path: str):
+def _clean_examples_form_composer_demo(repo_path: str, remove_package_locks: bool):
     webapp_path = os.path.join(
         repo_path,
         "examples",
@@ -39,11 +41,14 @@ def _clean_examples_form_composer_demo(repo_path: str):
     print(f"[blue]Cleaning '{webapp_path}'[/blue]")
     build_path = os.path.join(webapp_path, "build")
     node_modules_path = os.path.join(webapp_path, "node_modules")
+    package_locks_path = os.path.join(webapp_path, "package-lock.json")
     shutil.rmtree(build_path, ignore_errors=True)
     shutil.rmtree(node_modules_path, ignore_errors=True)
+    if remove_package_locks:
+        Path(package_locks_path).unlink(missing_ok=True)
 
 
-def _clean_generators_form_composer(repo_path: str):
+def _clean_generators_form_composer(repo_path: str, remove_package_locks: bool):
     webapp_path = os.path.join(
         repo_path,
         "mephisto",
@@ -54,11 +59,14 @@ def _clean_generators_form_composer(repo_path: str):
     print(f"[blue]Cleaning '{webapp_path}'[/blue]")
     build_path = os.path.join(webapp_path, "build")
     node_modules_path = os.path.join(webapp_path, "node_modules")
+    package_locks_path = os.path.join(webapp_path, "package-lock.json")
     shutil.rmtree(build_path, ignore_errors=True)
     shutil.rmtree(node_modules_path, ignore_errors=True)
+    if remove_package_locks:
+        Path(package_locks_path).unlink(missing_ok=True)
 
 
-def _clean_review_app(repo_path: str):
+def _clean_review_app(repo_path: str, remove_package_locks: bool):
     webapp_path = os.path.join(
         repo_path,
         "mephisto",
@@ -68,11 +76,14 @@ def _clean_review_app(repo_path: str):
     print(f"[blue]Cleaning '{webapp_path}'[/blue]")
     build_path = os.path.join(webapp_path, "build")
     node_modules_path = os.path.join(webapp_path, "node_modules")
+    package_locks_path = os.path.join(webapp_path, "package-lock.json")
     shutil.rmtree(build_path, ignore_errors=True)
     shutil.rmtree(node_modules_path, ignore_errors=True)
+    if remove_package_locks:
+        Path(package_locks_path).unlink(missing_ok=True)
 
 
-def _clean_packages_mephisto_task_multipart(repo_path: str):
+def _clean_packages_mephisto_task_multipart(repo_path: str, remove_package_locks: bool):
     webapp_path = os.path.join(
         repo_path,
         "packages",
@@ -81,11 +92,14 @@ def _clean_packages_mephisto_task_multipart(repo_path: str):
     print(f"[blue]Cleaning '{webapp_path}'[/blue]")
     build_path = os.path.join(webapp_path, "build")
     node_modules_path = os.path.join(webapp_path, "node_modules")
+    package_locks_path = os.path.join(webapp_path, "package-lock.json")
     shutil.rmtree(build_path, ignore_errors=True)
     shutil.rmtree(node_modules_path, ignore_errors=True)
+    if remove_package_locks:
+        Path(package_locks_path).unlink(missing_ok=True)
 
 
-def _clean_packages_react_form_composer(repo_path: str):
+def _clean_packages_react_form_composer(repo_path: str, remove_package_locks: bool):
     webapp_path = os.path.join(
         repo_path,
         "packages",
@@ -94,17 +108,20 @@ def _clean_packages_react_form_composer(repo_path: str):
     print(f"[blue]Cleaning '{webapp_path}'[/blue]")
     build_path = os.path.join(webapp_path, "build")
     node_modules_path = os.path.join(webapp_path, "node_modules")
+    package_locks_path = os.path.join(webapp_path, "package-lock.json")
     shutil.rmtree(build_path, ignore_errors=True)
     shutil.rmtree(node_modules_path, ignore_errors=True)
+    if remove_package_locks:
+        Path(package_locks_path).unlink(missing_ok=True)
 
 
-def _clean(repo_path: str):
+def _clean(repo_path: str, remove_package_locks: bool):
     print("[blue]Started cleaning up all `build` and `node_modules` directories[/blue]")
-    _clean_examples_form_composer_demo(repo_path)
-    _clean_generators_form_composer(repo_path)
-    _clean_review_app(repo_path)
-    _clean_packages_mephisto_task_multipart(repo_path)
-    _clean_packages_react_form_composer(repo_path)
+    _clean_examples_form_composer_demo(repo_path, remove_package_locks)
+    _clean_generators_form_composer(repo_path, remove_package_locks)
+    _clean_review_app(repo_path, remove_package_locks)
+    _clean_packages_mephisto_task_multipart(repo_path, remove_package_locks)
+    _clean_packages_react_form_composer(repo_path, remove_package_locks)
     print(
         "[green]"
         "Finished cleaning up all `build` and `node_modules` directories successfully!"
@@ -225,11 +242,18 @@ def _build(repo_path: str):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("scripts")
+    parser.add_argument("form_composer")
+    parser.add_argument("rebuild_all_apps")
+    parser.add_argument("--rebuild-package-locks", action=argparse.BooleanOptionalAction)
+    args = parser.parse_args()
+
     repo_path = os.path.dirname(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     )
 
-    _clean(repo_path)
+    _clean(repo_path, remove_package_locks=args.rebuild_package_locks)
     _build(repo_path)
 
 

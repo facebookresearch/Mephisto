@@ -5,6 +5,7 @@
 
 import os
 import subprocess
+from typing import Any
 from typing import List
 from typing import Optional
 
@@ -219,7 +220,8 @@ def run_wut(args):
 @cli.command("scripts", cls=RichCommand, context_settings={"ignore_unknown_options": True})
 @click.argument("script_type", required=False, nargs=1)
 @click.argument("script_name", required=False, nargs=1)
-def run_script(script_type, script_name):
+@click.argument("args", nargs=-1)  # Allow arguments for low level commands
+def run_script(script_type, script_name, args: Optional[Any] = None):
     """Run one of the many mephisto scripts."""
 
     def print_non_markdown_list(items: List[str]):

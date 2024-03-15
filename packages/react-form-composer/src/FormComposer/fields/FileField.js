@@ -15,6 +15,8 @@ import { runCustomTrigger } from "../utils";
 import { checkFieldRequiredness } from "../validation/helpers";
 import { Errors } from "./Errors";
 
+const DEFAULT_VALUE = "";
+
 function FileField({
   field,
   formData,
@@ -24,10 +26,11 @@ function FileField({
   inReviewState,
   invalid,
   validationErrors,
+  formFields,
   customTriggers,
   onReviewFileButtonClick,
 }) {
-  const [widgetValue, setWidgetValue] = React.useState("");
+  const [value, setValue] = React.useState(DEFAULT_VALUE);
 
   const [invalidField, setInvalidField] = React.useState(false);
   const [errors, setErrors] = React.useState([]);
@@ -39,6 +42,10 @@ function FileField({
 
   // Methods
   function _runCustomTrigger(triggerName) {
+    if (inReviewState) {
+      return;
+    }
+
     runCustomTrigger(
       field.triggers,
       triggerName,
@@ -46,20 +53,9 @@ function FileField({
       formData,
       updateFormData,
       field,
-      widgetValue
+      value,
+      formFields,
     );
-  }
-
-  function onBlur(e) {
-    _runCustomTrigger("onBlur");
-  }
-
-  function onFocus(e) {
-    _runCustomTrigger("onFocus");
-  }
-
-  function onClick(e) {
-    _runCustomTrigger("onClick");
   }
 
   function onChange(e, fieldName) {
@@ -76,30 +72,40 @@ function FileField({
           type: file.type ? file.type : "",
           file: file,
         };
-        setWidgetValue(fieldValue.name);
         setFileExt(fieldValue.name.split(".").pop().toLowerCase());
         setFileUrl(URL.createObjectURL(file));
       });
 
     updateFormData(fieldName, fieldValue, e);
+    _runCustomTrigger("onChange");
+  }
+
+  function onBlur(e) {
+    _runCustomTrigger("onBlur");
+  }
+
+  function onFocus(e) {
+    _runCustomTrigger("onFocus");
+  }
+
+  function onClick(e) {
+    _runCustomTrigger("onClick");
   }
 
   function setDefaultWidgetValue() {
     const initialValue = initialFormData
       ? initialFormData[field.name]
-      : { name: "" };
-    setWidgetValue(initialValue.name || "");
+      : { name: DEFAULT_VALUE };
+    updateFormData(field.name, initialValue);
   }
 
   function onReviewFileClick() {
-    onReviewFileButtonClick(widgetValue);
+    onReviewFileButtonClick(value, field.name);
   }
 
-  // Effects
+  // --- Effects ---
   React.useEffect(() => {
-    if (!widgetValue) {
-      setDefaultWidgetValue();
-    }
+    setDefaultWidgetValue();
   }, []);
 
   React.useEffect(() => {
@@ -110,9 +116,12 @@ function FileField({
     setErrors(validationErrors);
   }, [validationErrors]);
 
+  // Value in formData is updated
   React.useEffect(() => {
-    _runCustomTrigger("onChange");
-  }, [widgetValue]);
+    const fieldValue = formData[field.name];
+    const fileName = fieldValue ? fieldValue.name : DEFAULT_VALUE;
+    setValue(fileName);
+  }, [formData[field.name]]);
 
   return (
     // bootstrap classes:
@@ -154,7 +163,7 @@ function FileField({
         Button to open file in modal window in Review App.
         This button is shown over input browse button only in review state and if file was attached
       */}
-      {inReviewState && widgetValue && (
+      {inReviewState && value && (
         <div
           className={"review-file-button"}
           title={"View uploaded file content"}
@@ -164,7 +173,7 @@ function FileField({
         </div>
       )}
 
-      <span className={`custom-file-label`}>{widgetValue}</span>
+      <span className={`custom-file-label`}>{value}</span>
 
       <Errors messages={errors} />
 
@@ -174,7 +183,7 @@ function FileField({
             <img
               id={`${field.id}_preview`}
               src={fileUrl}
-              alt={`image "${widgetValue}"`}
+              alt={`image "${value}"`}
             />
           )}
           {fileType === FileType.VIDEO && (

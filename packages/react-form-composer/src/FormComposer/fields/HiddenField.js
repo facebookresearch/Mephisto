@@ -6,6 +6,8 @@
 
 import React from "react";
 
+const DEFAULT_VALUE = "";
+
 function HiddenField({
   field,
   formData,
@@ -13,9 +15,16 @@ function HiddenField({
   disabled,
   initialFormData,
   inReviewState,
+  formFields,
   customTriggers,
 }) {
-  const initialValue = initialFormData ? initialFormData[field.name] : "";
+  const [value, setValue] = React.useState(DEFAULT_VALUE);
+
+  // --- Effects ---
+  // Value in formData is updated
+  React.useEffect(() => {
+    setValue(formData[field.name] || DEFAULT_VALUE);
+  }, [formData[field.name]]);
 
   return (
     // bootstrap classes:
@@ -30,7 +39,7 @@ function HiddenField({
         name={field.name}
         type={field.type}
         required={false}
-        defaultValue={initialValue}
+        value={value}
         onChange={(e) => {
           !disabled && updateFormData(field.name, e.target.value, e);
         }}

@@ -184,7 +184,7 @@ Putting it altogether, let's prepare and launch a task featuring a form containi
   ```
 - After the Task is completed by all workers, launch task review app and acces it at  [http://localhost:8081](http://localhost:8081) (for more details see `mephisto/review_app/README.md`):
   ```shell
-  mephisto review_app -h 0.0.0.0 -p 8000 -d True -f True
+  mephisto review_app --host 0.0.0.0 --port 8000 --debug --force-rebuild
   ```
 
 _Note: if a package build was terminated/failed, or related source code was changed, FormComposer needs to be rebuilt with this command: `mephisto scripts form_composer rebuild_all_apps`._

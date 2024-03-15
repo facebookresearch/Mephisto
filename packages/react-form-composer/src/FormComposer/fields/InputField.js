@@ -9,6 +9,8 @@ import { runCustomTrigger } from "../utils";
 import { checkFieldRequiredness } from "../validation/helpers";
 import { Errors } from "./Errors";
 
+const DEFAULT_VALUE = "";
+
 function InputField({
   field,
   formData,
@@ -18,17 +20,20 @@ function InputField({
   inReviewState,
   invalid,
   validationErrors,
+  formFields,
   customTriggers,
 }) {
-  const [widgetValue, setWidgetValue] = React.useState("");
-
-  const initialValue = initialFormData ? initialFormData[field.name] : "";
+  const [value, setValue] = React.useState(DEFAULT_VALUE);
 
   const [invalidField, setInvalidField] = React.useState(false);
   const [errors, setErrors] = React.useState([]);
 
   // Methods
   function _runCustomTrigger(triggerName) {
+    if (inReviewState) {
+      return;
+    }
+
     runCustomTrigger(
       field.triggers,
       triggerName,
@@ -36,8 +41,14 @@ function InputField({
       formData,
       updateFormData,
       field,
-      widgetValue
+      value,
+      formFields,
     );
+  }
+
+  function onChange(e) {
+    updateFormData(field.name, e.target.value, e);
+    _runCustomTrigger("onChange");
   }
 
   function onBlur(e) {
@@ -52,13 +63,7 @@ function InputField({
     _runCustomTrigger("onClick");
   }
 
-  // Effects
-  React.useEffect(() => {
-    if (!widgetValue) {
-      setWidgetValue(initialValue || "");
-    }
-  }, []);
-
+  // --- Effects ---
   React.useEffect(() => {
     setInvalidField(invalid);
   }, [invalid]);
@@ -67,9 +72,10 @@ function InputField({
     setErrors(validationErrors);
   }, [validationErrors]);
 
+  // Value in formData is updated
   React.useEffect(() => {
-    _runCustomTrigger("onChange");
-  }, [widgetValue]);
+    setValue(formData[field.name] || DEFAULT_VALUE);
+  }, [formData[field.name]]);
 
   return (
     // bootstrap classes:
@@ -88,10 +94,9 @@ function InputField({
         placeholder={field.placeholder}
         style={field.style}
         required={checkFieldRequiredness(field)}
-        defaultValue={initialValue}
+        value={value}
         onChange={(e) => {
-          !disabled && updateFormData(field.name, e.target.value, e);
-          setWidgetValue(e.target.value);
+          !disabled && onChange(e);
           setInvalidField(false);
           setErrors([]);
         }}

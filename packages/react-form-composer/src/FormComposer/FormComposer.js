@@ -8,6 +8,7 @@ import React from "react";
 import {
   DEFAULT_COLLAPSABLE,
   DEFAULT_INITIALLY_COLLAPSED,
+  FieldType,
   MESSAGES_IN_REVIEW_FILE_DATA_KEY,
 } from "./constants";
 import { CheckboxField } from "./fields/CheckboxField";
@@ -23,11 +24,13 @@ import { SectionErrors } from "./SectionErrors";
 import { SectionErrorsCountBadge } from "./SectionErrorsCountBadge";
 import {
   formatStringWithProcedureTokens,
+  getDefaultFormFieldValue,
   runCustomTrigger,
   setPageTitle,
 } from "./utils";
 import {
   checkFieldRequiredness,
+  prepareFormDataForSubmit,
   validateFormFields,
 } from "./validation/helpers";
 
@@ -53,7 +56,7 @@ function FormComposer({
   const [formState, setFormState] = React.useState({});
 
   // All fields lookup by their name: { <fieldName>: <field> }
-  const [fields, setFields] = React.useState({});
+  const [formFields, setFormFields] = React.useState({});
 
   // Fild list by section index for error display: { <sectionIndex>: <Array<field>> }
   const [sectionsFields, setSectionsFields] = React.useState({});
@@ -103,30 +106,12 @@ function FormComposer({
     // Set new invalid fields
     const _invalidFormFields = validateFormFields(
       formState,
-      fields,
+      formFields,
       customValidators
     );
     setInvalidFormFields(_invalidFormFields);
 
     return !Object.keys(_invalidFormFields).length;
-  }
-
-  function prepareFormData() {
-    // Append JSON data
-    const formData = new FormData();
-    formData.append("final_data", formState);
-    formData.append("final_string_data", JSON.stringify(formState));
-
-    // Append files
-    const fileInputs = document.querySelectorAll("input[type='file']");
-    fileInputs.forEach((input) => {
-      input.files?.length &&
-        Object.values(input.files).forEach((file) => {
-          formData.append(input.name, file, file.name);
-        });
-    });
-
-    return formData;
   }
 
   function onSubmitForm(e) {
@@ -139,18 +124,19 @@ function FormComposer({
       return;
     }
 
-    const formData = prepareFormData();
+    const formData = prepareFormDataForSubmit(formState, formFields);
 
     // Pass data to `mephisto-task` library
     setOnSubmitLoading(true);
     onSubmit(formData);
   }
 
-  function sendMessageToReviewAppWithFileInfo(filename) {
+  function sendMessageToReviewAppWithFileInfo(filename, fieldname) {
     // Send file field information to the Review app as a message from iframe
     window.top.postMessage(
       JSON.stringify({
         [MESSAGES_IN_REVIEW_FILE_DATA_KEY]: {
+          fieldname: fieldname,
           filename: filename,
         },
       }),
@@ -159,6 +145,10 @@ function FormComposer({
   }
 
   function onClickSubmitButton() {
+    if (inReviewState) {
+      return;
+    }
+
     runCustomTrigger(
       formSubmitButton.triggers,
       "onClick",
@@ -169,7 +159,7 @@ function FormComposer({
     );
   }
 
-  // Effects
+  // --- Effects ---
   React.useEffect(() => {
     setPageTitle(formTitle);
   }, [formTitle]);
@@ -187,7 +177,10 @@ function FormComposer({
           fieldset.rows.map((row) => {
             row.fields.map((field) => {
               _fields[field.name] = field;
-              initialFormData[field.name] = field.value;
+              initialFormData[field.name] = getDefaultFormFieldValue(
+                field,
+                finalResults
+              );
               _sectionFields.push(field);
             });
           });
@@ -202,7 +195,7 @@ function FormComposer({
       });
 
       setFormState(initialFormData);
-      setFields(_fields);
+      setFormFields(_fields);
     }
   }, [formSections]);
 
@@ -276,6 +269,10 @@ function FormComposer({
           ).length;
 
           function onClickSectionHeader() {
+            if (inReviewState) {
+              return;
+            }
+
             runCustomTrigger(
               section.triggers,
               "onClick",
@@ -449,7 +446,11 @@ function FormComposer({
                                         ? "required"
                                         : ""
                                     }
-                                    ${field.type === "hidden" ? "hidden" : ""}
+                                    ${
+                                      field.type === FieldType.HIDDEN
+                                        ? "hidden-type"
+                                        : ""
+                                    }
                                     ${field.classes || ""}
                                   `}
                                   title={fieldTooltip}
@@ -458,10 +459,10 @@ function FormComposer({
                                   <label htmlFor={field.id}>{fieldLabel}</label>
 
                                   {[
-                                    "input",
-                                    "email",
-                                    "password",
-                                    "number",
+                                    FieldType.INPUT,
+                                    FieldType.EMAIL,
+                                    FieldType.PASSWORD,
+                                    FieldType.NUMBER,
                                   ].includes(field.type) && (
                                     <InputField
                                       field={field}
@@ -477,11 +478,12 @@ function FormComposer({
                                       validationErrors={
                                         invalidFormFields[field.name] || []
                                       }
+                                      formFields={formFields}
                                       customTriggers={customTriggers}
                                     />
                                   )}
 
-                                  {field.type === "textarea" && (
+                                  {field.type === FieldType.TEXTAREA && (
                                     <TextareaField
                                       field={field}
                                       formData={formState}
@@ -496,11 +498,12 @@ function FormComposer({
                                       validationErrors={
                                         invalidFormFields[field.name] || []
                                       }
+                                      formFields={formFields}
                                       customTriggers={customTriggers}
                                     />
                                   )}
 
-                                  {field.type === "checkbox" && (
+                                  {field.type === FieldType.CHECKBOX && (
                                     <CheckboxField
                                       field={field}
                                       formData={formState}
@@ -515,11 +518,12 @@ function FormComposer({
                                       validationErrors={
                                         invalidFormFields[field.name] || []
                                       }
+                                      formFields={formFields}
                                       customTriggers={customTriggers}
                                     />
                                   )}
 
-                                  {field.type === "radio" && (
+                                  {field.type === FieldType.RADIO && (
                                     <RadioField
                                       field={field}
                                       formData={formState}
@@ -534,11 +538,12 @@ function FormComposer({
                                       validationErrors={
                                         invalidFormFields[field.name] || []
                                       }
+                                      formFields={formFields}
                                       customTriggers={customTriggers}
                                     />
                                   )}
 
-                                  {field.type === "select" && (
+                                  {field.type === FieldType.SELECT && (
                                     <SelectField
                                       field={field}
                                       formData={formState}
@@ -553,11 +558,12 @@ function FormComposer({
                                       validationErrors={
                                         invalidFormFields[field.name] || []
                                       }
+                                      formFields={formFields}
                                       customTriggers={customTriggers}
                                     />
                                   )}
 
-                                  {field.type === "file" && (
+                                  {field.type === FieldType.FILE && (
                                     <FileField
                                       field={field}
                                       formData={formState}
@@ -575,11 +581,12 @@ function FormComposer({
                                       onReviewFileButtonClick={
                                         sendMessageToReviewAppWithFileInfo
                                       }
+                                      formFields={formFields}
                                       customTriggers={customTriggers}
                                     />
                                   )}
 
-                                  {field.type === "hidden" && (
+                                  {field.type === FieldType.HIDDEN && (
                                     <HiddenField
                                       field={field}
                                       formData={formState}
@@ -587,6 +594,7 @@ function FormComposer({
                                       disabled={inReviewState}
                                       initialFormData={finalResults}
                                       inReviewState={inReviewState}
+                                      formFields={formFields}
                                     />
                                   )}
 

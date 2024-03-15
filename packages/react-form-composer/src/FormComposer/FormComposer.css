@@ -338,7 +338,8 @@ video {
   text-align: center;
 }
 
-.hidden {
+.hidden,
+.hidden-type {
   display: none;
   visibility: hidden;
 }

@@ -6,6 +6,7 @@
 
 import { cloneDeep } from "lodash";
 import {
+  FieldType,
   TOKEN_END_REGEX,
   TOKEN_END_SYMBOLS,
   TOKEN_START_REGEX,
@@ -13,7 +14,12 @@ import {
 } from "./constants";
 
 // This list can be expanded if needed
-const ACCEPTED_SCALAR_TRIGGER_ARGUMENT_TYPES = ["string", "boolean", "number", "object"]
+const ACCEPTED_SCALAR_TRIGGER_ARGUMENT_TYPES = [
+  "string",
+  "boolean",
+  "number",
+  "object",
+];
 
 // TODO: Remove this after finding out what is the problem
 //  with not sending `agent_id` under `subject_id` field in websocket message
@@ -315,23 +321,18 @@ export function runCustomTrigger(
   formData, // React state for the entire form
   updateFormData, // callback to set the React state
   element, // "field", "section", or "submit button" element that invoked this trigger
-  fieldValue, // current field value, if the `element` is a form field (otherwise it's null)
+  fieldValue, // Current field value, if the `element` is a form field (otherwise it's null)
+  formFields, // Object containing all form fields as defined in 'form_config.json'
 ) {
-  // Exit if the element that doesn't have any triggers defined
+  // Exit if the element that doesn't have any triggers defined (no logs required)
   if (!elementTriggersConfig || isObjectEmpty(elementTriggersConfig)) {
-    console.error(
-      `Ignoring trigger "${elementTriggerName}" invokation - element has no triggers defined.`
-    );
     return;
   }
 
   const elementTriggerConfig = elementTriggersConfig[elementTriggerName];
 
-  // Exit if the element doesn't have this specific triggers defined
+  // Exit if the element doesn't have this specific triggers defined (no logs required)
   if (!elementTriggerConfig) {
-    console.error(
-      `Ignoring trigger "${elementTriggerName}" invokation - element doesn't have it defined.`
-    );
     return;
   }
 
@@ -346,17 +347,23 @@ export function runCustomTrigger(
   // Extract name of custom trigger function from the trigger config.
   // Exit if trigger config doesn't contain custom function name
   let triggerFnName;
-  const isArray = Array.isArray(elementTriggerConfig);
-  const isScalar = ACCEPTED_SCALAR_TRIGGER_ARGUMENT_TYPES.includes(typeof elementTriggerConfig);
-  if (isArray && [1, 2].includes(elementTriggerConfig.length)) {
+
+  const triggerConfigIsArray = Array.isArray(elementTriggerConfig);
+  const triggerConfigIsScalar =
+    !triggerConfigIsArray && // because `typeof <array> === "object"`
+    ACCEPTED_SCALAR_TRIGGER_ARGUMENT_TYPES.includes(
+      typeof elementTriggerConfig
+    );
+
+  if (triggerConfigIsArray && [1, 2].includes(elementTriggerConfig.length)) {
     triggerFnName = elementTriggerConfig[0];
-  } else if (isScalar) { // This statement must go second, because `typeof <array> === "object"`
+  } else if (triggerConfigIsScalar) {
     triggerFnName = elementTriggerConfig;
   } else {
     console.error(
       `Invalid format of trigger "${elementTriggerName}" config: ${elementTriggerConfig}. ` +
-      `It must be either a string (function name), ` +
-      `or a list (first element is function name, second element is its args).`
+        `It must be either a string (function name), ` +
+        `or a list (first element is function name, second element is its args).`
     );
     return;
   }
@@ -368,40 +375,37 @@ export function runCustomTrigger(
   if (!triggerFn) {
     console.error(
       `Function not found for trigger "${elementTriggerName}". ` +
-      `Please ensure a functionwith that name is defined in 'custom_triggers.js' file ` +
-      `and 'form_config.json' indicates correct custom function name for this trigger config.`
+        `Please ensure a functionwith that name is defined in 'custom_triggers.js' file ` +
+        `and 'form_config.json' indicates correct custom function name for this trigger config.`
     );
     return;
   }
 
   // Extract arguments of custom trigger function from the trigger config.
   let triggerFnArgs;
-  if (elementTriggerConfig.length == 1) {
+  if (triggerConfigIsScalar) {
     // If trigger config doesn't contain arguments, we just won't pass any trigger arguments
     triggerFnArgs = [];
-  } else if (elementTriggerConfig.length == 2) {
+  } else if (
+    triggerConfigIsArray &&
+    [1, 2].includes(elementTriggerConfig.length)
+  ) {
     triggerFnArgs = elementTriggerConfig[1];
-    if (!Array.isArray(triggerFnArgs)) {
-      // if trigger function arg is a scalar, turn it into a 1-item array, for consistency
-      triggerFnArgs = [triggerFnArgs];
-    }
+    // if trigger function arg is a scalar, turn it into a 1-item array, for consistency
+    triggerFnArgs = Array.isArray(triggerFnArgs)
+      ? triggerFnArgs
+      : [triggerFnArgs];
   } else {
     console.error(
       `Trigger "${elementTriggerName}" config for "${elementTriggerName}" ` +
-      `is longer than 2 items: ${elementTriggerConfig}`
+        `is longer than 2 items: ${elementTriggerConfig}`
     );
     return;
   }
 
   // Run custom trigger
   try {
-    triggerFn(
-      formData,
-      updateFormData,
-      element,
-      fieldValue,
-      ...triggerFnArgs
-    );
+    triggerFn(formData, updateFormData, element, fieldValue, formFields, ...triggerFnArgs);
   } catch (error) {
     const textAboutElement = fieldValue
       ? `Field "${element.name}" value: ${fieldValue}. `
@@ -416,4 +420,163 @@ export function runCustomTrigger(
         `Error: ${error}.`
     );
   }
+}
+
+export function getDefaultFormFieldValue(field, initialFormData) {
+  if (initialFormData) {
+    return initialFormData[field.name];
+  }
+
+  if (field.value !== undefined) {
+    return field.value;
+  }
+
+  if (
+    [
+      FieldType.EMAIL,
+      FieldType.HIDDEN,
+      FieldType.INPUT,
+      FieldType.NUMBER,
+      FieldType.PASSWORD,
+      FieldType.RADIO,
+      FieldType.TEXTAREA,
+    ].includes(field.type)
+  ) {
+    return "";
+  } else if (field.type === FieldType.CHECKBOX) {
+    const allItemsNotCheckedValue = Object.fromEntries(
+      field.options.map((o) => [o.value, !!o.checked])
+    );
+    return allItemsNotCheckedValue;
+  } else if (field.type === FieldType.SELECT) {
+    return field.multiple ? [] : "";
+  }
+
+  return null;
+}
+
+/**
+ * A helper function to check during development, that your custom triggers
+ * assign correct values to form fields (in case you want to change them programmatically).
+ * @param {object} field FormComposer field
+ * @param {any} value FormComposer field value
+ * @param {boolean} writeConsoleLog If `true`, writes detailed error logs in browser console
+ * @return {boolean} If `true`, the field value is valid
+ */
+export function validateFieldValue(field, value, writeConsoleLog) {
+  // No need to validate absence of value
+  if ([null, undefined].includes(value)) {
+    return true;
+  }
+
+  if ([null, undefined].includes(field)) {
+    console.error(`Argument 'field' cannot be '${field}'.`)
+    return false;
+  }
+
+  let valueIsValid = true;
+  let logMessage = "";
+
+  if (
+    [
+      FieldType.EMAIL,
+      FieldType.HIDDEN,
+      FieldType.INPUT,
+      FieldType.NUMBER,
+      FieldType.PASSWORD,
+      FieldType.RADIO,
+      FieldType.TEXTAREA,
+    ].includes(field.type)
+  ) {
+    if (typeof value !== "string") {
+      valueIsValid = false;
+      logMessage = `Value must be a 'string' for field '${field.name}' with type '${field.type}'.`;
+    } else {
+      if (field.type === FieldType.RADIO) {
+        const availableOptions = Object.values(field.options).map((o) => o.value);
+
+        if (!availableOptions.includes(value)) {
+          valueIsValid = false;
+          logMessage = (
+            `Incorrect value for field '${field.name}' with type '${field.type}'. ` +
+            `Available options: ${availableOptions}. `
+          );
+        }
+      }
+    }
+  }
+
+  else if (field.type === FieldType.CHECKBOX) {
+    if (typeof value === "object" && !Array.isArray(value)) {
+      const availableOptions = Object.values(field.options).map((o) => o.value);
+
+      const allParamsAreBooleansWithCorrectOption = Object.entries(value).every(([k, v]) => {
+        return availableOptions.includes(k) && typeof v === "boolean";
+      });
+
+      if (!allParamsAreBooleansWithCorrectOption) {
+        valueIsValid = false;
+        logMessage = (
+          `All value parameters must be 'boolean' ` +
+          `for field '${field.name}' with type '${field.type}'. ` +
+          `Available options: ${availableOptions}. `
+        );
+      }
+    } else {
+      valueIsValid = false;
+      logMessage = (
+        `Value must be an 'object' with boolean parameters ` +
+        `for field '${field.name}' with type '${field.type}'.`
+      );
+    }
+  }
+
+  else if (field.type === FieldType.SELECT) {
+    if (field.multiple) {
+      if (!Array.isArray(value)) {
+        valueIsValid = false;
+        logMessage = (
+          `Value must be an 'array' for field '${field.name}' with type '${field.type}' ` +
+          `and '"multiple": true'.`
+        );
+      } else {
+        const availableOptions = Object.values(field.options).map((o) => o.value);
+
+        const allParamsAreStringsWithCorrectOption = value.every((v) => {
+          return typeof v === "string" && availableOptions.includes(v);
+        });
+
+        if (!allParamsAreStringsWithCorrectOption) {
+          valueIsValid = false;
+          logMessage = (
+            `All value parameters must be 'string' ` +
+            `for field '${field.name}' with type '${field.type}' and '"multiple": true'. ` +
+            `Available options: ${availableOptions}. `
+          );
+        }
+      }
+    } else {
+      if (typeof value !== "string") {
+        valueIsValid = false;
+        logMessage = (
+          `Value must be a 'string' ` +
+          `for field '${field.name}' with type '${field.type}' and '"multiple": false'.`
+        );
+      }
+    }
+  }
+
+  if (writeConsoleLog && !valueIsValid && logMessage) {
+    logMessage += ` You passed value '${JSON.stringify(value)}' with type '${typeof value}'`;
+    console.error(logMessage);
+  }
+
+  if (writeConsoleLog && valueIsValid) {
+    console.info(
+      `Value '${JSON.stringify(value)}' for field '${field.name}' ` +
+      `with type '${typeof value}' is valid`
+    );
+  }
+
+  return valueIsValid;
 }

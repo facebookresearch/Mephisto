@@ -12,6 +12,19 @@ export const TOKEN_END_REGEX = /\}\}/;
 
 export const MESSAGES_IN_REVIEW_FILE_DATA_KEY = "IN_REVIEW_FILE_DATA";
 
+export const FieldType = {
+  CHECKBOX: "checkbox",
+  EMAIL: "email",
+  FILE: "file",
+  HIDDEN: "hidden",
+  INPUT: "input",
+  NUMBER: "number",
+  PASSWORD: "password",
+  RADIO: "radio",
+  SELECT: "select",
+  TEXTAREA: "textarea",
+};
+
 export const FileType = {
   AUDIO: "audio",
   IMAGE: "image",

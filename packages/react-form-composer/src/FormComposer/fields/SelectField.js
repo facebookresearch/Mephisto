@@ -21,21 +21,21 @@ function SelectField({
   inReviewState,
   invalid,
   validationErrors,
+  formFields,
   customTriggers,
 }) {
-  const [widgetValue, setWidgetValue] = React.useState("");
-
-  const initialValue = initialFormData
-    ? initialFormData[field.name]
-    : field.multiple
-    ? []
-    : "";
+  const defaultValue = field.multiple ? [] : "";
+  const [value, setValue] = React.useState(defaultValue);
 
   const [invalidField, setInvalidField] = React.useState(false);
   const [errors, setErrors] = React.useState([]);
 
   // Methods
   function _runCustomTrigger(triggerName) {
+    if (inReviewState) {
+      return;
+    }
+
     runCustomTrigger(
       field.triggers,
       triggerName,
@@ -43,7 +43,8 @@ function SelectField({
       formData,
       updateFormData,
       field,
-      widgetValue
+      value,
+      formFields,
     );
   }
 
@@ -56,8 +57,8 @@ function SelectField({
       );
     }
 
-    setWidgetValue(fieldValue);
     updateFormData(fieldName, fieldValue, e);
+    _runCustomTrigger("onChange");
   }
 
   function onBlur(e) {
@@ -72,8 +73,9 @@ function SelectField({
     _runCustomTrigger("onClick");
   }
 
-  // Effects
+  // --- Effects ---
   React.useEffect(() => {
+    // Enable plugin
     $(`.selectpicker.select-${field.name}`).selectpicker();
   }, []);
 
@@ -100,20 +102,18 @@ function SelectField({
   }, [validationErrors]);
 
   React.useEffect(() => {
-    _runCustomTrigger("onChange");
-  }, [widgetValue]);
+    // Refresh plugin after value was changed
+    const $fieldElement = $(`.selectpicker.select-${field.name}`);
+    $fieldElement.selectpicker("refresh");
 
-  React.useEffect(() => {
-    // Refresh plugin after value was set to empty
-    const fieldValue = formData[field.name];
-    if (
-      fieldValue === "" ||
-      (Array.isArray(fieldValue) && fieldValue.length === 0)
-    ) {
-      $(`.selectpicker.select-${field.name}`)
-        .selectpicker("refresh")
-        .selectpicker("deselectAll");
+    if (value === "" || (Array.isArray(value) && value.length === 0)) {
+      $fieldElement.selectpicker("deselectAll");
     }
+  }, [value]);
+
+  // Value in formData is updated
+  React.useEffect(() => {
+    setValue(formData[field.name] || defaultValue);
   }, [formData[field.name]]);
 
   return (
@@ -135,7 +135,7 @@ function SelectField({
         placeholder={field.placeholder}
         style={field.style}
         required={checkFieldRequiredness(field)}
-        defaultValue={initialValue}
+        value={value}
         onChange={(e) => {
           !disabled && onChange(e, field.name);
           setInvalidField(false);
@@ -149,7 +149,7 @@ function SelectField({
         data-actions-box={field.multiple ? true : null}
         data-live-search={true}
         data-selected-text-format={field.multiple ? "count > 1" : null}
-        data-title={inReviewState ? initialValue : null}
+        data-title={inReviewState ? value : null}
         data-width={"100%"}
       >
         {field.options.map((option, index) => {
