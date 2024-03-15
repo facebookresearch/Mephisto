@@ -10,6 +10,11 @@ AvailableAttrsType = Dict[str, Dict[str, Union[type, bool]]]
 
 TOKENS_VALUES_KEY = "tokens_values"
 FILE_URL_TOKEN_KEY = "file_location"
+INSERTIONS_PATH_NAME = "insertions"
+CUSTOM_VALIDATORS_JS_FILE_NAME = "custom_validators.js"
+CUSTOM_TRIGGERS_JS_FILE_NAME = "custom_triggers.js"
+CUSTOM_VALIDATORS_JS_FILE_NAME_ENV_KEY = "WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS"
+CUSTOM_TRIGGERS_JS_FILE_NAME_ENV_KEY = "WEBAPP__FORM_COMPOSER__CUSTOM_TRIGGERS"
 
 AVAILABLE_CONFIG_ATTRS: AvailableAttrsType = {
     "form": {
@@ -19,6 +24,14 @@ AVAILABLE_CONFIG_ATTRS: AvailableAttrsType = {
 }
 
 AVAILABLE_FORM_ATTRS: AvailableAttrsType = {
+    "classes": {
+        "type": str,
+        "required": False,
+    },
+    "id": {
+        "type": str,
+        "required": False,
+    },
     "instruction": {
         "type": str,
         "required": False,
@@ -38,6 +51,14 @@ AVAILABLE_FORM_ATTRS: AvailableAttrsType = {
 }
 
 AVAILABLE_SUBMIT_BUTTON_ATTRS: AvailableAttrsType = {
+    "classes": {
+        "type": str,
+        "required": False,
+    },
+    "id": {
+        "type": str,
+        "required": False,
+    },
     "instruction": {
         "type": str,
         "required": False,
@@ -50,9 +71,17 @@ AVAILABLE_SUBMIT_BUTTON_ATTRS: AvailableAttrsType = {
         "type": str,
         "required": False,
     },
+    "triggers": {
+        "type": dict,
+        "required": False,
+    },
 }
 
 AVAILABLE_SECTION_ATTRS: AvailableAttrsType = {
+    "classes": {
+        "type": str,
+        "required": False,
+    },
     "collapsable": {
         "type": bool,
         "required": False,
@@ -60,6 +89,10 @@ AVAILABLE_SECTION_ATTRS: AvailableAttrsType = {
     "fieldsets": {
         "type": list,
         "required": True,
+    },
+    "id": {
+        "type": str,
+        "required": False,
     },
     "initially_collapsed": {
         "type": bool,
@@ -77,10 +110,22 @@ AVAILABLE_SECTION_ATTRS: AvailableAttrsType = {
         "type": str,
         "required": True,
     },
+    "triggers": {
+        "type": dict,
+        "required": False,
+    },
 }
 
 AVAILABLE_FIELDSET_ATTRS: AvailableAttrsType = {
+    "classes": {
+        "type": str,
+        "required": False,
+    },
     "help": {
+        "type": str,
+        "required": False,
+    },
+    "id": {
         "type": str,
         "required": False,
     },
@@ -103,6 +148,10 @@ AVAILABLE_FIELDSET_ATTRS: AvailableAttrsType = {
 }
 
 AVAILABLE_ROW_ATTRS: AvailableAttrsType = {
+    "classes": {
+        "type": str,
+        "required": False,
+    },
     "fields": {
         "type": list,
         "required": True,
@@ -111,9 +160,17 @@ AVAILABLE_ROW_ATTRS: AvailableAttrsType = {
         "type": str,
         "required": False,
     },
+    "id": {
+        "type": str,
+        "required": False,
+    },
 }
 
 COMMON_AVAILABLE_FIELD_ATTRS: AvailableAttrsType = {
+    "classes": {
+        "type": str,
+        "required": False,
+    },
     "help": {
         "type": str,
         "required": False,
@@ -134,8 +191,16 @@ COMMON_AVAILABLE_FIELD_ATTRS: AvailableAttrsType = {
         "type": str,
         "required": False,
     },
+    "show_preview": {
+        "type": bool,
+        "required": False,
+    },
     "tooltip": {
         "type": str,
+        "required": False,
+    },
+    "triggers": {
+        "type": dict,
         "required": False,
     },
     "type": {
@@ -159,9 +224,14 @@ AVAILABLE_FIELD_ATTRS_BY_TYPE: Dict[str, AvailableAttrsType] = {
             "type": list,
             "required": True,
         },
+        "value": {
+            "type": dict,
+            "required": False,
+        },
     },
     "email": COMMON_AVAILABLE_FIELD_ATTRS,
     "file": COMMON_AVAILABLE_FIELD_ATTRS,
+    "hidden": COMMON_AVAILABLE_FIELD_ATTRS,
     "input": COMMON_AVAILABLE_FIELD_ATTRS,
     "radio": {
         **COMMON_AVAILABLE_FIELD_ATTRS,
@@ -179,6 +249,10 @@ AVAILABLE_FIELD_ATTRS_BY_TYPE: Dict[str, AvailableAttrsType] = {
         "options": {
             "type": list,
             "required": True,
+        },
+        "value": {
+            "type": (str, list),
+            "required": False,
         },
     },
     "textarea": COMMON_AVAILABLE_FIELD_ATTRS,

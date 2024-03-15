@@ -10,6 +10,8 @@ import {
   prepareFormData,
   prepareRemoteProcedures,
 } from "react-form-composer";
+import * as customValidators from "custom-validators";
+import * as customTriggers from "custom-triggers";
 
 function LoadingScreen() {
   return <Directions>Loading...</Directions>;
@@ -103,6 +105,8 @@ function FormComposerBaseFrontend({
           onSubmit={onSubmit}
           finalResults={finalResults}
           setRenderingErrors={setFormComposerRenderingErrors}
+          customValidators={customValidators}
+          customTriggers={customTriggers}
         />
       )}
     </div>

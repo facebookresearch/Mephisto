@@ -15,10 +15,15 @@ from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint impo
     SharedStaticTaskState,
 )
 from mephisto.client.cli import FORM_COMPOSER__DATA_CONFIG_NAME
+from mephisto.client.cli import FORM_COMPOSER__DATA_DIR_NAME
 from mephisto.client.cli import FORM_COMPOSER__FORM_CONFIG_NAME
 from mephisto.client.cli import FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     create_extrapolated_config,
+)
+from mephisto.generators.form_composer.config_validation.utils import set_custom_triggers_js_env_var
+from mephisto.generators.form_composer.config_validation.utils import (
+    set_custom_validators_js_env_var,
 )
 from mephisto.generators.form_composer.constants import TOKEN_END_REGEX
 from mephisto.generators.form_composer.constants import TOKEN_START_REGEX
@@ -94,21 +99,25 @@ def generate_data_json_config():
     based on existing form and tokens values config files
     """
     app_path = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.join(app_path, "data")
+    data_path = os.path.join(app_path, "data", "dynamic")
 
-    form_config_path = os.path.join(data_path, "dynamic", FORM_COMPOSER__FORM_CONFIG_NAME)
+    form_config_path = os.path.join(data_path, FORM_COMPOSER__FORM_CONFIG_NAME)
     token_sets_values_config_path = os.path.join(
         data_path,
-        "dynamic",
         FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME,
     )
-    task_data_config_path = os.path.join(data_path, "dynamic", FORM_COMPOSER__DATA_CONFIG_NAME)
+    task_data_config_path = os.path.join(data_path, FORM_COMPOSER__DATA_CONFIG_NAME)
 
     create_extrapolated_config(
         form_config_path=form_config_path,
         token_sets_values_config_path=token_sets_values_config_path,
         task_data_config_path=task_data_config_path,
     )
+
+    # Set env var for `custom_validators.js`
+    set_custom_validators_js_env_var(data_path)
+    # Set env var for `custom_triggers.js`
+    set_custom_triggers_js_env_var(data_path)
 
 
 def generate_preview_html():
@@ -117,7 +126,7 @@ def generate_preview_html():
     """
     app_path = os.path.dirname(os.path.abspath(__file__))
     preview_path = os.path.join(app_path, "preview")
-    data_path = os.path.join(app_path, "data", "dynamic")
+    data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME, "dynamic")
 
     data_config_path = os.path.join(data_path, FORM_COMPOSER__DATA_CONFIG_NAME)
     preview_template_path = os.path.join(preview_path, "mturk_preview_template.html")

@@ -34,6 +34,8 @@ const urls = {
     unitsSoftReject: API_URL + "/api/units/soft-reject",
     unitsOutputsFile: (id, filename) =>
       API_URL + `/api/units/${id}/static/${filename}`,
+    unitsOutputsFileByFieldname: (id, fieldname) =>
+      API_URL + `/api/units/${id}/static/fieldname/${fieldname}`,
     workersBlock: (id) => API_URL + `/api/workers/${id}/block`,
   },
 };

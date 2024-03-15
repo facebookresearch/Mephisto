@@ -81,7 +81,7 @@ docker-compose -f docker/docker-compose.dev.yml run \
     --build \
     --publish 8081:8000 \
     --rm mephisto_dc \
-    mephisto review_app -h 0.0.0.0 -p 8000 -d True -f False -s False
+    mephisto review_app --host 0.0.0.0 --port 8000 --debug --force-rebuild --skip-build
 ```
 - Browser page: [http://localhost:8081/](http://localhost:8081/).
 

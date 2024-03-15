@@ -4,6 +4,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { FieldType } from "../../constants";
 import {
   REQUIRED_ERROR_MESSAGE_KEY,
   validationErrorMessagesByName,
@@ -24,12 +25,12 @@ export default function fieldIsRequired(field, value, required) {
   let _value = value;
   if (typeof _value === "string") {
     _value = (_value || "").trim();
-  } else if (field.type === "checkbox") {
-    const numberOfSelectedValues = Object.values(value).filter(
+  } else if (field.type === FieldType.CHECKBOX) {
+    const numberOfSelectedValues = Object.values(value || {}).filter(
       (v) => v === true
     ).length;
     _value = numberOfSelectedValues ? value : null;
-  } else if (field.type === "select" && field.multiple === true) {
+  } else if (field.type === FieldType.SELECT && field.multiple === true) {
     _value = (value || []).length > 0 ? value : null;
   }
 

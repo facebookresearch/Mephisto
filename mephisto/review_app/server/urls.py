@@ -13,6 +13,10 @@ def init_urls(app: Flask):
         view_func=api_views.UnitDataStaticView.as_view("unit_data_static"),
     )
     app.add_url_rule(
+        "/api/units/<int:unit_id>/static/fieldname/<path:fieldname>",
+        view_func=api_views.UnitDataStaticByFieldNameView.as_view("unit_data_static_by_fieldname"),
+    )
+    app.add_url_rule(
         "/api/qualifications/<int:qualification_id>/workers",
         view_func=api_views.QualificationWorkersView.as_view("qualification_workers"),
     )

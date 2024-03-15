@@ -15,6 +15,7 @@ import {
   prepareFormData,
   prepareRemoteProcedures,
   procedureTokenRegex,
+  validateFieldValue,
 } from "./FormComposer/utils";
 
 export {
@@ -26,4 +27,5 @@ export {
   prepareFormData,
   prepareRemoteProcedures,
   procedureTokenRegex,
+  validateFieldValue,
 };

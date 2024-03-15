@@ -25,6 +25,14 @@ module.exports = {
         __dirname,
         "../../../packages/react-form-composer"
       ),
+      // Required for custom validators
+      "custom-validators": path.resolve(
+        process.env.WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS
+      ),
+      // Required for custom triggers
+      "custom-triggers": path.resolve(
+        process.env.WEBAPP__FORM_COMPOSER__CUSTOM_TRIGGERS
+      ),
     },
     fallback: {
       net: false,

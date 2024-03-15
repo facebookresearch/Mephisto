@@ -540,6 +540,120 @@ class TestTaskDataConfig(unittest.TestCase):
             ],
         )
 
+    def test__replace_html_paths_with_html_file_content_success(self, *args, **kwargs):
+        value_with_file_path_1 = "insertions/test1.html"
+        value_with_file_path_2 = "insertions/test2.html"
+        html_content_1 = "<b>Test {{token_1}}</b>"
+        html_content_2 = "<b>Test {{token_2}}</b>"
+
+        html_path_1 = os.path.abspath(os.path.join(self.data_dir, value_with_file_path_1))
+        html_path_2 = os.path.abspath(os.path.join(self.data_dir, value_with_file_path_2))
+
+        os.makedirs(os.path.dirname(html_path_1), exist_ok=True)
+        f = open(html_path_1, "w")
+        f.write(html_content_1)
+        f.close()
+        f = open(html_path_2, "w")
+        f.write(html_content_2)
+        f.close()
+
+        form_config_data = deepcopy(CORRECT_CONFIG_DATA_WITH_TOKENS)
+        form_config_data["form"]["title"] = value_with_file_path_1
+        form_config_data["form"]["instruction"] = value_with_file_path_2
+
+        token_sets_values_config_data = [
+            {
+                "tokens_values": {
+                    "token_1": "value 1",
+                    "token_2": "value 2",
+                    "token_3": "value 3",
+                    "token_4": "value 4",
+                    "token_5": "value 5",
+                },
+            },
+        ]
+
+        form_config_path = os.path.join(
+            self.data_dir,
+            FORM_COMPOSER__FORM_CONFIG_NAME,
+        )
+        token_sets_values_config_path = os.path.join(
+            self.data_dir,
+            FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME,
+        )
+        task_data_config_path = os.path.join(
+            self.data_dir,
+            FORM_COMPOSER__DATA_CONFIG_NAME,
+        )
+
+        form_config_f = open(form_config_path, "w")
+        form_config_f.write(json.dumps(form_config_data))
+        form_config_f.close()
+
+        token_sets_values_config_f = open(token_sets_values_config_path, "w")
+        token_sets_values_config_f.write(json.dumps(token_sets_values_config_data))
+        token_sets_values_config_f.close()
+
+        create_extrapolated_config(
+            form_config_path,
+            token_sets_values_config_path,
+            task_data_config_path,
+            data_path=self.data_dir,
+        )
+
+        f = open(task_data_config_path, "r")
+        task_config_data = json.loads(f.read())
+
+        self.assertEqual(
+            task_config_data,
+            [
+                {
+                    "form": {
+                        "title": "<b>Test value 1</b>",
+                        "instruction": "<b>Test value 2</b>",
+                        "sections": [
+                            {
+                                "collapsable": False,
+                                "fieldsets": [
+                                    {
+                                        "help": "Fieldset help",
+                                        "instruction": "Fieldset instruction",
+                                        "rows": [
+                                            {
+                                                "fields": [
+                                                    {
+                                                        "help": "Field help value 5",
+                                                        "id": "id_field",
+                                                        "label": "Field label",
+                                                        "name": "field_name",
+                                                        "placeholder": "Field placeholder",
+                                                        "tooltip": "Field tooltip",
+                                                        "type": "file",
+                                                        "value": "",
+                                                    },
+                                                ],
+                                                "help": "Row help",
+                                            },
+                                        ],
+                                        "title": "Fieldset title value 4",
+                                    },
+                                ],
+                                "initially_collapsed": True,
+                                "instruction": "Section instruction",
+                                "name": "section_name",
+                                "title": "Section title value 3",
+                            },
+                        ],
+                        "submit_button": {
+                            "instruction": "Submit instruction value 5",
+                            "text": "Submit",
+                            "tooltip": "Submit tooltip",
+                        },
+                    },
+                },
+            ],
+        )
+
     def test_create_extrapolated_config_file_not_found(self, *args, **kwargs):
         form_config_path = os.path.join(
             self.data_dir,
@@ -563,7 +677,7 @@ class TestTaskDataConfig(unittest.TestCase):
 
         self.assertEqual(
             cm.exception.__str__(),
-            f"Create file '{form_config_path}' and add form configuration",
+            f"Create file '{form_config_path}' with form configuration.",
         )
 
     def test_create_extrapolated_config_success(self, *args, **kwargs):

@@ -1,12 +1,24 @@
+import os.path
+import shutil
+import tempfile
 import unittest
 
 from mephisto.generators.form_composer.config_validation import config_validation_constants
+from mephisto.generators.form_composer.config_validation.common_validation import (
+    replace_path_to_file_with_its_content,
+)
 from mephisto.generators.form_composer.config_validation.common_validation import (
     validate_config_dict_item,
 )
 
 
 class TestCommonValidation(unittest.TestCase):
+    def setUp(self):
+        self.data_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.data_dir, ignore_errors=True)
+
     # --- Config ---
     def test_validate_config_dict_item_config_success(self, *args, **kwargs):
         errors = []
@@ -350,3 +362,39 @@ class TestCommonValidation(unittest.TestCase):
                 "Attribute `validators` in object `field` must be `Object`.",
             ],
         )
+
+    def test_replace_path_to_file_with_its_content_file_not_found(self, *args, **kwargs):
+        value_with_file_path = "insertions/test.html"
+
+        with self.assertRaises(FileNotFoundError) as cm:
+            replace_path_to_file_with_its_content(value_with_file_path, self.data_dir)
+
+        self.assertEqual(
+            cm.exception.__str__(),
+            (
+                f"Could not open insertion file "
+                f"'{os.path.abspath(os.path.join(self.data_dir, value_with_file_path))}'"
+            ),
+        )
+
+    def test_replace_path_to_file_with_its_content_success(self, *args, **kwargs):
+        value_with_file_path = "insertions/test.html"
+        html_content = "<b>Test</b>"
+
+        html_path = os.path.abspath(os.path.join(self.data_dir, value_with_file_path))
+
+        os.makedirs(os.path.dirname(html_path), exist_ok=True)
+        f = open(html_path, "w")
+        f.write(html_content)
+        f.close()
+
+        result = replace_path_to_file_with_its_content(value_with_file_path, self.data_dir)
+
+        self.assertEqual(result, html_content)
+
+    def test_replace_path_to_file_with_its_content_success_value_is_not_file(self, *args, **kwargs):
+        value_without_file_path = "<b>Test</b>"
+
+        result = replace_path_to_file_with_its_content(value_without_file_path, self.data_dir)
+
+        self.assertEqual(result, value_without_file_path)

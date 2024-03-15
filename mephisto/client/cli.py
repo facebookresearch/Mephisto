@@ -5,16 +5,19 @@
 
 import os
 import subprocess
+from typing import Any
 from typing import List
 from typing import Optional
 
 import rich_click as click  # type: ignore
 from flask.cli import pass_script_info
+from flask.cli import ScriptInfo
 from rich import print
 from rich.markdown import Markdown
 from rich_click import RichCommand
 from rich_click import RichGroup
 
+import mephisto.scripts.form_composer.rebuild_all_apps as rebuild_all_apps_form_composer
 import mephisto.scripts.heroku.initialize_heroku as initialize_heroku
 import mephisto.scripts.local_db.clear_worker_onboarding as clear_worker_onboarding_local_db
 import mephisto.scripts.local_db.load_data_to_mephisto_db as load_data_local_db
@@ -26,23 +29,25 @@ import mephisto.scripts.metrics.view_metrics as view_metrics
 import mephisto.scripts.mturk.cleanup as cleanup_mturk
 import mephisto.scripts.mturk.identify_broken_units as identify_broken_units_mturk
 import mephisto.scripts.mturk.launch_makeup_hits as launch_makeup_hits_mturk
-import mephisto.scripts.mturk.print_outstanding_hit_status as print_outstanding_hit_status_mturk
 import mephisto.scripts.mturk.print_outstanding_hit_status as soft_block_workers_by_mturk_id_mturk
-import mephisto.scripts.form_composer.rebuild_all_apps as rebuild_all_apps_form_composer
 from mephisto.client.cli_commands import get_wut_arguments
+from mephisto.generators.form_composer.config_validation.separate_token_values_config import (
+    update_separate_token_values_config_with_file_urls,
+)
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     create_extrapolated_config,
 )
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     verify_form_composer_configs,
 )
-from mephisto.generators.form_composer.config_validation.separate_token_values_config import (
-    update_separate_token_values_config_with_file_urls,
-)
 from mephisto.generators.form_composer.config_validation.token_sets_values_config import (
     update_token_sets_values_config_with_premutated_data,
 )
 from mephisto.generators.form_composer.config_validation.utils import is_s3_url
+from mephisto.generators.form_composer.config_validation.utils import set_custom_triggers_js_env_var
+from mephisto.generators.form_composer.config_validation.utils import (
+    set_custom_validators_js_env_var,
+)
 from mephisto.operations.registry import get_valid_provider_types
 from mephisto.tools.scripts import build_custom_bundle
 from mephisto.utils.rich import console
@@ -215,7 +220,8 @@ def run_wut(args):
 @cli.command("scripts", cls=RichCommand, context_settings={"ignore_unknown_options": True})
 @click.argument("script_type", required=False, nargs=1)
 @click.argument("script_name", required=False, nargs=1)
-def run_script(script_type, script_name):
+@click.argument("args", nargs=-1)  # Allow arguments for low level commands
+def run_script(script_type, script_name, args: Optional[Any] = None):
     """Run one of the many mephisto scripts."""
 
     def print_non_markdown_list(items: List[str]):
@@ -355,17 +361,17 @@ def metrics_cli(args):
 @cli.command("review_app", cls=RichCommand)
 @click.option("-h", "--host", type=(str), default="127.0.0.1")
 @click.option("-p", "--port", type=(int), default=5000)
-@click.option("-d", "--debug", type=(bool), default=None)
-@click.option("-f", "--force-rebuild", type=(bool), default=False)
-@click.option("-s", "--skip-build", type=(bool), default=False)
+@click.option("-d", "--debug", type=(bool), default=False, is_flag=True)
+@click.option("-f", "--force-rebuild", type=(bool), default=False, is_flag=True)
+@click.option("-s", "--skip-build", type=(bool), default=False, is_flag=True)
 @pass_script_info
 def review_app(
-    info,
-    host,
-    port,
-    debug,
-    force_rebuild,
-    skip_build,
+    info: ScriptInfo,
+    host: Optional[str],
+    port: Optional[str],
+    debug: bool = False,
+    force_rebuild: bool = False,
+    skip_build: bool = False,
 ):
     """
     Launch a local review server.
@@ -451,7 +457,7 @@ def _get_form_composer_app_path() -> str:
 
 
 @cli.command("form_composer", cls=RichCommand)
-@click.option("-o", "--task-data-config-only", type=(bool), default=True)
+@click.option("-o", "--task-data-config-only", type=(bool), default=True, is_flag=True)
 def form_composer(task_data_config_only: bool = True):
     # Get app path to run Python script from there (instead of the current file's directory).
     # This is necessary, because the whole infrastructure is built relative to the location
@@ -464,6 +470,11 @@ def form_composer(task_data_config_only: bool = True):
 
     # Change dir to app dir
     os.chdir(app_path)
+
+    # Set env var for `custom_validators.js`
+    set_custom_validators_js_env_var(app_data_path)
+    # Set env var for `custom_triggers.js`
+    set_custom_triggers_js_env_var(app_data_path)
 
     verify_form_composer_configs(
         task_data_config_path=task_data_config_path,
@@ -552,6 +563,7 @@ def form_composer_config(
             token_sets_values_config_path=token_sets_values_config_path,
             separate_token_values_config_path=separate_token_values_config_path,
             task_data_config_only=False,
+            data_path=app_data_path,
         )
         print(f"Finished configs verification")
 
@@ -590,6 +602,7 @@ def form_composer_config(
             form_config_path=form_config_path,
             token_sets_values_config_path=token_sets_values_config_path,
             task_data_config_path=task_data_config_path,
+            data_path=app_data_path,
         )
         print(f"[green]Finished successfully[/green]")
 

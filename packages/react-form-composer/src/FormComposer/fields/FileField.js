@@ -5,25 +5,59 @@
  */
 
 import React from "react";
+import {
+  AUDIO_TYPES_BY_EXT,
+  FILE_TYPE_BY_EXT,
+  FileType,
+  VIDEO_TYPES_BY_EXT,
+} from "../constants";
+import { runCustomTrigger } from "../utils";
 import { checkFieldRequiredness } from "../validation/helpers";
 import { Errors } from "./Errors";
 
+const DEFAULT_VALUE = "";
+
 function FileField({
   field,
+  formData,
   updateFormData,
   disabled,
   initialFormData,
   inReviewState,
   invalid,
   validationErrors,
+  formFields,
+  customTriggers,
   onReviewFileButtonClick,
 }) {
-  const [widgetValue, setWidgetValue] = React.useState("");
+  const [value, setValue] = React.useState(DEFAULT_VALUE);
 
   const [invalidField, setInvalidField] = React.useState(false);
   const [errors, setErrors] = React.useState([]);
 
+  const [fileUrl, setFileUrl] = React.useState(null);
+  const [fileExt, setFileExt] = React.useState(null);
+
+  const fileType = FILE_TYPE_BY_EXT[fileExt];
+
   // Methods
+  function _runCustomTrigger(triggerName) {
+    if (inReviewState) {
+      return;
+    }
+
+    runCustomTrigger(
+      field.triggers,
+      triggerName,
+      customTriggers,
+      formData,
+      updateFormData,
+      field,
+      value,
+      formFields
+    );
+  }
+
   function onChange(e, fieldName) {
     let fieldValue = null;
     const input = e.target;
@@ -36,29 +70,42 @@ function FileField({
           name: file.name ? file.name : "",
           size: file.size ? file.size : -1,
           type: file.type ? file.type : "",
+          file: file,
         };
-        setWidgetValue(fieldValue.name);
+        setFileExt(fieldValue.name.split(".").pop().toLowerCase());
+        setFileUrl(URL.createObjectURL(file));
       });
 
-    updateFormData(e, fieldName, fieldValue);
+    updateFormData(fieldName, fieldValue, e);
+    _runCustomTrigger("onChange");
+  }
+
+  function onBlur(e) {
+    _runCustomTrigger("onBlur");
+  }
+
+  function onFocus(e) {
+    _runCustomTrigger("onFocus");
+  }
+
+  function onClick(e) {
+    _runCustomTrigger("onClick");
   }
 
   function setDefaultWidgetValue() {
     const initialValue = initialFormData
       ? initialFormData[field.name]
-      : { name: "" };
-    setWidgetValue(initialValue.name || "");
+      : { name: DEFAULT_VALUE };
+    updateFormData(field.name, initialValue);
   }
 
   function onReviewFileClick() {
-    onReviewFileButtonClick(widgetValue);
+    onReviewFileButtonClick(value, field.name);
   }
 
-  // Effects
+  // --- Effects ---
   React.useEffect(() => {
-    if (!widgetValue) {
-      setDefaultWidgetValue();
-    }
+    setDefaultWidgetValue();
   }, []);
 
   React.useEffect(() => {
@@ -68,6 +115,13 @@ function FileField({
   React.useEffect(() => {
     setErrors(validationErrors);
   }, [validationErrors]);
+
+  // Value in formData is updated
+  React.useEffect(() => {
+    const fieldValue = formData[field.name];
+    const fileName = fieldValue ? fieldValue.name : DEFAULT_VALUE;
+    setValue(fileName);
+  }, [formData[field.name]]);
 
   return (
     // bootstrap classes:
@@ -99,6 +153,9 @@ function FileField({
           setInvalidField(false);
           setErrors([]);
         }}
+        onBlur={onBlur}
+        onFocus={onFocus}
+        onClick={onClick}
         disabled={disabled}
       />
 
@@ -106,7 +163,7 @@ function FileField({
         Button to open file in modal window in Review App.
         This button is shown over input browse button only in review state and if file was attached
       */}
-      {inReviewState && widgetValue && (
+      {inReviewState && value && (
         <div
           className={"review-file-button"}
           title={"View uploaded file content"}
@@ -116,9 +173,41 @@ function FileField({
         </div>
       )}
 
-      <span className={`custom-file-label`}>{widgetValue}</span>
+      <span className={`custom-file-label`}>{value}</span>
 
       <Errors messages={errors} />
+
+      {field.show_preview && fileType && (
+        <div className={"file-preview"}>
+          {fileType === FileType.IMAGE && (
+            <img
+              id={`${field.id}_preview`}
+              src={fileUrl}
+              alt={`image "${value}"`}
+            />
+          )}
+          {fileType === FileType.VIDEO && (
+            <video id={`${field.id}_preview`} controls={true}>
+              <source src={fileUrl} type={VIDEO_TYPES_BY_EXT[fileExt]} />
+            </video>
+          )}
+          {fileType === FileType.AUDIO && (
+            <div className={"audio-wrapper"}>
+              <audio id={`${field.id}_preview`} controls={true}>
+                <source src={fileUrl} type={AUDIO_TYPES_BY_EXT[fileExt]} />
+              </audio>
+            </div>
+          )}
+          {fileType === FileType.PDF && (
+            <div className={"pdf-wrapper"}>
+              <iframe
+                id={`${field.id}_preview`}
+                src={`${fileUrl}#view=fit&page=1&toolbar=0&navpanes=0`}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

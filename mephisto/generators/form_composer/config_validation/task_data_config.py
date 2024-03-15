@@ -16,6 +16,7 @@ from mephisto.generators.form_composer.constants import S3_URL_EXPIRATION_MINUTE
 from mephisto.generators.form_composer.constants import TOKEN_END_REGEX
 from mephisto.generators.form_composer.constants import TOKEN_START_REGEX
 from mephisto.generators.form_composer.remote_procedures import ProcedureName
+from .common_validation import replace_path_to_file_with_its_content
 from .config_validation_constants import ATTRS_SUPPORTING_TOKENS
 from .config_validation_constants import TOKENS_VALUES_KEY
 from .form_config import validate_form_config
@@ -29,14 +30,23 @@ from .utils import write_config_to_file
 FILE_LOCATION_TOKEN_NAME = "file_location"
 
 
-def _extrapolate_tokens_values(text: str, tokens_values: dict) -> str:
+def _extrapolate_tokens_values(
+    text: str,
+    tokens_values: dict,
+    data_path: Optional[str] = None,
+) -> str:
     for token, value in tokens_values.items():
+        # For HTML paths
+        value = replace_path_to_file_with_its_content(value, data_path)
+
+        # For other values
         text = re.sub(
             (
                 TOKEN_START_REGEX
                 + r"(\s*)"
                 +
-                # Escape and add parentheses around the token, in case it has special characters
+                # Escape and add regexp grouping parentheses around the token
+                # (in case it has special characters)
                 r"("
                 + re.escape(token)
                 + r")"
@@ -49,13 +59,17 @@ def _extrapolate_tokens_values(text: str, tokens_values: dict) -> str:
     return text
 
 
-def _set_tokens_in_form_config_item(item: dict, tokens_values: dict):
+def _set_tokens_in_form_config_item(
+    item: dict,
+    tokens_values: dict,
+    data_path: Optional[str] = None,
+):
     for attr_name in ATTRS_SUPPORTING_TOKENS:
         item_attr = item.get(attr_name)
         if not item_attr:
             continue
 
-        item[attr_name] = _extrapolate_tokens_values(item_attr, tokens_values)
+        item[attr_name] = _extrapolate_tokens_values(item_attr, tokens_values, data_path)
 
 
 def _collect_form_config_items_to_extrapolate(config_data: dict) -> List[dict]:
@@ -133,10 +147,14 @@ def _collect_tokens_from_form_config(
     return tokens_in_form_config, tokens_in_unexpected_attrs_errors
 
 
-def _extrapolate_tokens_in_form_config(config_data: dict, tokens_values: dict) -> dict:
+def _extrapolate_tokens_in_form_config(
+    config_data: dict,
+    tokens_values: dict,
+    data_path: Optional[str] = None,
+) -> dict:
     items_to_extrapolate = _collect_form_config_items_to_extrapolate(config_data)
     for item in items_to_extrapolate:
-        _set_tokens_in_form_config_item(item, tokens_values)
+        _set_tokens_in_form_config_item(item, tokens_values, data_path)
     return config_data
 
 
@@ -164,6 +182,7 @@ def _validate_tokens_in_both_configs(
 def _combine_extrapolated_form_configs(
     form_config_data: dict,
     token_sets_values_config_data: List[dict],
+    data_path: Optional[str] = None,
 ) -> List[dict]:
     errors = []
 
@@ -231,6 +250,7 @@ def _combine_extrapolated_form_configs(
                 form_config_data_with_tokens = _extrapolate_tokens_in_form_config(
                     deepcopy(form_config_data),
                     token_sets_values[TOKENS_VALUES_KEY],
+                    data_path=data_path,
                 )
                 combined_config.append(form_config_data_with_tokens)
     else:
@@ -241,31 +261,58 @@ def _combine_extrapolated_form_configs(
     return combined_config
 
 
+def _replace_html_paths_with_html_file_content(
+    config_data: dict,
+    data_path: str,
+) -> dict:
+    items_to_replace = _collect_form_config_items_to_extrapolate(config_data)
+
+    for item in items_to_replace:
+        for attr_name in ATTRS_SUPPORTING_TOKENS:
+            item_attr = item.get(attr_name)
+            if not item_attr:
+                continue
+
+            item[attr_name] = replace_path_to_file_with_its_content(item_attr, data_path)
+
+    return config_data
+
+
 def create_extrapolated_config(
     form_config_path: str,
     token_sets_values_config_path: str,
     task_data_config_path: str,
+    data_path: Optional[str] = None,
 ):
-    # Check if files exist
+    # Ensure form config file exists
     if not os.path.exists(form_config_path):
-        raise FileNotFoundError(f"Create file '{form_config_path}' and add form configuration")
+        raise FileNotFoundError(f"Create file '{form_config_path}' with form configuration.")
 
     # Read JSON from files
     form_config_data = read_config_file(form_config_path)
 
+    # Handle HTML insertion files (replace their paths with file content)
+    if data_path:
+        form_config_data = _replace_html_paths_with_html_file_content(
+            form_config_data,
+            data_path,
+        )
+
+    # Get token sets values
     if os.path.exists(token_sets_values_config_path):
         token_sets_values_data = read_config_file(token_sets_values_config_path)
     else:
         token_sets_values_data = []
 
-    # Create combined config
+    # Create Task data config (with multiple form versions)
     try:
         extrapolated_form_config_data = _combine_extrapolated_form_configs(
             form_config_data,
             token_sets_values_data,
+            data_path,
         )
         write_config_to_file(extrapolated_form_config_data, task_data_config_path)
-    except ValueError as e:
+    except (ValueError, FileNotFoundError) as e:
         print(f"\n[red]Could not extrapolate form configs:[/red] {e}\n")
         exit()
 
@@ -299,6 +346,7 @@ def verify_form_composer_configs(
     token_sets_values_config_path: Optional[str] = None,
     separate_token_values_config_path: Optional[str] = None,
     task_data_config_only: bool = False,
+    data_path: Optional[str] = None,
 ):
     errors = []
 
@@ -332,7 +380,17 @@ def verify_form_composer_configs(
         if form_config_data is None:
             pass
         else:
-            form_config_is_valid, form_config_errors = validate_form_config(form_config_data)
+            # Handle HTML insertion files (replace their paths with file content)
+            if data_path:
+                form_config_data = _replace_html_paths_with_html_file_content(
+                    form_config_data,
+                    data_path,
+                )
+
+            form_config_is_valid, form_config_errors = validate_form_config(
+                form_config_data,
+                data_path,
+            )
 
             if not form_config_is_valid:
                 errors.append(make_error_message("Form config is invalid", form_config_errors))

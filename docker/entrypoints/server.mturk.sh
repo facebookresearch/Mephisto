@@ -12,7 +12,7 @@ cd /mephisto
 # Directory for Task results
 mkdir -p "data" && chmod 777 "data"
 # Directory for Cypress testing
-mkdir -p "/root/.cache/cypress" && chmod 777 "/root/.cache/cypress"
+mkdir -p "/root/.cache/Cypress" && chmod 777 "/root/.cache/Cypress"
 
 mephisto register mturk_sandbox \
     name=$MTURK_SANDBOX_NAME \

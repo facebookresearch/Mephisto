@@ -23,6 +23,39 @@ type InReviewFileModalProps = {
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
+/**
+ * Modal with file preview.
+ *
+ * This feature allows previewing submitted files (image, video, audio and PDF),
+ * as well as download the source file of any format, directly in TaskReview UI.
+ * It also shows local path to the source file.
+ *
+ * NOTE: this feature will only work if Agent State saves data in a specific format.
+ * The saved state must be a JSON object containing key `outputs` with key `filesByFields` inside,
+ * that points to a JSON object with:
+ * - keys being uploaded file fieldname
+ * - values being a JSON object containing key `filename`
+ *
+ * Example:
+ *  {
+ *    "inputs": ...
+ *    "outputs": {
+ *      ...
+ *      "filesByFields": {
+ *        "avatar": {
+ *          "originalname": "image.png",
+ *          "encoding": "7bit",
+ *          "mimetype": "image/png",
+ *          "destination": "/tmp/",
+ *          "filename": "1710374788260-803335576-avatar-image.png",
+ *          "path": "/tmp/1710374788260-803335576-avatar-image.png",
+ *          "size": 20593
+ *       },
+ *       ...
+ *      }
+ *    }
+ *  }
+ */
 function InReviewFileModal(props: InReviewFileModalProps) {
   const { data, show, setShow } = props;
 
@@ -49,7 +82,9 @@ function InReviewFileModal(props: InReviewFileModalProps) {
     setFileExt(null);
 
     if (data.filename) {
-      setFileUrl(urls.server.unitsOutputsFile(data.unitId, data.filename));
+      setFileUrl(
+        urls.server.unitsOutputsFileByFieldname(data.unitId, data.fieldname)
+      );
       setFileExt(data.filename.split(".").pop().toLowerCase());
     }
   }, [data]);
@@ -85,14 +120,10 @@ function InReviewFileModal(props: InReviewFileModalProps) {
           {fileType ? (
             <>
               {fileType === FileType.IMAGE && (
-                <img
-                  className={""}
-                  src={fileUrl}
-                  alt={`image "${data.filename}}`}
-                />
+                <img src={fileUrl} alt={`image "${data.filename}"`} />
               )}
               {fileType === FileType.VIDEO && (
-                <video className={""} controls={true}>
+                <video controls={true}>
                   <source src={fileUrl} type={VIDEO_TYPES_BY_EXT[fileExt]} />
                 </video>
               )}
@@ -106,7 +137,6 @@ function InReviewFileModal(props: InReviewFileModalProps) {
               {fileType === FileType.PDF && (
                 <div className={"pdf-wrapper"}>
                   <iframe
-                    className={""}
                     src={`${fileUrl}#view=fit&page=1&toolbar=0&navpanes=0`}
                   />
                 </div>

@@ -47,14 +47,15 @@ class MockUnit(Unit):
 
         # TODO(OWN) get this link to the frontend
         port = task_url.split(":")[1].split("/")[0]
+        assignment_id = self.assignment_id
         if port:
-            assignment_url = f"http://localhost:{port}/?worker_id=x&assignment_id={self.db_id}"
+            assignment_url = f"http://localhost:{port}/?worker_id=x&assignment_id={assignment_id}"
         else:
-            assignment_url = f"{task_url}/?worker_id=x&assignment_id={self.db_id}"
+            assignment_url = f"{task_url}/?worker_id=x&assignment_id={assignment_id}"
         print(f"Mock task launched: http://localhost:{port} for preview, " f"{assignment_url}")
         logger.info(
             f"Mock task launched: http://localhost:{port} for preview, "
-            f"{assignment_url} for assignment {self.assignment_id}"
+            f"{assignment_url} for assignment {assignment_id} and unit {self.db_id}"
         )
 
         return None

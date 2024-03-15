@@ -140,6 +140,7 @@ function TaskPage(props: PropsType) {
       }
       // Open file field modal message
       else if (data.hasOwnProperty(MESSAGES_IN_REVIEW_FILE_DATA_KEY)) {
+        const fieldname = data[MESSAGES_IN_REVIEW_FILE_DATA_KEY].fieldname;
         const filename = data[MESSAGES_IN_REVIEW_FILE_DATA_KEY].filename;
         const unitDataFolderStartIndex = currentUnitDetails.unit_data_folder.indexOf(
           "data/data"
@@ -149,10 +150,11 @@ function TaskPage(props: PropsType) {
         );
 
         setInReviewFileModalData({
+          fieldname: fieldname,
           filename: filename,
           title: filename,
-          unitId: currentUnitOnReview,
           unitDataFolder: unitDataFolder,
+          unitId: currentUnitOnReview,
         });
         setInReviewFileModalShow(true);
       }

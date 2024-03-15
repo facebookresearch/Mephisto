@@ -96,7 +96,9 @@ and place it in `generators/form-composer/data` directory.
 - If you want to slightly vary your form within a Task (by inserting different values into its text), you need to add two files (that will be used to auto-generate `task_data.json` file):
     - `token_sets_values_config.json` containing a JSON array of objects (each with one key `tokens_values` and value representing name-value pairs for a set of text tokens to be used in one form version).
     - `form_config.json` containing a single JSON object with one key `form`.
-- For more detail, read on about dynamic form configs.
+    - For more details, read on about dynamic form configs.
+- If you want to insert code (HTML or JS) into your form config, you need to create `insertions` directory in the form config directory, and place these files there
+    - For more details, read on about insertions.
 
 For detailed structure of each config file, see [Config file reference](#config-file-reference).
 
@@ -112,9 +114,37 @@ Working config examples are provided in `examples/form_composer_demo/data` direc
 
 A few tips if you wish to embed FormComposer in your custom application:
 
-- to extrapolate form config (and generate the `task_data.json` file), call the extrapolator function `mephisto.generators.form_composer.configs_validation.extrapolated_config.create_extrapolated_config`
+- To extrapolate form config (and generate the `task_data.json` file), call the extrapolator function `mephisto.generators.form_composer.configs_validation.extrapolated_config.create_extrapolated_config`
     - For a live example, you can explore the source code of [run_task_dynamic.py](/examples/form_composer_demo/run_task_dynamic.py) module
-
+- To use code insertions:
+    - for custom validators:
+        - Point `WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS` backend env variable to the location of `custom_validators.js` module (before building all webapp applications)
+        - When using `FormComposer` component, import validators with `import * as customValidators from "custom-validators";` and pass them to your `FormComposer` component as an argument: `customValidators={customValidators}`
+        - Set this alias in your webpack config (to avoid build-time exception that `custom-validators` cannot be found):
+        ```js
+        resolve: {
+          alias: {
+            ...
+            "custom-validators": path. resolve(
+              process.env.WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS
+            ),
+          },
+        }
+        ```
+    - for custom triggers:
+        - Point `WEBAPP__FORM_COMPOSER__CUSTOM_TRIGGERS` backend env variable to the location of `custom_triggers.js` module (before building all webapp applications)
+        - When using `FormComposer` component, import triggers with `import * as customTriggers from "custom-triggers";` and pass them to your `FormComposer` component as an argument: `customTriggers={customTriggers}`
+        - Set this alias in your webpack config (to avoid build-time exception that `custom-triggers` cannot be found):
+        ```js
+        resolve: {
+          alias: {
+            ...
+            "custom-triggers": path. resolve(
+              process.env.WEBAPP__FORM_COMPOSER__CUSTOM_TRIGGERS
+            ),
+          },
+        }
+        ```
 
 ---
 
@@ -323,13 +353,6 @@ After extrapolating attributes from `form_config.json` with token sets from `tok
 ---
 
 
-# Custom field handlers
-
-TBD
-
----
-
-
 # Form callbacks
 
 During rendering of a Task in the browser, we may send calls to the server-side for additional data. In Mephisto, API views servicing such requests are called "remote procedures".
@@ -346,24 +369,240 @@ mephisto form_composer_config --update-file-location-values "https://s3.amazonaw
 ```
 
 This is how URL pre-signing works:
-  - When a worker opens the Task page and the form HTML is generated, it will contain so-called "procedure tokens", i.e. token values that look like this: `{{getMultiplePresignedUrls(<S3_FILE_URL>)}}`
+- When a worker opens the Task page and the form HTML is generated, it will contain so-called "procedure tokens", i.e. token values that look like this: `{{getMultiplePresignedUrls(<S3_FILE_URL>)}}`
     - the "wrapper" part of a procedure token is the name of a Javascript function that will render itself dynamically (e.g. by calling some remote API to receive additional data)
     - the argument part is the argument value provided suring the function call
-  - As soon as the form HTML is in place, the remote procedure gets called
-  - Mephisto's predefined remote procedure generates presigned URL, and its expiration starts ticking
+- As soon as the form HTML is in place, the remote procedure gets called
+- Mephisto's predefined remote procedure generates presigned URL, and its expiration starts ticking
 
 Presigned S3 URLs use the following environment variables:
-  - Required: valid AWS credentials: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_DEFAULT_REGION`
+- Required: valid AWS credentials: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_DEFAULT_REGION`
   form_composer_config` command)
-  - Optional: URL expiration time `S3_URL_EXPIRATION_MINUTES` (if missing the default value is 60 minutes)
+- Optional: URL expiration time `S3_URL_EXPIRATION_MINUTES` (if missing the default value is 60 minutes)
 
 
 ## Custom callbacks
 
 You can write your own remote procedures. A good place to start is looking at how S3 URL presigning is implemented in the `examples/form_composer_demo` example project.
 
------
+---
 
+
+# Insertions
+
+FormComposer allows for insertion of code into its config in these scenarios:
+- Specify lengthy content of an attribute (e.g. "instruction") in a separate HTML file
+- Define custom validators for form fileds in a JS file
+- Define custom triggers for form fileds, sections and submit button in a JS file
+
+The inserted code must reside in separate files (called "insertion files") located in `insertions` subdirectory of your form config directory.
+- _Remember that you can change default config directory path using `--directory` option of `form_composer_config` command_
+
+---
+
+## HTML content insertion
+
+An HTML insertion file is specified as a file path that's relative to the form config. It can be inserted directly into `form_config.json` config, or via a token.
+
+#### Insertion without token
+
+Simply set entire value of an attribute to the insertion file's path.
+This is equivalent to setting value of that attribute to content of the HTML file (except now you don't have to stitch all HTML content into a single unreadable JSON line).
+
+Attributes that support HTML insertions are the same ones that support tokens
+
+Example in `form_config.json`:
+```json
+{
+  ...
+  "instruction": "insertions/some_content.html"
+  ...
+}
+```
+
+#### Insertion via token
+
+Use an extrapolated token as usual, and set that token's value to the insertion file's path.
+Upon extrapolation, value of such token will be automatically replaced with content of the HTML file.
+
+Example in `token_sets_values_config.json`:
+```json
+[
+  {
+    "tokens_values": {
+      "html_file": "insertions/some_content.html"
+    }
+  }
+]
+```
+
+## JS validator insertion
+
+You can define your own custom field validator as a Javascript function, and place it in a special file `insertions/custom_validators.js` inside your form config directory.
+When a Task is rendered in the browser, your validator function (let's call it `myValidator`) will be imported from this file.
+
+In form config, the validator function is associated with a field by adding this key-value pair under "validators" attribute:
+```json
+"myValidator": myValidatorArgument
+```
+
+In your custom code, each validator function must have the following signature:
+- Accept 2 required arguments `field` and `value`, and extra arguments as needed
+    - `field` is a JS object representing a rendered form field
+    - `value` is provided value of the field (format depends on the field type)
+    - Extra arguments will be passed after the `value` argument (they come from the `myValidatorArgument` value you specified in the form config under `"myValidator"` key) :
+        - If the value is a non-Array (Boolean, String, Number, or non-array Object), it will be passed as-is
+        - If the value is an Array, the content of Array will be decostructed and passed as separate positional arguments.
+- Return value must be either:
+    - `null` if validation passed successfully
+    - String if validation failed
+        - This value will be shown to user as an error message underneath the field, and in the error summary block
+
+Example in `custom_validators.js`...
+
+```js
+// You can import some functions from another file
+import { someHelper } from "./helpers.js";
+
+export function fieldContainsWord(field, value, word) {
+  someHelper();
+
+  if (value.includes(word)) {
+    return null;
+  }
+
+  return `Field ${field.name} must contain a word "${word}".`;
+}
+
+// This way you can separate all your validators into separate files, for convenience
+export { phoneValidatorFunction } from "./phone_validator_code.js";
+```
+
+...and its usage in `form_config.json`:
+```json
+{
+  ...
+  "validators": {
+    "required": true,
+    ...
+    "fieldContainsWord": "Mephisto"
+  },
+  ...
+}
+```
+
+## JS trigger insertion
+
+You can define your own custom trigger for a specific form element as a Javascript function, and place it in a special file `insertions/custom_triggers.js` inside your form config directory.
+When a Task is rendered in the browser, your validator function (let's call it `myTrigger`) will be imported from this file.
+NOTE: triggers are called synchronously in the current implementation and your code inside trigger funtion must be synchronous too.
+
+In form config, the trigger function is associated with an element by adding this key-value pair under "triggers" attribute:
+```json
+"myTrigger": [myTriggerEventType, myTriggerArgument]
+```
+
+In your custom code, each trigger function must have the following signature:
+- Accept 4 required arguments `formData`, `updateFormData`, `element`, `fieldValue`, and extra arguments as needed
+    - `formData` is a React state with form data (`{<fieldName>: <fieldValue>, ...}`)
+        - This allows to lookup values of any form field by its `"name"` attribute
+    - `updateFormData` is a callback that sets value of any form field in the React state
+        - This allows to change values of any form field by its `"name"` attribute, e.g. `updateFormData("name_first", "Austin")`. Note that you will need change HTML-field value as well.
+    - `element` is the form object that fired the trigger (i.e. "field", "section" or "submit button" object defined in form config)
+    - `fieldValue` is the value of an element that fired the trigger, if it's a form field (otherwise it's null)
+    - Extra arguments will be passed after the `fieldValue` argument (they come from the `myTriggerArgument` value you specified in the form config under `"myTrigger"` key) :
+        - If the value is a non-Array (Boolean, String, Number, or non-array Object), it will be passed as-is
+        - If the value is an Array, the content of Array will be decostructed and passed as separate positional arguments.
+
+The `myTriggerEventType` parameter can take one of the following values, depending on the type of trigger element:
+- non-field elements:
+  - `"onClick"`
+- "field" element:
+  - `checkbox` field type:
+      - `"onChange"`
+      - `"onClick"` (triggered from any part of the entire field, not just the buttons)
+  - `file` field type:
+      - `"onChange"`
+      - `"onBlur"`
+      - `"onFocus"`
+      - `"onClick"`
+  - `input` field type:
+      - `"onChange"`
+      - `"onBlur"`
+      - `"onFocus"`
+      - `"onClick"`
+  - `radio` field type:
+      - `"onChange"`
+      - `"onClick"` (triggered from any part of the entire field, not just the buttons)
+  - `select` field type:
+      - `"onChange"`
+  - `textarea` field type:
+      - `"onChange"`
+      - `"onBlur"`
+      - `"onFocus"`
+      - `"onClick"`
+
+
+Example in `custom_triggers.js`...
+
+```js
+export function onClickSectionHeader(
+  formData, // React state for the entire form
+  updateFormData, // callback to set the React state
+  element, // "field", "section", or "submit button" element that invoked this trigger
+  fieldValue, // (optional) current field value, if the `element` is a form field
+  sectionName // Argument for this trigger (taken from form config)
+) {
+  alert(`${sectionName} section was clicked!`);
+}
+```
+
+...and its usage in `form_config.json`:
+```json
+{
+  ...,
+  "triggers": {
+    "onChange": ["onChangeName", [true, {"prefix": "_"}, 100]]
+  }
+  ...
+  "triggers": {
+    "onClick": ["onClickSectionHeader", "Triggerable"]
+  }
+  ...
+}
+```
+
+#### JS trigger helpers
+
+During development of your form config, you can use a few available helper functions.
+
+1. `validateFieldValue` - checks whether you're assigning a valid value to a field
+(in case you want to change them programmatically).
+
+    Example of use:
+    1. Add `react-form-composer` in webpack config
+
+    ```js
+    resolve: {
+      alias: {
+        ...
+        "react-form-composer": path.resolve(
+          __dirname,
+          "<relativePath>/packages/react-form-composer"
+        ),
+      },
+    }
+    ```
+    2. Add import
+    ```js
+    import { validateFieldValue } from "react-form-composer";
+    ```
+    3. Validate a value before assigning it to form field
+    ```js
+    const valueIsValid = validateFieldValue(formFields.languageRadioSelector, {"en": true, "fr": false}, true);
+    ```
+
+-----
 
 # Config file reference
 
@@ -387,7 +626,7 @@ Task data config file `task_data.json` specifies layout of all form versions tha
             // Two fieldsets
             {
               "title": "Personal information",
-              "instruction": "",
+              "instruction": "insertions/personal_info_instruction.html",
               "rows": [
                 // Two rows
                 {
@@ -439,7 +678,10 @@ Task data config file `task_data.json` specifies layout of all form versions tha
               ],
               "help": "This information will help us compile study statistics"
             }
-          ]
+          ],
+          "triggers": {
+            "onClick": ["onClickSectionHeader", "FIRST"]
+          }
         },
         { ... }
       ],
@@ -475,6 +717,12 @@ While attributes values are limited to numbers and text, these fields (at any hi
 
 _Note that, due to limitations of JSON format, HTML content needs to be converted into a single long string of text._
 
+You can style fields with HTML-classes in `classes` attribute. You can use any bootstrap classes or our built-in classes:
+- `hidden` - if you need to hide element and show it later with custom triggerm, but you do not need it be a fully hidden field (`"type": "hidden"`)
+- `centered` - centered horizontally
+
+TBD: Other classes and styles insertions
+
 
 ---
 
@@ -482,12 +730,16 @@ _Note that, due to limitations of JSON format, HTML content needs to be converte
 
 `form` is a top-level config object with the following attributes:
 
+- `id` - Unique HTML id of the form, in case we need to refer to it from custom handlers code (String, Optional)
+- `classes` = Custom classes that you can use to restyle element or refer to it from custom handlers code (String, Optional)
 - `instruction` - HTML content describing this form; it is located before all contained sections (String, Optional)
 - `title` - HTML header of the form (String)
 - `submit_button` - Button to submit the whole form and thus finish a task (Object)
+    - `id` - Unique HTML id of the button, in case we need to refer to it from custom handlers code (String, Optional)
     - `instruction` - Text shown above the "Submit" button (String, Optional)
     - `text` - Label shown on the button (String)
     - `tooltip` - Browser tooltip shown on mouseover (String, Optional)
+    - `triggers` - Functions that are being called on available React-events (`onClick`, see [JS trigger insertion](#js-trigger-insertion))
 - `sections` - **List of containers** into which form content is divided, for convenience; each section has its own validation messages, and is collapsible (Array[Object])
 
 ---
@@ -496,12 +748,15 @@ _Note that, due to limitations of JSON format, HTML content needs to be converte
 
 Each item of `sections` list is an object with the following attributes:
 
+- `id` - Unique HTML id of the section, in case we need to refer to it from custom handlers code (String, Optional)
+- `classes` = Custom classes that you can use to restyle element or refer to it from custom handlers code (String, Optional)
 - `collapsable` - Whether the section will toggle when its title is clicked (Boolean, Optional, Default: true)
 - `initially_collapsed` - Whether the section display will initially be collapsed (Boolean, Optional, Default: false)
 - `instruction` - HTML content describing this section; it is located before all contained fieldsets (String, Optional)
 - `name` - Unique string that serves as object reference when using dynamic form config (String)
 - `title` - Header of the section (String)
 - `fieldsets` - **List of containers** into which form fields are grouped by meaning (Array[Object])
+- `triggers` - Functions that are being called on available React-events (`onClick` on header, see [JS trigger insertion](#js-trigger-insertion))
 
 ---
 
@@ -509,6 +764,8 @@ Each item of `sections` list is an object with the following attributes:
 
 Each item of `fieldsets` list is an object with the following attributes:
 
+- `id` - Unique HTML id of the fieldset, in case we need to refer to it from custom handlers code (String, Optional)
+- `classes` = Custom classes that you can use to restyle element or refer to it from custom handlers code (String, Optional)
 - `instruction` - HTML content describing this fieldset; it is located before all contained field rows (String, Optional)
 - `title` - Header of the section (String)
 - `rows` - **List of horizontal lines** into which section's form fields are organized (Array[Object])
@@ -519,6 +776,8 @@ Each item of `fieldsets` list is an object with the following attributes:
 
 Each item of `rows` list is an object with the following attributes:
 
+- `id` - Unique HTML id of the row, in case we need to refer to it from custom handlers code (String, Optional)
+- `classes` = Custom classes that you can use to restyle element or refer to it from custom handlers code (String, Optional)
 - `fields` - **List of fields** that will be lined up into one horizontal line
 
 ---
@@ -541,12 +800,24 @@ Here's example of a single field config:
     "required": true,
     "minLength": 2,
     "maxLength": 20,
-    "regexp": ["^[a-zA-Z0-9._-]+@mephisto\\.ai$", "ig"]
-    // or can use this --> "regexp": "^[a-zA-Z0-9._-]+@mephisto\\.ai$"
+    "regexp": ["^[a-z\.\-']+$", "ig"]
+    // or can use this --> "regexp": "^[a-z\.\-']+$"
   },
   "value": ""
 }
 ```
+
+######## `value` attribute
+
+The `value` attribute specifies initial value of a field, and has the following format:
+
+- String for `input`, `textarea`, `email`, `hidden`, `number`, `password`, `radio`, and `select` with `"multiple": false` field types
+    - For `radio` and `select` fields, it must be one of the input options' values
+- Object for `checkbox`
+    - The object should consist of all checkbox options with their Boolean value, e.g. `{"react": true, "python": true, "sql": false}`
+- Array<String> for `select` with `"multiple": true`
+    - All array items must be input options' values, e.g. `["python", "sql"]`
+
 
 ######## Attributes - all fields
 
@@ -554,11 +825,12 @@ The most important attributes are: `label`, `name`, `type`, `validators`
 
 - `help` - HTML explanation of the field/fieldset displayed in small font below the field (String, Optional)
 - `id` - Unique HTML id of the field, in case we need to refer to it from custom handlers code (String, Optional)
+- `classes` = Custom classes that you can use to restyle element or refer to it from custom handlers code (String, Optional)
 - `label` - Field name displayed above the field (String)
 - `name` - Unique name under which this field's data will be sent to the server (String)
 - `placeholder` - Text faintly displayed in the field before user provides a value (String, Optional)
 - `tooltip` - Text shown in browser tooltip on mouseover (String, Optional)
-- `type` - Type of the field (`input`, `email`, `select`, `textarea`, `checkbox`, `radio`, `file`) (String)
+- `type` - Type of the field (`input`, `email`, `select`, `textarea`, `checkbox`, `radio`, `file`, `hidden`) (String)
 - `validators` - Validators preventing incorrect data from being submitted (Object[<String>: String|Boolean|Number], Optional). Supported key-value pairs for the `validators` object:
     - `required`: Ensure field is not left empty (Boolean)
     - `minLength`: Ensure minimal number of typed characters or selected choices (Number)
@@ -568,6 +840,12 @@ The most important attributes are: `label`, `name`, `type`, `validators`
         - (2-item Array[String, String]): a regexp string followed by matching flags (e.g. `["^[a-zA-Z0-9._-]+$", "ig"]`)
     - `fileExtension`: Ensure uploaded file has specified extension(s) (e.g. `["doc", "pdf"]`) (Array<String>)
 - `value` - Initial value of the field (String, Optional)
+- `triggers` - Functions that are being called on available React-events (`onClick`, `onChange`, `onBlur`, `onFocus`, see [JS trigger insertion](#js-trigger-insertion))
+
+
+######## Attributes - file field
+
+- `show_preview` - Show preview of selected file before the form is submitted (Boolean, Optional)
 
 
 ######## Attributes - select field
@@ -603,16 +881,16 @@ Example:
 [
   {
     "tokens_values": {
-      "actor": "Carrie Fisher",
-      "movie_name": "Star Wars",
-      "genre": "Sci-Fi"
+      "model": "Volkswagen",
+      "make": "Beetle",
+      "review_criteria": "insertions/review_criteria.html"
     }
   },
   {
     "tokens_values": {
-      "actor": "Keanu Reeves",
-      "movie_name": "The Matrix",
-      "genre": "Sci-Fi"
+      "model": "Nissan",
+      "make": "Murano",
+      "review_criteria": "insertions/review_criteria.html"
     }
   }
 ]
@@ -627,8 +905,8 @@ Example:
 ```json
 {
   "actor": ["Carrie Fisher", "Keanu Reeves"],
-  "movie_name": ["Star Wars", "The Matrix"],
-  "genre": ["Sci-Fi"]
+  "genre": ["Sci-Fi"],
+  "movie_name": ["Star Wars", "The Matrix"]
 }
 
 ```

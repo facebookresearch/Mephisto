@@ -4,32 +4,50 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React from "react";
-import $ from "jquery";
 import "bootstrap";
 import "bootstrap-select";
+import $ from "jquery";
+import React from "react";
+import { runCustomTrigger } from "../utils";
 import { checkFieldRequiredness } from "../validation/helpers";
 import { Errors } from "./Errors";
 
 function SelectField({
   field,
+  formData,
   updateFormData,
   disabled,
   initialFormData,
   inReviewState,
   invalid,
   validationErrors,
+  formFields,
+  customTriggers,
 }) {
-  const initialValue = initialFormData
-    ? initialFormData[field.name]
-    : field.multiple
-    ? []
-    : "";
+  const defaultValue = field.multiple ? [] : "";
+  const [value, setValue] = React.useState(defaultValue);
 
   const [invalidField, setInvalidField] = React.useState(false);
   const [errors, setErrors] = React.useState([]);
 
   // Methods
+  function _runCustomTrigger(triggerName) {
+    if (inReviewState) {
+      return;
+    }
+
+    runCustomTrigger(
+      field.triggers,
+      triggerName,
+      customTriggers,
+      formData,
+      updateFormData,
+      field,
+      value,
+      formFields
+    );
+  }
+
   function onChange(e, fieldName) {
     let fieldValue = e.target.value;
     if (field.multiple) {
@@ -39,11 +57,25 @@ function SelectField({
       );
     }
 
-    updateFormData(e, fieldName, fieldValue);
+    updateFormData(fieldName, fieldValue, e);
+    _runCustomTrigger("onChange");
   }
 
-  // Effects
+  function onBlur(e) {
+    _runCustomTrigger("onBlur");
+  }
+
+  function onFocus(e) {
+    _runCustomTrigger("onFocus");
+  }
+
+  function onClick(e) {
+    _runCustomTrigger("onClick");
+  }
+
+  // --- Effects ---
   React.useEffect(() => {
+    // Enable plugin
     $(`.selectpicker.select-${field.name}`).selectpicker();
   }, []);
 
@@ -69,6 +101,21 @@ function SelectField({
     setErrors(validationErrors);
   }, [validationErrors]);
 
+  React.useEffect(() => {
+    // Refresh plugin after value was changed
+    const $fieldElement = $(`.selectpicker.select-${field.name}`);
+    $fieldElement.selectpicker("refresh");
+
+    if (value === "" || (Array.isArray(value) && value.length === 0)) {
+      $fieldElement.selectpicker("deselectAll");
+    }
+  }, [value]);
+
+  // Value in formData is updated
+  React.useEffect(() => {
+    setValue(formData[field.name] || defaultValue);
+  }, [formData[field.name]]);
+
   return (
     // bootstrap classes:
     //  - form-control
@@ -88,18 +135,21 @@ function SelectField({
         placeholder={field.placeholder}
         style={field.style}
         required={checkFieldRequiredness(field)}
-        defaultValue={initialValue}
+        value={value}
         onChange={(e) => {
           !disabled && onChange(e, field.name);
           setInvalidField(false);
           setErrors([]);
         }}
+        onBlur={onBlur}
+        onFocus={onFocus}
+        onClick={onClick}
         multiple={field.multiple}
         disabled={disabled}
         data-actions-box={field.multiple ? true : null}
         data-live-search={true}
         data-selected-text-format={field.multiple ? "count > 1" : null}
-        data-title={inReviewState ? initialValue : null}
+        data-title={inReviewState ? value : null}
         data-width={"100%"}
       >
         {field.options.map((option, index) => {

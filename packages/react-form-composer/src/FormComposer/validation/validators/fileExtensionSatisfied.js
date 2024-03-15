@@ -4,6 +4,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { FieldType } from "../../constants";
 import {
   FILE_EXTENSION_ERROR_MESSAGE_KEY,
   validationErrorMessagesByName,
@@ -17,7 +18,7 @@ import {
  * @return {string|null} error message or `null`
  */
 export default function fileExtensionSatisfied(field, value, ...extensions) {
-  if (field.type !== "file") {
+  if (field.type !== FieldType.FILE) {
     return null;
   }
 

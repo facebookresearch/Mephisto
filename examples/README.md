@@ -153,6 +153,9 @@ Putting it altogether, let's prepare and launch a task featuring a form containi
     - Create file `docker/aws_credentials` and populate it with AWS keys info (for infrastructure and Mturk)
     - Populate your AWS credentials into `docker/envs/env.local` file (for presigning S3 URLs)
     - Clone file `docker/docker-compose.dev.yml` as `docker/docker-compose.local.yml`, and point its `env_file` to `envs/env.local`
+    - Ensure `envs/env.local` file has a defeinition of these env variables:
+        - `PROLIFIC_API_KEY`: set it to an empty string if you don't have a value yet
+        - `CYPRESS_CACHE_FOLDER`: set it to any writable folder, e.g. `/tmp`
 - Remove content of folder `/tmp` (if you didn't shut the previous Task run correctly)
 - Launch docker containers: `docker-compose -f docker/docker-compose.local.yml up`
 - SSH into the running container: `docker exec -it mephisto_dc bash`
@@ -181,7 +184,7 @@ Putting it altogether, let's prepare and launch a task featuring a form containi
   ```
 - After the Task is completed by all workers, launch task review app and acces it at  [http://localhost:8081](http://localhost:8081) (for more details see `mephisto/review_app/README.md`):
   ```shell
-  mephisto review_app -h 0.0.0.0 -p 8000 -d True -f True
+  mephisto review_app --host 0.0.0.0 --port 8000 --debug --force-rebuild
   ```
 
 _Note: if a package build was terminated/failed, or related source code was changed, FormComposer needs to be rebuilt with this command: `mephisto scripts form_composer rebuild_all_apps`._

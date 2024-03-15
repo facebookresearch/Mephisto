@@ -14,6 +14,7 @@ from .task_export_results_view import TaskExportResultsView
 from .task_view import TaskView
 from .tasks_view import TasksView
 from .tasks_worker_units_view import TaskUnitIdsView
+from .unit_data_static_by_field_name_view import UnitDataStaticByFieldNameView
 from .unit_data_static_view import UnitDataStaticView
 from .unit_review_bundle_view import UnitReviewBundleView
 from .unit_review_html_view import UnitReviewHtmlView

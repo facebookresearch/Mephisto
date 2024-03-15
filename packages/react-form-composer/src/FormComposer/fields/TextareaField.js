@@ -5,24 +5,65 @@
  */
 
 import React from "react";
+import { runCustomTrigger } from "../utils";
 import { checkFieldRequiredness } from "../validation/helpers";
 import { Errors } from "./Errors";
 
+const DEFAULT_VALUE = "";
+
 function TextareaField({
   field,
+  formData,
   updateFormData,
   disabled,
   initialFormData,
   inReviewState,
   invalid,
   validationErrors,
+  formFields,
+  customTriggers,
 }) {
-  const initialValue = initialFormData ? initialFormData[field.name] : "";
+  const [value, setValue] = React.useState(DEFAULT_VALUE);
 
   const [invalidField, setInvalidField] = React.useState(false);
   const [errors, setErrors] = React.useState([]);
 
-  // Effects
+  // Methods
+  function _runCustomTrigger(triggerName) {
+    if (inReviewState) {
+      return;
+    }
+
+    runCustomTrigger(
+      field.triggers,
+      triggerName,
+      customTriggers,
+      formData,
+      updateFormData,
+      field,
+      value,
+      formFields
+    );
+  }
+
+  function onChange(e) {
+    updateFormData(field.name, e.target.value, e);
+    _runCustomTrigger("onChange");
+  }
+
+  function onBlur(e) {
+    _runCustomTrigger("onBlur");
+  }
+
+  function onFocus(e) {
+    _runCustomTrigger("onFocus");
+  }
+
+  function onClick(e) {
+    _runCustomTrigger("onClick");
+  }
+
+  // --- Effects ---
   React.useEffect(() => {
     setInvalidField(invalid);
   }, [invalid]);
@@ -30,6 +71,11 @@ function TextareaField({
   React.useEffect(() => {
     setErrors(validationErrors);
   }, [validationErrors]);
+
+  // Value in formData is updated
+  React.useEffect(() => {
+    setValue(formData[field.name] || DEFAULT_VALUE);
+  }, [formData[field.name]]);
 
   return (
     // bootstrap classes:
@@ -47,12 +93,15 @@ function TextareaField({
         placeholder={field.placeholder}
         style={field.style}
         required={checkFieldRequiredness(field)}
-        defaultValue={initialValue}
+        value={value}
         onChange={(e) => {
-          !disabled && updateFormData(e, field.name, e.target.value);
+          !disabled && onChange(e);
           setInvalidField(false);
           setErrors([]);
         }}
+        onBlur={onBlur}
+        onFocus={onFocus}
+        onClick={onClick}
         disabled={disabled}
       />
 
