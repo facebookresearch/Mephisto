@@ -38,7 +38,7 @@ jobs:
         with:
           cache: "yarn"
           node-version: 16
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
