@@ -28,7 +28,7 @@ jobs:
       mephisto-task: ${{ steps.filter.outputs.mephisto-task }}
       mephisto-worker-addons: ${{ steps.filter.outputs.mephisto-worker-addons }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 2
       # Workaround to avoid Post Use step failures. See: https://github.com/actions/setup-node/issues/317
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🔀 Checking out repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: 🐍 Installing python
         uses: actions/setup-python@v2
@@ -121,7 +121,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🔀 Checking out repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: 🐍 Installing python
         uses: actions/setup-python@v2
@@ -168,7 +168,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🔀 Checking out repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: 🐍 Installing python
         uses: actions/setup-python@v2
@@ -214,7 +214,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🔀 Checking out repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: 🐍 Installing python
         uses: actions/setup-python@v2
@@ -262,7 +262,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🔀 Checking out repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: 🐍 Installing python
         uses: actions/setup-python@v2
@@ -311,7 +311,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🔀 Checking out repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: 🐍 Installing python
         uses: actions/setup-python@v2
         with:
