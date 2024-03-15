@@ -34,7 +34,7 @@ jobs:
       # Workaround to avoid Post Use step failures. See: https://github.com/actions/setup-node/issues/317
       - run: mkdir -p /home/runner/work/Mephisto/Mephisto/.yarn/cache
         continue-on-error: true
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           cache: "yarn"
           node-version: 16
@@ -82,7 +82,7 @@ jobs:
           python-version: 3.8
 
       - name: 🪨 Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 16.16.0
 
@@ -129,7 +129,7 @@ jobs:
           python-version: 3.8
 
       - name: 🪨 Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 16.16.0
 
@@ -176,7 +176,7 @@ jobs:
           python-version: 3.8
 
       - name: 🪨 Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 16.16.0
 
@@ -222,7 +222,7 @@ jobs:
           python-version: 3.8
 
       - name: 🪨 Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 16.16.0
 
@@ -270,7 +270,7 @@ jobs:
           python-version: 3.8
 
       - name: 🪨 Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 16.16.0
 
@@ -318,7 +318,7 @@ jobs:
           python-version: 3.8
 
       - name: 🪨 Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 16.16.0
 
