@@ -44,7 +44,7 @@ function SelectField({
       updateFormData,
       field,
       value,
-      formFields,
+      formFields
     );
   }
 

@@ -41,7 +41,7 @@ function RadioField({
       updateFormData,
       field,
       value,
-      formFields,
+      formFields
     );
   }
 

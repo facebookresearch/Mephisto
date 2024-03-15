@@ -82,7 +82,9 @@ function InReviewFileModal(props: InReviewFileModalProps) {
     setFileExt(null);
 
     if (data.filename) {
-      setFileUrl(urls.server.unitsOutputsFileByFieldname(data.unitId, data.fieldname));
+      setFileUrl(
+        urls.server.unitsOutputsFileByFieldname(data.unitId, data.fieldname)
+      );
       setFileExt(data.filename.split(".").pop().toLowerCase());
     }
   }, [data]);

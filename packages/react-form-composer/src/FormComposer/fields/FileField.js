@@ -54,7 +54,7 @@ function FileField({
       updateFormData,
       field,
       value,
-      formFields,
+      formFields
     );
   }
 

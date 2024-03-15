@@ -1,7 +1,6 @@
 // NOTE: that `react-form-composer` library must be set in webpack config as an alias.
 import { validateFieldValue } from "react-form-composer";
 
-
 export function onChangeCountry(
   formData, // React state for the entire form
   updateFormData, // callback to set the React state
@@ -24,8 +23,8 @@ export function onChangeCountry(
     const newMottoValueIsValid = validateFieldValue(formFields.motto, "", true);
     if (!newMottoValueIsValid) {
       console.log(
-        'Write additional log message or logic here ' +
-        'if logs with argument `writeConsoleLog` is not enough for you'
+        "Write additional log message or logic here " +
+          "if logs with argument `writeConsoleLog` is not enough for you"
       );
     }
 

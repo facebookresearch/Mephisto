@@ -42,7 +42,7 @@ function InputField({
       updateFormData,
       field,
       value,
-      formFields,
+      formFields
     );
   }
 

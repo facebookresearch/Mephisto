@@ -491,7 +491,7 @@ app.post("/submit_task", upload.any(), function (req, res) {
     // Group files by fieldname to link them with fields
     const filesByFields = {};
     req.files.forEach((file) => {
-      const _file = {...file};
+      const _file = { ...file };
       delete _file.fieldname;
       filesByFields[file.fieldname] = _file;
     });

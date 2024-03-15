@@ -322,7 +322,7 @@ export function runCustomTrigger(
   updateFormData, // callback to set the React state
   element, // "field", "section", or "submit button" element that invoked this trigger
   fieldValue, // Current field value, if the `element` is a form field (otherwise it's null)
-  formFields, // Object containing all form fields as defined in 'form_config.json'
+  formFields // Object containing all form fields as defined in 'form_config.json'
 ) {
   // Exit if the element that doesn't have any triggers defined (no logs required)
   if (!elementTriggersConfig || isObjectEmpty(elementTriggersConfig)) {
@@ -405,7 +405,14 @@ export function runCustomTrigger(
 
   // Run custom trigger
   try {
-    triggerFn(formData, updateFormData, element, fieldValue, formFields, ...triggerFnArgs);
+    triggerFn(
+      formData,
+      updateFormData,
+      element,
+      fieldValue,
+      formFields,
+      ...triggerFnArgs
+    );
   } catch (error) {
     const textAboutElement = fieldValue
       ? `Field "${element.name}" value: ${fieldValue}. `
@@ -470,7 +477,7 @@ export function validateFieldValue(field, value, writeConsoleLog) {
   }
 
   if ([null, undefined].includes(field)) {
-    console.error(`Argument 'field' cannot be '${field}'.`)
+    console.error(`Argument 'field' cannot be '${field}'.`);
     return false;
   }
 
@@ -493,54 +500,52 @@ export function validateFieldValue(field, value, writeConsoleLog) {
       logMessage = `Value must be a 'string' for field '${field.name}' with type '${field.type}'.`;
     } else {
       if (field.type === FieldType.RADIO) {
-        const availableOptions = Object.values(field.options).map((o) => o.value);
+        const availableOptions = Object.values(field.options).map(
+          (o) => o.value
+        );
 
         if (!availableOptions.includes(value)) {
           valueIsValid = false;
-          logMessage = (
+          logMessage =
             `Incorrect value for field '${field.name}' with type '${field.type}'. ` +
-            `Available options: ${availableOptions}. `
-          );
+            `Available options: ${availableOptions}. `;
         }
       }
     }
-  }
-
-  else if (field.type === FieldType.CHECKBOX) {
+  } else if (field.type === FieldType.CHECKBOX) {
     if (typeof value === "object" && !Array.isArray(value)) {
       const availableOptions = Object.values(field.options).map((o) => o.value);
 
-      const allParamsAreBooleansWithCorrectOption = Object.entries(value).every(([k, v]) => {
-        return availableOptions.includes(k) && typeof v === "boolean";
-      });
+      const allParamsAreBooleansWithCorrectOption = Object.entries(value).every(
+        ([k, v]) => {
+          return availableOptions.includes(k) && typeof v === "boolean";
+        }
+      );
 
       if (!allParamsAreBooleansWithCorrectOption) {
         valueIsValid = false;
-        logMessage = (
+        logMessage =
           `All value parameters must be 'boolean' ` +
           `for field '${field.name}' with type '${field.type}'. ` +
-          `Available options: ${availableOptions}. `
-        );
+          `Available options: ${availableOptions}. `;
       }
     } else {
       valueIsValid = false;
-      logMessage = (
+      logMessage =
         `Value must be an 'object' with boolean parameters ` +
-        `for field '${field.name}' with type '${field.type}'.`
-      );
+        `for field '${field.name}' with type '${field.type}'.`;
     }
-  }
-
-  else if (field.type === FieldType.SELECT) {
+  } else if (field.type === FieldType.SELECT) {
     if (field.multiple) {
       if (!Array.isArray(value)) {
         valueIsValid = false;
-        logMessage = (
+        logMessage =
           `Value must be an 'array' for field '${field.name}' with type '${field.type}' ` +
-          `and '"multiple": true'.`
-        );
+          `and '"multiple": true'.`;
       } else {
-        const availableOptions = Object.values(field.options).map((o) => o.value);
+        const availableOptions = Object.values(field.options).map(
+          (o) => o.value
+        );
 
         const allParamsAreStringsWithCorrectOption = value.every((v) => {
           return typeof v === "string" && availableOptions.includes(v);
@@ -548,33 +553,33 @@ export function validateFieldValue(field, value, writeConsoleLog) {
 
         if (!allParamsAreStringsWithCorrectOption) {
           valueIsValid = false;
-          logMessage = (
+          logMessage =
             `All value parameters must be 'string' ` +
             `for field '${field.name}' with type '${field.type}' and '"multiple": true'. ` +
-            `Available options: ${availableOptions}. `
-          );
+            `Available options: ${availableOptions}. `;
         }
       }
     } else {
       if (typeof value !== "string") {
         valueIsValid = false;
-        logMessage = (
+        logMessage =
           `Value must be a 'string' ` +
-          `for field '${field.name}' with type '${field.type}' and '"multiple": false'.`
-        );
+          `for field '${field.name}' with type '${field.type}' and '"multiple": false'.`;
       }
     }
   }
 
   if (writeConsoleLog && !valueIsValid && logMessage) {
-    logMessage += ` You passed value '${JSON.stringify(value)}' with type '${typeof value}'`;
+    logMessage += ` You passed value '${JSON.stringify(
+      value
+    )}' with type '${typeof value}'`;
     console.error(logMessage);
   }
 
   if (writeConsoleLog && valueIsValid) {
     console.info(
       `Value '${JSON.stringify(value)}' for field '${field.name}' ` +
-      `with type '${typeof value}' is valid`
+        `with type '${typeof value}' is valid`
     );
   }
 

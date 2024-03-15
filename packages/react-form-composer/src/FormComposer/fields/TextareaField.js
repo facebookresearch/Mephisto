@@ -42,7 +42,7 @@ function TextareaField({
       updateFormData,
       field,
       value,
-      formFields,
+      formFields
     );
   }
 

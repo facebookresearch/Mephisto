@@ -41,7 +41,7 @@ function CheckboxField({
       updateFormData,
       field,
       value,
-      formFields,
+      formFields
     );
   }
 
