@@ -52,7 +52,7 @@ hydra-core = "^1.2.0"
 tqdm = "^4.50.2"
 websockets = "^10.1"
 pyyaml = "^5.4.0"
-markupsafe = "2.0.1"
+markupsafe = "2.1.5"
 
 # worker_addons
 detoxify = { version = "^0.5.0", optional = true }
