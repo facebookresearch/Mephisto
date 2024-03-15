@@ -3163,8 +3163,8 @@ react-lifecycles-compat@^3.0.4:
   resolved "https://registry.npmjs.org/react-lifecycles-compat/-/react-lifecycles-compat-3.0.4.tgz"
 
 react-player@^2.9.0:
-  version "2.9.0"
-  resolved "https://registry.npmjs.org/react-player/-/react-player-2.9.0.tgz"
+  version "2.15.1"
+  resolved "https://registry.yarnpkg.com/react-player/-/react-player-2.15.1.tgz#a5905126a6c5ba2667391a0d72da9f3a1ab57d54"
   dependencies:
     deepmerge "^4.0.0"
     load-script "^1.0.0"
