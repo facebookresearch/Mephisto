@@ -66,7 +66,7 @@ def _find_unit_reviews(
 
 
 class QualificationWorkersView(MethodView):
-    def get(self, qualification_id) -> dict:
+    def get(self, qualification_id: int) -> dict:
         """Get list of all bearers of a qualification."""
 
         task_id = request.args.get("task_id")

@@ -22,7 +22,7 @@ class UnitDataStaticView(MethodView):
         agent: Agent = unit.get_assigned_agent()
         if agent:
             unit_parsed_data = agent.state.get_parsed_data()
-            outputs = unit_parsed_data.get("outputs", {})
+            outputs = unit_parsed_data.get("outputs") or {}
             # In case if there is outdated code that returns `final_submission`
             # under `outputs` key, we should use the value in side `final_submission`
             if "final_submission" in outputs:
