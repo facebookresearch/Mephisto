@@ -256,6 +256,26 @@ Permanently block a worker
 
 ---
 
+`GET /api/workers/{id}/qualifications`
+
+Get list of all granted qualifications for a worker
+
+```
+{
+    "granted_qualifications": [
+        {
+            "worker_id": <int>,
+            "qualification_id": <int>,
+            "value": <int>,
+            "granted_at": <int>,  // maps to `unit_review.created_at` column
+        }
+    ],
+    ...  // more granted qualifications
+}
+```
+
+---
+
 `GET /api/stats?{task_id=}{worker_id=}{since=}{limit=}`
 
 Get stats of (recent) approvals. Either `task_id` or `worker_id` (or both) must be present.

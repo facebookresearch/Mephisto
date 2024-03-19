@@ -8,3 +8,14 @@ declare type QualificationType = {
   id: number;
   name: string;
 };
+
+declare type GrantedQualificationType = {
+  worker_id: number;
+  qualification_id: number;
+  value: number;
+  granted_at: string;
+};
+
+declare type WorkerGrantedQualificationsType = {
+  [key: number]: GrantedQualificationType;
+};
