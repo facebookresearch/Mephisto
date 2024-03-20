@@ -1,23 +1,21 @@
-<!---
-  Copyright (c) Meta Platforms and its affiliates.
-  This source code is licensed under the MIT license found in the
-  LICENSE file in the root directory of this source tree.
--->
+---
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
 
-## Run TaskReview app
+sidebar_position: 2
+---
+
+# Run TaskReview app
 
 
-### Quick Start
-
-For cross-platform compatibility, TaskReview app can be run in dockerized form.
-
-Let's say we already have local database with completed (but not reviewed) tasks, and we need to run this TaskReview app.
+## Run with Docker
 
 ---
 
-#### Launch with Docker
+### Single-step launch
 
-Run `docker-compose` from repo root:
+This is the simplest way to launch TaskReview app. In repo root run:
 
 ```shell
 docker-compose -f docker/docker-compose.dev.yml run \
@@ -47,4 +45,13 @@ Now you can access TaskReview app in your browser at [http://localhost:8081](htt
 
 ---
 
-You can find complete details about TaskReview app on our [docs website](https://mephisto.ai/docs/guides/tutorials/review_app/).
+### Multi-step launch
+
+TaskReview app consists of the server and client parts. If during development you wish to run them in separate steps:
+
+1. In repo root, launch containers: `docker-compose -f docker/docker-compose.dev.yml up`
+2. SSH into running container to run server: `docker exec -it mephisto_dc bash`
+3. Inside the container run server: `cd /mephisto && mephisto review_app --host 0.0.0.0 --port 8000 --debug --skip-build`
+4. SSH into running container to run client: `docker exec -it mephisto_dc bash`
+5. Inside the container run client: `cd /mephisto/mephisto/review_app/client/ && REACT_APP__API_URL=http://localhost:8081 PORT=3000 npm start`
+6. Open TaskReview app in your browser at (http://localhost:3001)](http://localhost:3001).

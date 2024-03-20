@@ -1,9 +1,3 @@
-<!---
-  Copyright (c) Meta Platforms and its affiliates.
-  This source code is licensed under the MIT license found in the
-  LICENSE file in the root directory of this source tree.
--->
-
 # Common Configurations and FAQs
 
 This document contains some Mephisto usage patterns that should be fairly common, as well as usage tips and other know-how.
