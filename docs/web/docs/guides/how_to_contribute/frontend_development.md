@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# Frontend: dev setup
+# Frontend setup
 
 We use [pre-commit](https://pre-commit.com/) to enforce code styles on the code base (using `black` for Python and `prettier` for Javascript).
 
@@ -72,7 +72,7 @@ $ yarn build-all
     ➤ YN0000: packages/annotated/keypoint
     ➤ YN0000: packages/annotated/shell
     ➤ YN0000: packages/annotated/video-player
-    ``` 
+    ```
 
 - Run a command in a specific workspace
 

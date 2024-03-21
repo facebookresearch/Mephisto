@@ -8,9 +8,18 @@ sidebar_position: 1
 
 # Overview
 
+Generally, to view/export the data, you could write a Python script using the Mephisto [`DataBrowser` class](https://github.com/facebookresearch/Mephisto/blob/main/mephisto/tools/data_browser.py) to access the submitted data.
+
+For example, for the `html-static-task-example` task such a script already exists in the task folder, called [`examine_results.py`](https://github.com/facebookresearch/Mephisto/blob/main/examples/simple_static_task/examine_results.py). (This file uses the Mephisto `DataBrowser` class through the helpers in `mephisto.tools.examine_utils`.)
+
+Another example is TaskReview app, an application with convenient rich UI.
+
+
+## TaskReview app
+
 To quickly and conveniently review results of a finished TaskRun, Mephisto provides a browser-based TaskReview app.
 
-## Functionality
+### TaskReview app functionality
 
 TaskReview app enables you to:
 - View inputs submitted by each worker (using a custom view layout if desired)
@@ -19,7 +28,7 @@ TaskReview app enables you to:
 - Send bonuses and feedback to worker, and record your own notes
 - Download all Task results conveniently assembled into one JSON file
 
-## User interface
+### TaskReview app UI
 
 Here is how TaskReview app UI looks like.
 

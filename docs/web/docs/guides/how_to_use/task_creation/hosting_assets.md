@@ -74,3 +74,12 @@ function PassedImage({img_data}) {
 ```
 
 If data issues are a concern, one could modify the `AgentState` to delete the `img_data` (or other data-heavy keys) and retain filenames on the final save.
+
+### Set up Heroku
+
+The steps for setup can be found by running:
+```bash
+$ python mephisto/scripts/heroku/initialize_heroku.py
+```
+
+If you get the message "Successfully identified a logged in heroku user.", then you're done. Otherwise, this script will give you a set of steps to log in to the heroku CLI.

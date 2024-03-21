@@ -2,7 +2,7 @@
 sidebar_position: 3
 ---
 
-# Backend: dev setup
+# Backend setup
 
 We use [pre-commit](https://pre-commit.com/) to enforce code styles on the code base (using `black` for Python and `prettier` for Javascript).
 

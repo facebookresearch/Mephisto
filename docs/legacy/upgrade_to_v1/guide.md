@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# Upgrade Guide
+# Upgrade to v1.0
 
 1. Update the Mephisto library to v1.
     - If you set up Mephisto using `pip install -e`, ensure you pull the latest version down from the git repo.
@@ -12,7 +12,7 @@ sidebar_position: 1
     npm install --save mephisto-task@2
     npm install --save bootstrap-chat@2 # if applicable
     ```
-3. For webapps using `mephisto-task`: Migrate any usage of `sendMessage` in your front-end code to `sendLiveUpdate`.   
+3. For webapps using `mephisto-task`: Migrate any usage of `sendMessage` in your front-end code to `sendLiveUpdate`.
 4. [Migrate your run scripts](../run_scripts) to use the newly introduced syntax, aimed to reduce boilerplate.
 
 
