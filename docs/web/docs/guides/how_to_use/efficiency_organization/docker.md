@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # Running Mephisto with Docker
 
 You may want to keep Mephisto environment entirely contained, and set it up with just a few commands. To do this, we support Docker and Docker Compose as a launch option.
