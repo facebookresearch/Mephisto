@@ -1,10 +1,9 @@
-<!---
-  Copyright (c) Meta Platforms and its affiliates.
-  This source code is licensed under the MIT license found in the
-  LICENSE file in the root directory of this source tree.
--->
-
 ---
+
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 sidebar_position: 2
 ---
 
@@ -80,3 +79,12 @@ function PassedImage({img_data}) {
 ```
 
 If data issues are a concern, one could modify the `AgentState` to delete the `img_data` (or other data-heavy keys) and retain filenames on the final save.
+
+### Set up Heroku
+
+The steps for setup can be found by running:
+```bash
+$ python mephisto/scripts/heroku/initialize_heroku.py
+```
+
+If you get the message "Successfully identified a logged in heroku user.", then you're done. Otherwise, this script will give you a set of steps to log in to the heroku CLI.

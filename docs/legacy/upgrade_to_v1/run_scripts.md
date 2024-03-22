@@ -1,14 +1,13 @@
-<!---
-  Copyright (c) Meta Platforms and its affiliates.
-  This source code is licensed under the MIT license found in the
-  LICENSE file in the root directory of this source tree.
--->
-
 ---
+
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 sidebar_position: 2
 ---
 
-# Migrating Run Scripts
+# Run migrations scripts for v1.0
 
 Prior to Mephisto 1.0, our run scripts relied directly on Hydra semantics to settle in to launch things. This led to some unclear import ordering (not including `"_self_"` at times), boilerplate on registering the configs, and other issues.
 

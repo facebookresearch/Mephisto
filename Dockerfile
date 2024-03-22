@@ -1,6 +1,6 @@
 # Using the -slim version below for minimal size. You may want to
 # remove -slim, or switch to -alpine if encountering issues
-ARG BASE_TAG=python3.9-nodejs15-slim
+ARG BASE_TAG=python3.9-nodejs16-slim
 ARG BASE_IMAGE=nikolaik/python-nodejs:$BASE_TAG
 
 FROM $BASE_IMAGE
@@ -8,7 +8,6 @@ FROM $BASE_IMAGE
 # ec2 architect requires `ssh-keygen` util, so we need to install it.
 # Firstly, remove `yarn` repo as it causes error that stops building a container. Error:
 # (Error: The repository 'https://dl.yarnpkg.com/debian stable InRelease' is not signed)
-RUN rm /etc/apt/sources.list.d/yarn.list
 RUN apt update
 RUN apt install keychain -y
 

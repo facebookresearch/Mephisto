@@ -45,19 +45,27 @@ const config = {
     ],
   ],
 
+  themes: [
+    [
+      require.resolve("@easyops-cn/docusaurus-search-local"),
+      /** @type {import("@easyops-cn/docusaurus-search-local").PluginOptions} */
+      ({
+        indexDocs: true,
+        indexBlog: true,
+        // `hashed` is recommended as long-term-cache of index file is possible.
+        hashed: true,
+        language: ["en"],
+        highlightSearchTermsOnTargetPage: true,
+        searchResultLimits: 8,
+        // Set the max length of characters of each search result to show.
+        searchResultContextMaxLength: 50,
+      }),
+    ],
+  ],
+
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      algolia: {
-        // The application ID provided by Algolia
-        appId: "J6ARWT70HK",
-
-        // Public API key: it is safe to commit it
-        apiKey: "ac51a5b25842fad8a3a7b1f384496bf9",
-
-        indexName: "mephisto",
-        searchPagePath: false,
-      },
       navbar: {
         // title: "Mephisto",
         logo: {

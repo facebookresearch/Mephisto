@@ -45,7 +45,7 @@ If you use Mephisto in your work, please consider citing the project. It helps u
   keywords = {Artificial Intelligence (cs.AI), Human-Computer Interaction (cs.HC), FOS: Computer and information sciences, FOS: Computer and information sciences},
   title = {Mephisto: A Framework for Portable, Reproducible, and Iterative Crowdsourcing},
   publisher = {arXiv},
-  year = {2023},
+  year = {2024},
   copyright = {arXiv.org perpetual, non-exclusive license}
 }
 ```

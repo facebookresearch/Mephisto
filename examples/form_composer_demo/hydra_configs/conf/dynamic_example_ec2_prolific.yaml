@@ -20,10 +20,10 @@ mephisto:
     task_source_review: ${task_dir}/webapp/build/bundle.review.js
     link_task_source: false
     extra_source_dir: ${task_dir}/webapp/src/static
-    units_per_assignment: 1
+    units_per_assignment: 2
   log_level: "debug"
   task:
-    task_name: "Form Builder Sample"
+    task_name: "Sample Questionnaire"
     # Note: don't use `Prolific` in task names, because Prolific will (silently) block your account
     task_title: "Dynamic form-based Tasks for Prolifik"
     task_description: "In this Task, we use dynamic FormComposer feature."
@@ -32,8 +32,6 @@ mephisto:
     force_rebuild: true
     max_num_concurrent_units: 1
   provider:
-    prolific_external_study_url: "https://example.com?participant_id={{%PROLIFIC_PID%}}&study_id={{%STUDY_ID%}}&submission_id={{%SESSION_ID%}}"
-    prolific_id_option: "url_parameters"
     prolific_workspace_name: "My Workspace"
     prolific_project_name: "Project"
     prolific_allow_list_group_name: "Allow list"
