@@ -1,8 +1,11 @@
-<!---
-  Copyright (c) Meta Platforms and its affiliates.
-  This source code is licensed under the MIT license found in the
-  LICENSE file in the root directory of this source tree.
--->
+---
+
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+sidebar_position: 4
+---
 
 # Manual installation Mephisto
 
@@ -55,4 +58,4 @@ After registering a requester, you can use `mephisto.provider.requester_name=my_
 
 ## Let's get running!
 
-Now that you have your environment set up, you're ready for [Running your first task.](../tutorials/first_task)
+Now that you have your environment set up, you're ready for [Running your first task.](/docs/guides/tutorials/first_task/)

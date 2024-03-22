@@ -3,10 +3,10 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-sidebar_position: 4
+sidebar_position: 3
 ---
 
-# form_composer_config command
+# `form_composer_config` command
 
 The `form_composer_config` utility command helps auto-generate FormComposer config. It supports several options:
 

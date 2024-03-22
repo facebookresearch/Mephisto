@@ -13,16 +13,34 @@ For large functionality changes, please remember to update `mephisto.ai` documen
 
 We use Docusaurus package to make Markdown docs available on the web.
 
-## Run locally
+## Run locally in development mode
 
-To run Mephisto docs on your local machine, run these commands:
+To run Mephisto docs on your local machine for development (with Docker), run these commands:
 
-```bash
+```shell
+docker-compose -f docker/docker-compose.dev.yml up
+docker exec -it mephisto_dc bash
 cd /mephisto/docs/web/
 yarn
 yarn install
-yarn info --name-only
-yarn start:docker
+yarn start-dev:docker
 ```
 
-You will now be able to access docs in the browser on [http://localhost:3001/](http://localhost:3001/)
+You will now be able to access docs in the browser on [http://localhost:3001/](http://localhost:3001/) with live updates after each saving files from docs.
+
+> NOTE: search will not be available in development mode. If you need to use search, stop development server and use production instruction below
+
+## Run locally in production mode
+
+To test search or whether it will work on production, build and run production server.
+Sometimes development server do not raise exceptions which production one can.
+
+```shell
+docker-compose -f docker/docker-compose.dev.yml up
+docker exec -it mephisto_dc bash
+cd /mephisto/docs/web/
+yarn
+yarn install
+yarn build
+yarn serve-prod:docker
+```

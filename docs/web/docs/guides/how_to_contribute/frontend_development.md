@@ -14,13 +14,13 @@ We use [pre-commit](https://pre-commit.com/) to enforce code styles on the code 
 To setup your local codebase to auto-lint and avoid lint test failures for your PRs, please set up pre-commit for your local repo as such:
 
 1. `pip install pre-commit`
-2. `pre-commit install` to install git hooks
+2. `pre-commit install` to install git hooks (if you see error about `git`, install it into your system)
 3. `pre-commit run --all-files` (optional - run ad-hoc against all files)
 
 
 ## Cypress Testing
 
-This repo uses cypress to conduct frontend end to end tests. Tasks in the examples folder have cypress tests.
+This repo uses cypress to conduct frontend end-to-end tests. Tasks in the examples folder have cypress tests.
 
 To run the tests for a task:
 * Launch the task using `python run_task.py`.
