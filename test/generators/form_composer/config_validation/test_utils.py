@@ -240,8 +240,9 @@ class TestUtils(unittest.TestCase):
                             "ResponseContentType": content_type,
                         },
                     },
-                    "S3Express": {
-                        "bucket_name": s3_bucket,
+                    "input_params": {
+                        "Bucket": s3_bucket,
+                        "Key": s3_key,
                     },
                     "auth_type": "v4",
                     "signing": {
