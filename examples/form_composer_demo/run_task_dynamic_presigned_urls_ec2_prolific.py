@@ -113,6 +113,7 @@ def generate_data_json_config():
         form_config_path=form_config_path,
         token_sets_values_config_path=token_sets_values_config_path,
         task_data_config_path=task_data_config_path,
+        data_path=data_path,
     )
 
 

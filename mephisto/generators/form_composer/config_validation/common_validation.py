@@ -81,20 +81,25 @@ def validate_config_dict_item(
 
 
 def replace_path_to_file_with_its_content(
-    value: str,
+    rel_file_path: str,
     data_path: str,
 ) -> str:
     """
     Attributes may contain tokens whose value is relative HTML file paths.
     We replace such token values with content from the indicated file.
     """
-    if is_insertion_file(value):
-        file_path = os.path.abspath(os.path.join(data_path, value))
+    if not data_path:
+        raise Exception(f'Received empty `data_path` when reading inserted file {rel_file_path}')
+    if not rel_file_path:
+        raise Exception(f'Received empty `value` when reading inserted file in {data_path}')
+
+    if is_insertion_file(rel_file_path):
+        file_path = os.path.abspath(os.path.join(data_path, rel_file_path))
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"Could not open insertion file '{file_path}'")
 
         with open(file_path) as html_file:
-            file_content_value = html_file.read()
-            return file_content_value
+            file_content = html_file.read()
+            return file_content
 
-    return value
+    return rel_file_path
