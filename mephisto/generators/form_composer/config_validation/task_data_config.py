@@ -37,7 +37,8 @@ def _extrapolate_tokens_values(
 ) -> str:
     for token, value in tokens_values.items():
         # For HTML paths
-        value = replace_path_to_file_with_its_content(value, data_path)
+        if data_path:
+            value = replace_path_to_file_with_its_content(value, data_path)
 
         # For other values
         text = re.sub(
@@ -273,7 +274,10 @@ def _replace_html_paths_with_html_file_content(
             if not item_attr:
                 continue
 
-            item[attr_name] = replace_path_to_file_with_its_content(item_attr, data_path)
+            if data_path:
+                item_attr = replace_path_to_file_with_its_content(item_attr, data_path)
+
+            item[attr_name] = item_attr
 
     return config_data
 

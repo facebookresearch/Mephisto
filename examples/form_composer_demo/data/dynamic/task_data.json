@@ -59,10 +59,7 @@
                       "type": "email",
                       "validators": {
                         "required": true,
-                        "regexp": [
-                          "^[a-zA-Z0-9._-]+@mephisto\\.ai$",
-                          "ig"
-                        ]
+                        "regexp": ["^[a-zA-Z0-9._-]+@mephisto\\.ai$", "ig"]
                       },
                       "value": ""
                     }
@@ -299,11 +296,7 @@
                       "type": "file",
                       "validators": {
                         "required": true,
-                        "fileExtension": [
-                          "png",
-                          "jpg",
-                          "jpeg"
-                        ]
+                        "fileExtension": ["png", "jpg", "jpeg"]
                       },
                       "value": ""
                     },
@@ -327,10 +320,7 @@
             }
           ],
           "triggers": {
-            "onClick": [
-              "onClickSectionHeader",
-              "FIRST"
-            ]
+            "onClick": ["onClickSectionHeader", "FIRST"]
           }
         },
         {
@@ -369,10 +359,7 @@
             }
           ],
           "triggers": {
-            "onClick": [
-              "onClickSectionHeader",
-              "SECOND"
-            ]
+            "onClick": ["onClickSectionHeader", "SECOND"]
           }
         }
       ],
@@ -443,10 +430,7 @@
                       "type": "email",
                       "validators": {
                         "required": true,
-                        "regexp": [
-                          "^[a-zA-Z0-9._-]+@mephisto\\.ai$",
-                          "ig"
-                        ]
+                        "regexp": ["^[a-zA-Z0-9._-]+@mephisto\\.ai$", "ig"]
                       },
                       "value": ""
                     }
@@ -683,11 +667,7 @@
                       "type": "file",
                       "validators": {
                         "required": true,
-                        "fileExtension": [
-                          "png",
-                          "jpg",
-                          "jpeg"
-                        ]
+                        "fileExtension": ["png", "jpg", "jpeg"]
                       },
                       "value": ""
                     },
@@ -711,10 +691,7 @@
             }
           ],
           "triggers": {
-            "onClick": [
-              "onClickSectionHeader",
-              "FIRST"
-            ]
+            "onClick": ["onClickSectionHeader", "FIRST"]
           }
         },
         {
@@ -753,10 +730,7 @@
             }
           ],
           "triggers": {
-            "onClick": [
-              "onClickSectionHeader",
-              "SECOND"
-            ]
+            "onClick": ["onClickSectionHeader", "SECOND"]
           }
         }
       ],

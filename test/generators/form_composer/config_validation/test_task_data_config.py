@@ -110,7 +110,7 @@ class TestTaskDataConfig(unittest.TestCase):
         self.assertEqual(result, "Test value 1 and value 2")
 
     def test__extrapolate_tokens_values_with_spaces_around(self, *args, **kwargs):
-        text = "Test {{ token_1 }} and {{  token_2  }}"
+        text = "Test {{ token_1 }} and {{      token_2          }}"
         tokens_values = {
             "token_1": "value 1",
             "token_2": "value 2",
@@ -673,7 +673,6 @@ class TestTaskDataConfig(unittest.TestCase):
                 form_config_path,
                 token_sets_values_config_path,
                 task_data_config_path,
-                data_path=self.data_dir,
             )
 
         self.assertEqual(
@@ -720,7 +719,6 @@ class TestTaskDataConfig(unittest.TestCase):
             form_config_path,
             token_sets_values_config_path,
             task_data_config_path,
-            data_path=self.data_dir,
         )
 
         f = open(task_data_config_path, "r")

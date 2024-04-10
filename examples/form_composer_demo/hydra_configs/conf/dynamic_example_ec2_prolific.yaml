@@ -13,7 +13,7 @@ mephisto:
   architect:
     _architect_type: ec2
     profile_name: mephisto-router-iam
-    subdomain: "0123_a"
+    subdomain: "0123"
   blueprint:
     data_json: ${task_dir}/data/dynamic/task_data.json
     task_source: ${task_dir}/webapp/build/bundle.js

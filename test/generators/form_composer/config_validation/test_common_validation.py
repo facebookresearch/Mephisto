@@ -398,3 +398,23 @@ class TestCommonValidation(unittest.TestCase):
         result = replace_path_to_file_with_its_content(value_without_file_path, self.data_dir)
 
         self.assertEqual(result, value_without_file_path)
+
+    def test_replace_path_to_file_with_its_content_no_arg_data_path(self, *args, **kwargs):
+        value_with_file_path = "insertions/test.html"
+
+        with self.assertRaises(TypeError) as cm:
+            replace_path_to_file_with_its_content(value_with_file_path, None)
+
+        self.assertEqual(
+            cm.exception.__str__(),
+            f"Received empty `data_path` when reading inserted file {value_with_file_path}",
+        )
+
+    def test_replace_path_to_file_with_its_content_no_arg_rel_file_path(self, *args, **kwargs):
+        with self.assertRaises(TypeError) as cm:
+            replace_path_to_file_with_its_content(None, self.data_dir)
+
+        self.assertEqual(
+            cm.exception.__str__(),
+            f"Received empty `rel_file_path` when reading inserted file in {self.data_dir}",
+        )
