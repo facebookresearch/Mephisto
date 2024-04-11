@@ -23,6 +23,7 @@ RUN mkdir -p /mephisto/data
 SHELL ["/bin/bash", "-c"]
 RUN echo $'core: \n  main_data_directory: /mephisto/data' >> ~/.mephisto/config.yml
 
+RUN apt install build-essential -y
 # Upgrade pip so we can use the pyproject.toml configuration
 # without raising an error
 RUN pip install --upgrade pip
