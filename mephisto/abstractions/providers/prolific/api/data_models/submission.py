@@ -12,7 +12,7 @@ from .base_model import BaseModel
 class Submission(BaseModel):
     """
     More about Submissions:
-        https://docs.prolific.co/docs/api-docs/public/#tag/Submissions
+        https://docs.prolific.com/docs/api-docs/public/#tag/Submissions
     """
 
     completed_at: str
@@ -45,7 +45,7 @@ class ListSubmission(BaseModel):
     Somehow Prolific returns completely different fields for one object and list of objects
 
     More about Submissions:
-        https://docs.prolific.co/docs/api-docs/public/#tag/Submissions
+        https://docs.prolific.com/docs/api-docs/public/#tag/Submissions
     """
 
     completed_at: str

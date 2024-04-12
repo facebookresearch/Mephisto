@@ -27,7 +27,7 @@ class ParticipantGroups(BaseAPIResource):
     ) -> List[ParticipantGroup]:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/
+        https://docs.prolific.com/docs/api-docs/public/#tag/
             Participant-Groups/paths/~1api~1v1~1participant-groups~1/get
         """
         params = {}
@@ -48,7 +48,7 @@ class ParticipantGroups(BaseAPIResource):
     def retrieve(cls, id: str) -> ParticipantGroup:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/
+        https://docs.prolific.com/docs/api-docs/public/#tag/
             Participant-Groups/paths/~1api~1v1~1participant-groups~1%7Bid%7D~1/get
         """
         endpoint = cls.retrieve_api_endpoint.format(id=id)
@@ -59,7 +59,7 @@ class ParticipantGroups(BaseAPIResource):
     def create(cls, **data) -> ParticipantGroup:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/
+        https://docs.prolific.com/docs/api-docs/public/#tag/
             Participant-Groups/paths/~1api~1v1~1participant-groups~1/post
         """
         participant_group = ParticipantGroup(**data)
@@ -70,7 +70,7 @@ class ParticipantGroups(BaseAPIResource):
     def remove(cls, id: str) -> None:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/
+        https://docs.prolific.com/docs/api-docs/public/#tag/
             Participant-Groups/paths/~1api~1v1~1participant-groups~1%7Bid%7D~1/delete
         """
         cls.delete(cls.remove_api_endpoint.format(id=id))
@@ -80,7 +80,7 @@ class ParticipantGroups(BaseAPIResource):
     def list_participants_for_group(cls, id: str) -> List[Participant]:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/
+        https://docs.prolific.com/docs/api-docs/public/#tag/
             Participant-Groups/paths/~1api~1v1~1participant-groups~1%7Bid%7D~1participants~1/get
         """
         response_json = cls.get(cls.list_participants_for_group_api_endpoint.format(id=id))
@@ -91,7 +91,7 @@ class ParticipantGroups(BaseAPIResource):
     def add_participants_to_group(cls, id: str, participant_ids: List[str]) -> List[Participant]:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/
+        https://docs.prolific.com/docs/api-docs/public/#tag/
             Participant-Groups/paths/~1api~1v1~1participant-groups~1%7Bid%7D~1participants~1/post
         """
         endpoint = cls.list_participants_for_group_api_endpoint.format(id=id)
@@ -108,7 +108,7 @@ class ParticipantGroups(BaseAPIResource):
     ) -> List[Participant]:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/
+        https://docs.prolific.com/docs/api-docs/public/#tag/
             Participant-Groups/paths/~1api~1v1~1participant-groups~1%7Bid%7D~1participants~1/delete
         """
         endpoint = cls.list_participants_for_group_api_endpoint.format(id=id)

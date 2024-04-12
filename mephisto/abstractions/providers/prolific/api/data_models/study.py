@@ -14,7 +14,7 @@ from .base_model import BaseModel
 class Study(BaseModel):
     """
     More about Studies:
-        https://docs.prolific.co/docs/api-docs/public/#tag/Studies
+        https://docs.prolific.com/docs/api-docs/public/#tag/Studies
     """
 
     alternative_completion_codes: List

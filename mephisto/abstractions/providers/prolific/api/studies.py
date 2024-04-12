@@ -26,7 +26,7 @@ class Studies(BaseAPIResource):
     def list(cls) -> List[Study]:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/Studies/paths/~1api~1v1~1studies~1/get
+        https://docs.prolific.com/docs/api-docs/public/#tag/Studies/paths/~1api~1v1~1studies~1/get
         """
         response_json = cls.get(cls.list_api_endpoint)
         studies = [Study(**s) for s in response_json["results"]]
@@ -36,7 +36,7 @@ class Studies(BaseAPIResource):
     def list_for_project(cls, project_id: str) -> List[Study]:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/
+        https://docs.prolific.com/docs/api-docs/public/#tag/
             Studies/paths/~1api~1v1~1projects~1%7Bproject_id%7D~1studies~1/get
         """
         endpoint = cls.list_for_project_api_endpoint.format(project_id=project_id)
@@ -48,7 +48,7 @@ class Studies(BaseAPIResource):
     def retrieve(cls, id: str) -> Study:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/
+        https://docs.prolific.com/docs/api-docs/public/#tag/
             Studies/paths/~1api~1v1~1studies~1%7Bid%7D~1/get
         """
         endpoint = cls.retrieve_api_endpoint.format(id=id)
@@ -59,7 +59,7 @@ class Studies(BaseAPIResource):
     def create(cls, **data) -> Study:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/Studies/paths/~1api~1v1~1studies~1/post
+        https://docs.prolific.com/docs/api-docs/public/#tag/Studies/paths/~1api~1v1~1studies~1/post
         """
         study = Study(**data)
         study.validate()
@@ -70,7 +70,7 @@ class Studies(BaseAPIResource):
     def update(cls, id: str, **data) -> Study:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/
+        https://docs.prolific.com/docs/api-docs/public/#tag/
             Studies/paths/~1api~1v1~1studies~1%7Bid%7D~1/patch
         """
         study = Study(**data)
@@ -82,7 +82,7 @@ class Studies(BaseAPIResource):
     def remove(cls, id: str) -> None:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/
+        https://docs.prolific.com/docs/api-docs/public/#tag/
             Studies/paths/~1api~1v1~1studies~1%7Bid%7D~1/delete
         """
         cls.delete(cls.remove_api_endpoint.format(id=id))
@@ -92,7 +92,7 @@ class Studies(BaseAPIResource):
     def publish(cls, id: str) -> Study:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/
+        https://docs.prolific.com/docs/api-docs/public/#tag/
             Studies/paths/~1api~1v1~1studies~1%7Bid%7D~1transition~1/post
         """
         params = dict(
@@ -105,7 +105,7 @@ class Studies(BaseAPIResource):
     def stop(cls, id: str) -> Study:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/
+        https://docs.prolific.com/docs/api-docs/public/#tag/
             Studies/paths/~1api~1v1~1studies~1%7Bid%7D~1transition~1/post
         """
         params = dict(
@@ -122,7 +122,7 @@ class Studies(BaseAPIResource):
     ) -> Union[int, float]:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/
+        https://docs.prolific.com/docs/api-docs/public/#tag/
             Studies/paths/~1api~1v1~1study-cost-calculator~1/post
         """
         params = dict(

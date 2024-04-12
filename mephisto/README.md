@@ -176,7 +176,7 @@ This is a sample YAML configuration to run your Task on **AWS EC2** architect wi
     ```
 
     For all available Prolific-specific parameters see `mephisto.abstractions.providers.prolific.prolific_provider.ProlificProviderArgs` class
-    and [Prolific API Docs](https://docs.prolific.com/docs/api-docs/public/#tag/Studies).
+    and [Prolific API Docs](https://docs.prolific.comm/docs/api-docs/public/#tag/Studies).
 
     Note that `prolific_eligibility_requirements` does not include custom worker qualifications, these are maintained in your local Mephisto database. These can be specified in a Task launching script (usually called `run_task.py`, for example, `examples/simple_static_task/run_task.py`)
 

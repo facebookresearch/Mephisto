@@ -61,7 +61,7 @@ class TestBaseAPIResource(unittest.TestCase):
 
         self.assertEqual(json.loads(content), result)
         mock_requests_get.called_once_with(
-            urljoin("https://api.prolific.co/api/v1/", api_endpoint),
+            urljoin("https://api.prolific.com/api/v1/", api_endpoint),
             headers={**headers, **{"Authorization": f"Token {API_KEY}"}},
             params=params,
         )
@@ -95,7 +95,7 @@ class TestBaseAPIResource(unittest.TestCase):
 
         self.assertEqual(None, result)
         mock_requests_get.called_once_with(
-            urljoin("https://api.prolific.co/api/v1/", api_endpoint),
+            urljoin("https://api.prolific.com/api/v1/", api_endpoint),
             headers={**headers, **{"Authorization": f"Token {API_KEY}"}},
             params=params,
         )
@@ -180,7 +180,7 @@ class TestBaseAPIResource(unittest.TestCase):
 
         self.assertEqual(cm.exception.message, f'{error_message}. {content.decode("utf8")}')
         mock_requests_get.called_once_with(
-            urljoin("https://api.prolific.co/api/v1/", api_endpoint),
+            urljoin("https://api.prolific.com/api/v1/", api_endpoint),
             headers={**headers, **{"Authorization": f"Token {API_KEY}"}},
             params=params,
         )
@@ -220,7 +220,7 @@ class TestBaseAPIResource(unittest.TestCase):
         self.assertEqual(cm.exception.message, ProlificAuthenticationError.default_message)
         self.assertEqual(cm.exception.status_code, ProlificAuthenticationError.status_code)
         mock_requests_get.called_once_with(
-            urljoin("https://api.prolific.co/api/v1/", api_endpoint),
+            urljoin("https://api.prolific.com/api/v1/", api_endpoint),
             headers={**headers, **{"Authorization": f"Token {API_KEY}"}},
             params=params,
         )
@@ -252,7 +252,7 @@ class TestBaseAPIResource(unittest.TestCase):
 
         self.assertEqual(cm.exception.message, ProlificException.default_message)
         mock_requests_get.called_once_with(
-            urljoin("https://api.prolific.co/api/v1/", api_endpoint),
+            urljoin("https://api.prolific.com/api/v1/", api_endpoint),
             headers={**headers, **{"Authorization": f"Token {API_KEY}"}},
             params=params,
         )
@@ -277,7 +277,7 @@ class TestBaseAPIResource(unittest.TestCase):
 
         self.assertEqual(json.loads(content), result)
         mock_requests_get.called_once_with(
-            urljoin("https://api.prolific.co/api/v1/", api_endpoint),
+            urljoin("https://api.prolific.com/api/v1/", api_endpoint),
             headers={"Authorization": f"Token {API_KEY}"},
             params=params,
         )
@@ -302,7 +302,7 @@ class TestBaseAPIResource(unittest.TestCase):
 
         self.assertEqual(json.loads(content), result)
         mock_requests_post.called_once_with(
-            urljoin("https://api.prolific.co/api/v1/", api_endpoint),
+            urljoin("https://api.prolific.com/api/v1/", api_endpoint),
             headers={"Authorization": f"Token {API_KEY}"},
             params=params,
         )
@@ -327,7 +327,7 @@ class TestBaseAPIResource(unittest.TestCase):
 
         self.assertEqual(json.loads(content), result)
         mock_requests_patch.called_once_with(
-            urljoin("https://api.prolific.co/api/v1/", api_endpoint),
+            urljoin("https://api.prolific.com/api/v1/", api_endpoint),
             headers={"Authorization": f"Token {API_KEY}"},
             params=params,
         )
@@ -352,7 +352,7 @@ class TestBaseAPIResource(unittest.TestCase):
 
         self.assertEqual(json.loads(content), result)
         mock_requests_delete.called_once_with(
-            urljoin("https://api.prolific.co/api/v1/", api_endpoint),
+            urljoin("https://api.prolific.com/api/v1/", api_endpoint),
             headers={"Authorization": f"Token {API_KEY}"},
             params=params,
         )

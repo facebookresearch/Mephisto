@@ -17,7 +17,7 @@ from .user import User
 class Workspace(BaseModel):
     """
     More about Workspaces:
-        https://docs.prolific.co/docs/api-docs/public/#tag/Workspaces
+        https://docs.prolific.com/docs/api-docs/public/#tag/Workspaces
     """
 
     description: str

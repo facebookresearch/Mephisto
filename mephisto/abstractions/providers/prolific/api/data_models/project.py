@@ -17,7 +17,7 @@ from .user import User
 class Project(BaseModel):
     """
     More about Projects:
-        https://docs.prolific.co/docs/api-docs/public/#tag/Projects
+        https://docs.prolific.com/docs/api-docs/public/#tag/Projects
     """
 
     id: str

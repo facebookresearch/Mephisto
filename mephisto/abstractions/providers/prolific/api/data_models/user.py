@@ -15,7 +15,7 @@ from ..constants import EMAIL_FORMAT
 class User(BaseModel):
     """
     More about Users:
-        https://docs.prolific.co/docs/api-docs/public/#tag/Users
+        https://docs.prolific.com/docs/api-docs/public/#tag/Users
     """
 
     address: Optional[str]

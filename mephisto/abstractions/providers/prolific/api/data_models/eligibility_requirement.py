@@ -13,7 +13,7 @@ from .base_model import BaseModel
 class EligibilityRequirement(BaseModel):
     """
     More about Eligibility Requirements:
-        https://docs.prolific.co/docs/api-docs/public/#tag/Requirements/Requirements-object
+        https://docs.prolific.com/docs/api-docs/public/#tag/Requirements/Requirements-object
     """
 
     _cls: str

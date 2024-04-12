@@ -507,7 +507,7 @@ def expire_study(client: ProlificClient, study_id: str) -> Study:
     """
     Prolific Studies don't have EXPIRED status,
     so we mark it as COMPLETED and add `_EXPIRED` to the end of `Study.internal_name` field.
-    Statuses: https://docs.prolific.co/docs/api-docs/public/#tag/Studies/The-study-object
+    Statuses: https://docs.prolific.com/docs/api-docs/public/#tag/Studies/The-study-object
     """
     try:
         study: Study = get_study(client, study_id)

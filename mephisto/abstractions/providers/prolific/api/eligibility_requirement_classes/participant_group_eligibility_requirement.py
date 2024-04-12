@@ -7,7 +7,7 @@ from .base_eligibility_requirement import BaseEligibilityRequirement
 
 class ParticipantGroupEligibilityRequirement(BaseEligibilityRequirement):
     """
-    Details https://docs.prolific.co/docs/api-docs/public/#tag/Requirements/Requirements-object
+    Details https://docs.prolific.com/docs/api-docs/public/#tag/Requirements/Requirements-object
     """
 
     name = "ParticipantGroupEligibilityRequirement"

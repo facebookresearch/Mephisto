@@ -11,7 +11,7 @@ EMAIL_FORMAT = "^\\S+@\\S+\\.\\S+$"  # Simple email format checking
 # [Depends on Prolific] Make this dynamic as soon as possible
 ELIGIBILITY_REQUIREMENT_AGE_RANGE_QUESTION_ID = "54ac6ea9fdf99b2204feb893"
 
-# https://docs.prolific.co/docs/api-docs/public/#tag/Studies/The-study-object
+# https://docs.prolific.com/docs/api-docs/public/#tag/Studies/The-study-object
 # `external_study_url` field
 STUDY_URL_PARTICIPANT_ID_PARAM = "participant_id"
 STUDY_URL_PARTICIPANT_ID_PARAM_PROLIFIC_VAR = "{{%PROLIFIC_PID%}}"
@@ -39,7 +39,7 @@ class StudyAction:
 class StudyStatus:
     """
     Study statuses explained
-    https://docs.prolific.co/docs/api-docs/public/#tag/Studies/The-study-object
+    https://docs.prolific.com/docs/api-docs/public/#tag/Studies/The-study-object
     """
 
     UNPUBLISHED = "UNPUBLISHED"
@@ -79,7 +79,7 @@ DEFAULT_REJECTION_CATEGORY_MESSAGE = (
 class SubmissionStatus:
     """
     Submission statuses explained
-    https://researcher-help.prolific.co/hc/en-gb/articles/360009094114-Submission-statuses-explained
+    https://researcher-help.prolific.com/hc/en-gb/articles/360009094114-Submission-statuses-explained
     """
 
     RESERVED = "RESERVED"

@@ -12,7 +12,7 @@ from .base_model import BaseModel
 class BonusPayments(BaseModel):
     """
     More about Bonuses:
-        https://docs.prolific.co/docs/api-docs/public/#tag/Bonuses
+        https://docs.prolific.com/docs/api-docs/public/#tag/Bonuses
     """
 
     amount: Union[int, float]

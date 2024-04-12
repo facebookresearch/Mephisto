@@ -8,7 +8,7 @@ sidebar_position: 1
 
 # Prolific overview
 
-Mephisto supports integration with [Prolific](https://www.prolific.com) human cloud provider.
+Mephisto supports integration with [Prolific](https://www.prolific.comm) human cloud provider.
 
 In their own words:
 > Prolific is an online research platform that empowers great research.

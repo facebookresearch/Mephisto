@@ -12,7 +12,7 @@ from .base_model import BaseModel
 class Message(BaseModel):
     """
     More about Messages:
-        https://docs.prolific.co/docs/api-docs/public/#tag/Messages
+        https://docs.prolific.com/docs/api-docs/public/#tag/Messages
     """
 
     body: str

@@ -13,7 +13,7 @@ from .base_model import BaseModel
 class ParticipantGroup(BaseModel):
     """
     More about Participant Groups:
-        https://docs.prolific.co/docs/api-docs/public/#tag/Participant-Groups
+        https://docs.prolific.com/docs/api-docs/public/#tag/Participant-Groups
     """
 
     id: str

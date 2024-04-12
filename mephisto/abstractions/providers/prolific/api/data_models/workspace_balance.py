@@ -14,7 +14,7 @@ from .base_model import BaseModel
 class WorkspaceBalance(BaseModel):
     """
     More about Workspaces:
-        https://docs.prolific.co/docs/api-docs/public/#tag/Workspaces
+        https://docs.prolific.com/docs/api-docs/public/#tag/Workspaces
     """
 
     currency_code: str

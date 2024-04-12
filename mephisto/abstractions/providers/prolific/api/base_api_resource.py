@@ -19,7 +19,7 @@ from .exceptions import ProlificAuthenticationError
 from .exceptions import ProlificException
 from .exceptions import ProlificRequestError
 
-BASE_URL = os.environ.get("PROLIFIC_BASE_URL", "https://api.prolific.co/api/v1/")
+BASE_URL = os.environ.get("PROLIFIC_BASE_URL", "https://api.prolific.com/api/v1/")
 CREDENTIALS_CONFIG_DIR = "~/.prolific/"
 CREDENTIALS_CONFIG_PATH = os.path.join(CREDENTIALS_CONFIG_DIR, "credentials")
 

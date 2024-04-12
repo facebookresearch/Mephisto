@@ -22,7 +22,7 @@ class Submissions(BaseAPIResource):
     def list(cls, study_id: Optional[str] = None) -> List[ListSubmission]:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/
+        https://docs.prolific.com/docs/api-docs/public/#tag/
             Submissions/paths/~1api~1v1~1submissions~1/get
         """
         endpoint = cls.list_api_endpoint
@@ -36,7 +36,7 @@ class Submissions(BaseAPIResource):
     def retrieve(cls, id: str) -> Submission:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/
+        https://docs.prolific.com/docs/api-docs/public/#tag/
             Submissions/paths/~1api~1v1~1submissions~1%7Bid%7D~1/get
         """
         endpoint = cls.retrieve_api_endpoint.format(id=id)
@@ -53,7 +53,7 @@ class Submissions(BaseAPIResource):
     ) -> Submission:
         """
         API docs for this endpoint:
-        https://docs.prolific.co/docs/api-docs/public/#tag/
+        https://docs.prolific.com/docs/api-docs/public/#tag/
             Submissions/paths/~1api~1v1~1submissions~1%7Bid%7D~1transition~1/post
         """
         params = dict(

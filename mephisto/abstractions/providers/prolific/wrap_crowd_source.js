@@ -82,7 +82,7 @@ function handleSubmitToProvider(task_data) {
   // Redirecting a worker to the Prolific Study page back.
   // Otherwise, this worker will stay at our project's page without ability to finish his job
   var completionCode = STUDY_CODE_TYPE_COMPLETED + '_' + getProlificStudyId();
-  window.location.href='https://app.prolific.co/submissions/complete?cc=' + completionCode;
+  window.location.href='https://app.prolific.com/submissions/complete?cc=' + completionCode;
 }
 
 const events = eventEmitter();
