@@ -114,7 +114,7 @@ mock_task_run_args = DictConfig(
                 ),
                 prolific_id_option="url_parameters",
                 prolific_workspace_name="My Workspace",
-                prolific_project_name="Project",
+                prolific_project_name="My Project",
                 prolific_allow_list_group_name="Allow list",
                 prolific_block_list_group_name="Block list",
                 prolific_estimated_completion_time_in_minutes=60,

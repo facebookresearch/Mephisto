@@ -31,7 +31,7 @@ mephisto:
     prolific_external_study_url: "https://example.com?participant_id={{%PROLIFIC_PID%}}&study_id={{%STUDY_ID%}}&submission_id={{%SESSION_ID%}}"
     prolific_id_option: "url_parameters"
     prolific_workspace_name: "My Workspace"
-    prolific_project_name: "Project"
+    prolific_project_name: "My Project"
     prolific_allow_list_group_name: "Allow list"
     prolific_block_list_group_name: "Block list"
     prolific_eligibility_requirements:
