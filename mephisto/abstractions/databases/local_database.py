@@ -4,32 +4,44 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.abstractions.database import (
-    MephistoDB,
-    MephistoDBException,
-    EntryAlreadyExistsException,
-    EntryDoesNotExistException,
-)
-from typing import Mapping, Optional, Any, List, Dict, Tuple, Union
-from mephisto.operations.registry import get_valid_provider_types
-from mephisto.data_model.agent import Agent, AgentState, OnboardingAgent
-from mephisto.data_model.unit import Unit
-from mephisto.data_model.assignment import Assignment, AssignmentState
+import json
+import os
+import sqlite3
+import threading
+from sqlite3 import Connection
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Mapping
+from typing import Optional
+from typing import Tuple
+from typing import Union
+
+from mephisto.abstractions.database import MephistoDB
+from mephisto.data_model.agent import Agent
+from mephisto.data_model.agent import AgentState
+from mephisto.data_model.agent import OnboardingAgent
+from mephisto.data_model.assignment import Assignment
+from mephisto.data_model.assignment import AssignmentState
 from mephisto.data_model.constants import NO_PROJECT_NAME
 from mephisto.data_model.project import Project
+from mephisto.data_model.qualification import GrantedQualification
+from mephisto.data_model.qualification import Qualification
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
+from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
-from mephisto.data_model.qualification import Qualification, GrantedQualification
-
-import sqlite3
-from sqlite3 import Connection
-import threading
-import os
-import json
-
+from mephisto.operations.registry import get_valid_provider_types
+from mephisto.utils.db import apply_migrations
+from mephisto.utils.db import EntryAlreadyExistsException
+from mephisto.utils.db import EntryDoesNotExistException
+from mephisto.utils.db import make_randomized_int_id
+from mephisto.utils.db import MephistoDBException
+from mephisto.utils.db import retry_generate_id
 from mephisto.utils.logger_core import get_logger
+from . import local_database_tables as tables
+from .migrations import migrations
 
 logger = get_logger(name=__name__)
 
@@ -46,207 +58,25 @@ def assert_valid_provider(provider_type: str) -> None:
     valid_types = get_valid_provider_types()
     if provider_type not in valid_types:
         raise MephistoDBException(
-            f"Supplied provider {provider_type} is not in supported list of providers {valid_types}."
+            f"Supplied provider {provider_type} is not in supported list of "
+            f"providers {valid_types}."
         )
 
 
 def is_key_failure(e: sqlite3.IntegrityError) -> bool:
     """
-    Return if the given error is representing a foreign key
-    failure, where an insertion was expecting something to
-    exist already in the DB but it didn't.
+    Return if the given error is representing a foreign key failure,
+    where an insertion was expecting something to exist already in the DB, but it didn't.
     """
     return str(e) == "FOREIGN KEY constraint failed"
 
 
 def is_unique_failure(e: sqlite3.IntegrityError) -> bool:
     """
-    Return if the given error is representing a foreign key
-    failure, where an insertion was expecting something to
-    exist already in the DB but it didn't.
+    Return if the given error is representing a foreign key failure,
+    where an insertion was expecting something to exist already in the DB, but it didn't.
     """
     return str(e).startswith("UNIQUE constraint")
-
-
-CREATE_PROJECTS_TABLE = """CREATE TABLE IF NOT EXISTS projects (
-    project_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_name TEXT NOT NULL UNIQUE,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-"""
-
-CREATE_TASKS_TABLE = """CREATE TABLE IF NOT EXISTS tasks (
-    task_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    task_name TEXT NOT NULL UNIQUE,
-    task_type TEXT NOT NULL,
-    project_id INTEGER,
-    parent_task_id INTEGER,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (parent_task_id) REFERENCES tasks (task_id),
-    FOREIGN KEY (project_id) REFERENCES projects (project_id)
-);
-"""
-
-CREATE_REQUESTERS_TABLE = """CREATE TABLE IF NOT EXISTS requesters (
-    requester_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    requester_name TEXT NOT NULL UNIQUE,
-    provider_type TEXT NOT NULL,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-"""
-
-CREATE_TASK_RUNS_TABLE = """
-    CREATE TABLE IF NOT EXISTS task_runs (
-    task_run_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    task_id INTEGER NOT NULL,
-    requester_id INTEGER NOT NULL,
-    init_params TEXT NOT NULL,
-    is_completed BOOLEAN NOT NULL,
-    provider_type TEXT NOT NULL,
-    task_type TEXT NOT NULL,
-    sandbox BOOLEAN NOT NULL,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (task_id) REFERENCES tasks (task_id),
-    FOREIGN KEY (requester_id) REFERENCES requesters (requester_id)
-);
-"""
-
-CREATE_ASSIGNMENTS_TABLE = """CREATE TABLE IF NOT EXISTS assignments (
-    assignment_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    task_id INTEGER NOT NULL,
-    task_run_id INTEGER NOT NULL,
-    requester_id INTEGER NOT NULL,
-    task_type TEXT NOT NULL,
-    provider_type TEXT NOT NULL,
-    sandbox BOOLEAN NOT NULL,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (task_id) REFERENCES tasks (task_id),
-    FOREIGN KEY (task_run_id) REFERENCES task_runs (task_run_id),
-    FOREIGN KEY (requester_id) REFERENCES requesters (requester_id)
-);
-"""
-
-CREATE_UNITS_TABLE = """CREATE TABLE IF NOT EXISTS units (
-    unit_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    assignment_id INTEGER NOT NULL,
-    unit_index INTEGER NOT NULL,
-    pay_amount FLOAT NOT NULL,
-    provider_type TEXT NOT NULL,
-    status TEXT NOT NULL,
-    agent_id INTEGER,
-    worker_id INTEGER,
-    task_type TEXT NOT NULL,
-    task_id INTEGER NOT NULL,
-    task_run_id INTEGER NOT NULL,
-    sandbox BOOLEAN NOT NULL,
-    requester_id INTEGER NOT NULL,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (assignment_id) REFERENCES assignments (assignment_id),
-    FOREIGN KEY (agent_id) REFERENCES agents (agent_id),
-    FOREIGN KEY (task_run_id) REFERENCES task_runs (task_run_id),
-    FOREIGN KEY (task_id) REFERENCES tasks (task_id),
-    FOREIGN KEY (requester_id) REFERENCES requesters (requester_id),
-    FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
-    UNIQUE (assignment_id, unit_index)
-);
-"""
-
-CREATE_WORKERS_TABLE = """CREATE TABLE IF NOT EXISTS workers (
-    worker_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    worker_name TEXT NOT NULL UNIQUE,
-    provider_type TEXT NOT NULL,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-"""
-
-CREATE_AGENTS_TABLE = """CREATE TABLE IF NOT EXISTS agents (
-    agent_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    worker_id INTEGER NOT NULL,
-    unit_id INTEGER NOT NULL,
-    task_id INTEGER NOT NULL,
-    task_run_id INTEGER NOT NULL,
-    assignment_id INTEGER NOT NULL,
-    task_type TEXT NOT NULL,
-    provider_type TEXT NOT NULL,
-    status TEXT NOT NULL,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
-    FOREIGN KEY (unit_id) REFERENCES units (unit_id)
-);
-"""
-
-CREATE_ONBOARDING_AGENTS_TABLE = """CREATE TABLE IF NOT EXISTS onboarding_agents (
-    onboarding_agent_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    worker_id INTEGER NOT NULL,
-    task_id INTEGER NOT NULL,
-    task_run_id INTEGER NOT NULL,
-    task_type TEXT NOT NULL,
-    status TEXT NOT NULL,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
-    FOREIGN KEY (task_run_id) REFERENCES task_runs (task_run_id)
-);
-"""
-
-CREATE_QUALIFICATIONS_TABLE = """CREATE TABLE IF NOT EXISTS qualifications (
-    qualification_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    qualification_name TEXT NOT NULL UNIQUE,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-"""
-
-CREATE_GRANTED_QUALIFICATIONS_TABLE = """
-CREATE TABLE IF NOT EXISTS granted_qualifications (
-    granted_qualification_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    worker_id INTEGER NOT NULL,
-    qualification_id INTEGER NOT NULL,
-    value INTEGER NOT NULL,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
-    FOREIGN KEY (qualification_id) REFERENCES qualifications (qualification_id),
-    UNIQUE (worker_id, qualification_id)
-);
-"""
-
-CREATE_UNIT_REVIEW_TABLE = """
-    CREATE TABLE IF NOT EXISTS unit_review (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        unit_id INTEGER NOT NULL,
-        worker_id INTEGER NOT NULL,
-        task_id INTEGER NOT NULL,
-        status TEXT NOT NULL,
-        review_note TEXT,
-        bonus INTEGER,
-        blocked_worker BOOLEAN DEFAULT false,
-        /* ID of `db.qualifications` (not `db.granted_qualifications`) */
-        updated_qualification_id INTEGER,
-        updated_qualification_value INTEGER,
-        /* ID of `db.qualifications` (not `db.granted_qualifications`) */
-        revoked_qualification_id INTEGER,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-        FOREIGN KEY (unit_id) REFERENCES units (unit_id),
-        FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
-        FOREIGN KEY (task_id) REFERENCES tasks (task_id)
-    );
-"""
-
-# Indices that are used by system-specific calls across Mephisto during live tasks
-# that improve the runtime of the system as a whole
-CREATE_CORE_INDEXES = """
-CREATE INDEX IF NOT EXISTS requesters_by_provider_index ON requesters(provider_type);
-CREATE INDEX IF NOT EXISTS unit_by_status_index ON units(status);
-CREATE INDEX IF NOT EXISTS unit_by_assignment_id_index ON units(assignment_id);
-CREATE INDEX IF NOT EXISTS unit_by_task_run_index ON units(task_run_id);
-CREATE INDEX IF NOT EXISTS unit_by_task_run_by_worker_by_status_index ON units(task_run_id, worker_id, status);
-CREATE INDEX IF NOT EXISTS unit_by_task_by_worker_index ON units(task_id, worker_id);
-CREATE INDEX IF NOT EXISTS agent_by_worker_by_status_index ON agents(worker_id, status);
-CREATE INDEX IF NOT EXISTS agent_by_task_run_index ON agents(task_run_id);
-CREATE INDEX IF NOT EXISTS assignment_by_task_run_index ON assignments(task_run_id);
-CREATE INDEX IF NOT EXISTS task_run_by_requester_index ON task_runs(requester_id);
-CREATE INDEX IF NOT EXISTS task_run_by_task_index ON task_runs(task_id);
-CREATE INDEX IF NOT EXISTS unit_review_by_unit_index ON unit_review(unit_id);
-"""
 
 
 class StringIDRow(sqlite3.Row):
@@ -261,7 +91,7 @@ class StringIDRow(sqlite3.Row):
 class LocalMephistoDB(MephistoDB):
     """
     Local database for core Mephisto data storage, the LocalMephistoDatabase handles
-    grounding all of the python interactions with the Mephisto architecture to
+    grounding all the python interactions with the Mephisto architecture to
     local files and a database.
     """
 
@@ -271,7 +101,7 @@ class LocalMephistoDB(MephistoDB):
         self.table_access_condition = threading.Condition()
         super().__init__(database_path)
 
-    def _get_connection(self) -> Connection:
+    def get_connection(self) -> Connection:
         """Returns a singular database connection to be shared amongst all
         calls for a given thread.
         """
@@ -297,23 +127,34 @@ class LocalMephistoDB(MephistoDB):
         Run all the table creation SQL queries to ensure the expected tables exist
         """
         with self.table_access_condition:
-            conn = self._get_connection()
-            conn.execute("PRAGMA foreign_keys = 1")
+            conn = self.get_connection()
+            conn.execute("PRAGMA foreign_keys = on;")
+
             with conn:
                 c = conn.cursor()
-                c.execute(CREATE_PROJECTS_TABLE)
-                c.execute(CREATE_TASKS_TABLE)
-                c.execute(CREATE_REQUESTERS_TABLE)
-                c.execute(CREATE_TASK_RUNS_TABLE)
-                c.execute(CREATE_ASSIGNMENTS_TABLE)
-                c.execute(CREATE_UNITS_TABLE)
-                c.execute(CREATE_WORKERS_TABLE)
-                c.execute(CREATE_AGENTS_TABLE)
-                c.execute(CREATE_QUALIFICATIONS_TABLE)
-                c.execute(CREATE_GRANTED_QUALIFICATIONS_TABLE)
-                c.execute(CREATE_ONBOARDING_AGENTS_TABLE)
-                c.execute(CREATE_UNIT_REVIEW_TABLE)
-                c.executescript(CREATE_CORE_INDEXES)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_PROJECTS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_TASKS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_REQUESTERS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_TASK_RUNS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_ASSIGNMENTS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_UNITS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_WORKERS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_AGENTS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_QUALIFICATIONS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_GRANTED_QUALIFICATIONS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_ONBOARDING_AGENTS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_UNIT_REVIEW_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_IMPORT_DATA_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_MIGRATIONS_TABLE)
+
+            apply_migrations(self, migrations)
+
+            # Creating indices must be after migrations.
+            # SQLite have a lack of features comparing to other databases,
+            # and, e.g., if we need to change a constraint, we need to recteate a table.
+            # We will lose indices in this case, or we need to repeat creating in the migration
+            with conn:
+                c.executescript(tables.CREATE_IF_NOT_EXISTS_CORE_INDICES)
 
     def __get_one_by_id(self, table_name: str, id_name: str, db_id: str) -> Mapping[str, Any]:
         """
@@ -321,7 +162,7 @@ class LocalMephistoDB(MephistoDB):
         raise EntryDoesNotExistException if it isn't present
         """
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 f"""
@@ -335,8 +176,8 @@ class LocalMephistoDB(MephistoDB):
                 raise EntryDoesNotExistException(f"Table {table_name} has no {id_name} {db_id}")
             return results[0]
 
+    @staticmethod
     def __create_query_and_tuple(
-        self,
         arg_list: List[str],
         arg_vals: List[Optional[Union[str, int, bool]]],
     ) -> Tuple[str, tuple]:
@@ -362,24 +203,41 @@ class LocalMephistoDB(MephistoDB):
 
         return "".join(query_lines), tuple(fin_vals)
 
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
     def _new_project(self, project_name: str) -> str:
         """
-        Create a new project with the given project name. Raise EntryAlreadyExistsException if a project
-        with this name has already been created.
+        Create a new project with the given project name.
+        Raise EntryAlreadyExistsException if a project with this name has already been created.
         """
         if project_name in [NO_PROJECT_NAME, ""]:
             raise MephistoDBException(f'Invalid project name "{project_name}')
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             try:
-                c.execute("INSERT INTO projects(project_name) VALUES (?);", (project_name,))
+                c.execute(
+                    """
+                    INSERT INTO projects(
+                        project_id,
+                        project_name
+                    ) VALUES (?, ?);
+                    """,
+                    (
+                        make_randomized_int_id(),
+                        project_name,
+                    )
+                )
                 project_id = str(c.lastrowid)
                 return project_id
             except sqlite3.IntegrityError as e:
                 if is_key_failure(e):
                     raise EntryDoesNotExistException()
                 elif is_unique_failure(e):
-                    raise EntryAlreadyExistsException(f"Project {project_name} already exists")
+                    raise EntryAlreadyExistsException(
+                        f"Project {project_name} already exists",
+                        db=self,
+                        table_name="projects",
+                        original_exc=e,
+                    )
                 raise MephistoDBException(e)
 
     def _get_project(self, project_id: str) -> Mapping[str, Any]:
@@ -397,7 +255,7 @@ class LocalMephistoDB(MephistoDB):
         return all projects.
         """
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             additional_query, arg_tuple = self.__create_query_and_tuple(
                 ["project_name"], [project_name]
@@ -412,6 +270,7 @@ class LocalMephistoDB(MephistoDB):
             rows = c.fetchall()
             return [Project(self, str(r["project_id"]), row=r, _used_new_call=True) for r in rows]
 
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
     def _new_task(
         self,
         task_name: str,
@@ -424,17 +283,21 @@ class LocalMephistoDB(MephistoDB):
         """
         if task_name in [""]:
             raise MephistoDBException(f'Invalid task name "{task_name}')
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
-                    """INSERT INTO tasks(
+                    """
+                    INSERT INTO tasks(
+                        task_id,
                         task_name,
                         task_type,
                         project_id,
                         parent_task_id
-                    ) VALUES (?, ?, ?, ?);""",
+                    ) VALUES (?, ?, ?, ?, ?);
+                    """,
                     (
+                        make_randomized_int_id(),
                         task_name,
                         task_type,
                         nonesafe_int(project_id),
@@ -447,7 +310,9 @@ class LocalMephistoDB(MephistoDB):
                 if is_key_failure(e):
                     raise EntryDoesNotExistException(e)
                 elif is_unique_failure(e):
-                    raise EntryAlreadyExistsException(e)
+                    raise EntryAlreadyExistsException(
+                        e, db=self, table_name="tasks", original_exc=e,
+                    )
                 raise MephistoDBException(e)
 
     def _get_task(self, task_id: str) -> Mapping[str, Any]:
@@ -469,7 +334,7 @@ class LocalMephistoDB(MephistoDB):
         return all tasks.
         """
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             additional_query, arg_tuple = self.__create_query_and_tuple(
                 ["task_name", "project_id", "parent_task_id"],
@@ -492,10 +357,11 @@ class LocalMephistoDB(MephistoDB):
         project_id: Optional[str] = None,
     ) -> None:
         """
-        Update the given task with the given parameters if possible, raise appropriate exception otherwise.
+        Update the given task with the given parameters if possible,
+        raise appropriate exception otherwise.
 
-        Tasks can only be updated if no runs exist for this task yet, otherwise there's too much state
-        and we shouldn't make changes.
+        Tasks can only be updated if no runs exist for this task yet,
+        otherwise there's too much state, and we shouldn't make changes.
         """
         if len(self.find_task_runs(task_id=task_id)) != 0:
             raise MephistoDBException(
@@ -503,7 +369,7 @@ class LocalMephistoDB(MephistoDB):
             )
         if task_name in [""]:
             raise MephistoDBException(f'Invalid task name "{task_name}')
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             try:
                 if task_name is not None:
@@ -528,9 +394,15 @@ class LocalMephistoDB(MephistoDB):
                 if is_key_failure(e):
                     raise EntryDoesNotExistException(e)
                 elif is_unique_failure(e):
-                    raise EntryAlreadyExistsException(f"Task name {task_name} is already in use")
+                    raise EntryAlreadyExistsException(
+                        f"Task name {task_name} is already in use",
+                        db=self,
+                        table_name="units",
+                        original_exc=e,
+                    )
                 raise MephistoDBException(e)
 
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
     def _new_task_run(
         self,
         task_id: str,
@@ -541,13 +413,14 @@ class LocalMephistoDB(MephistoDB):
         sandbox: bool = True,
     ) -> str:
         """Create a new task_run for the given task."""
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             # Ensure given ids are valid
             c = conn.cursor()
             try:
                 c.execute(
                     """
                     INSERT INTO task_runs(
+                        task_run_id,
                         task_id,
                         requester_id,
                         init_params,
@@ -556,8 +429,10 @@ class LocalMephistoDB(MephistoDB):
                         task_type,
                         sandbox
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?);""",
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                    """,
                     (
+                        make_randomized_int_id(),
                         int(task_id),
                         int(requester_id),
                         init_params,
@@ -572,12 +447,16 @@ class LocalMephistoDB(MephistoDB):
             except sqlite3.IntegrityError as e:
                 if is_key_failure(e):
                     raise EntryDoesNotExistException(e)
+                elif is_unique_failure(e):
+                    raise EntryAlreadyExistsException(
+                        e, db=self, table_name="task_runs", original_exc=e,
+                    )
                 raise MephistoDBException(e)
 
     def _get_task_run(self, task_run_id: str) -> Mapping[str, Any]:
         """
-        Return the given task_run's fields by task_run_id, raise EntryDoesNotExistException if no id exists
-        in task_runs.
+        Return the given task_run's fields by task_run_id, raise EntryDoesNotExistException
+        if no id exists in task_runs.
 
         Returns a SQLite Row object with the expected fields
         """
@@ -594,7 +473,7 @@ class LocalMephistoDB(MephistoDB):
         return all task_runs.
         """
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             additional_query, arg_tuple = self.__create_query_and_tuple(
                 ["task_id", "requester_id", "is_completed"],
@@ -614,7 +493,7 @@ class LocalMephistoDB(MephistoDB):
         """
         Update a task run. At the moment, can only update completion status
         """
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
@@ -630,6 +509,7 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryDoesNotExistException(e)
                 raise MephistoDBException(e)
 
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
     def _new_assignment(
         self,
         task_id: str,
@@ -642,29 +522,39 @@ class LocalMephistoDB(MephistoDB):
         """Create a new assignment for the given task"""
         # Ensure task run exists
         self.get_task_run(task_run_id)
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
-            c.execute(
-                """
-                INSERT INTO assignments(
-                    task_id,
-                    task_run_id,
-                    requester_id,
-                    task_type,
-                    provider_type,
-                    sandbox
-                ) VALUES (?, ?, ?, ?, ?, ?);""",
-                (
-                    int(task_id),
-                    int(task_run_id),
-                    int(requester_id),
-                    task_type,
-                    provider_type,
-                    sandbox,
-                ),
-            )
-            assignment_id = str(c.lastrowid)
-            return assignment_id
+            try:
+                c.execute(
+                    """
+                    INSERT INTO assignments(
+                        assignment_id,
+                        task_id,
+                        task_run_id,
+                        requester_id,
+                        task_type,
+                        provider_type,
+                        sandbox
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?);
+                    """,
+                    (
+                        make_randomized_int_id(),
+                        int(task_id),
+                        int(task_run_id),
+                        int(requester_id),
+                        task_type,
+                        provider_type,
+                        sandbox,
+                    ),
+                )
+                assignment_id = str(c.lastrowid)
+                return assignment_id
+            except sqlite3.IntegrityError as e:
+                if is_unique_failure(e):
+                    raise EntryAlreadyExistsException(
+                        e, db=self, table_name="assignments", original_exc=e,
+                    )
+                raise MephistoDBException(e)
 
     def _get_assignment(self, assignment_id: str) -> Mapping[str, Any]:
         """
@@ -689,7 +579,7 @@ class LocalMephistoDB(MephistoDB):
         return all tasks.
         """
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             additional_query, arg_tuple = self.__create_query_and_tuple(
                 [
@@ -721,6 +611,7 @@ class LocalMephistoDB(MephistoDB):
                 Assignment(self, str(r["assignment_id"]), row=r, _used_new_call=True) for r in rows
             ]
 
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
     def _new_unit(
         self,
         task_id: str,
@@ -737,11 +628,13 @@ class LocalMephistoDB(MephistoDB):
         Create a new unit with the given index. Raises EntryAlreadyExistsException
         if there is already a unit for the given assignment with the given index.
         """
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
-                    """INSERT INTO units(
+                    """
+                    INSERT INTO units(
+                        unit_id,
                         task_id,
                         task_run_id,
                         requester_id,
@@ -752,8 +645,10 @@ class LocalMephistoDB(MephistoDB):
                         task_type,
                         sandbox,
                         status
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);""",
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                    """,
                     (
+                        make_randomized_int_id(),
                         int(task_id),
                         int(task_run_id),
                         int(requester_id),
@@ -772,7 +667,9 @@ class LocalMephistoDB(MephistoDB):
                 if is_key_failure(e):
                     raise EntryDoesNotExistException(e)
                 elif is_unique_failure(e):
-                    raise EntryAlreadyExistsException(e)
+                    raise EntryAlreadyExistsException(
+                        e, db=self, table_name="units", original_exc=e,
+                    )
                 raise MephistoDBException(e)
 
     def _get_unit(self, unit_id: str) -> Mapping[str, Any]:
@@ -803,7 +700,7 @@ class LocalMephistoDB(MephistoDB):
         return all units.
         """
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             additional_query, arg_tuple = self.__create_query_and_tuple(
                 [
@@ -848,7 +745,7 @@ class LocalMephistoDB(MephistoDB):
         Update the given unit by removing the agent that is assigned to it, thus updating
         the status to assignable.
         """
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
@@ -870,11 +767,12 @@ class LocalMephistoDB(MephistoDB):
         self, unit_id: str, agent_id: Optional[str] = None, status: Optional[str] = None
     ) -> None:
         """
-        Update the given task with the given parameters if possible, raise appropriate exception otherwise.
+        Update the given task with the given parameters if possible,
+        raise appropriate exception otherwise.
         """
         if status not in AssignmentState.valid_unit():
             raise MephistoDBException(f"Invalid status {status} for a unit")
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             try:
                 if agent_id is not None:
@@ -902,6 +800,7 @@ class LocalMephistoDB(MephistoDB):
                     )
                 raise MephistoDBException(e)
 
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
     def _new_requester(self, requester_name: str, provider_type: str) -> str:
         """
         Create a new requester with the given name and provider type.
@@ -911,18 +810,30 @@ class LocalMephistoDB(MephistoDB):
         if requester_name == "":
             raise MephistoDBException("Empty string is not a valid requester name")
         assert_valid_provider(provider_type)
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
-                    "INSERT INTO requesters(requester_name, provider_type) VALUES (?, ?);",
-                    (requester_name, provider_type),
+                    """
+                    INSERT INTO requesters(
+                        requester_id,
+                        requester_name, 
+                        provider_type
+                    ) VALUES (?, ?, ?);
+                    """,
+                    (
+                        make_randomized_int_id(),
+                        requester_name,
+                        provider_type,
+                    ),
                 )
                 requester_id = str(c.lastrowid)
                 return requester_id
             except sqlite3.IntegrityError as e:
                 if is_unique_failure(e):
-                    raise EntryAlreadyExistsException()
+                    raise EntryAlreadyExistsException(
+                        e, db=self, table_name="requesters", original_exc=e,
+                    )
                 raise MephistoDBException(e)
 
     def _get_requester(self, requester_id: str) -> Mapping[str, Any]:
@@ -942,7 +853,7 @@ class LocalMephistoDB(MephistoDB):
         return all requesters.
         """
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             additional_query, arg_tuple = self.__create_query_and_tuple(
                 ["requester_name", "provider_type"], [requester_name, provider_type]
@@ -959,6 +870,7 @@ class LocalMephistoDB(MephistoDB):
                 Requester(self, str(r["requester_id"]), row=r, _used_new_call=True) for r in rows
             ]
 
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
     def _new_worker(self, worker_name: str, provider_type: str) -> str:
         """
         Create a new worker with the given name and provider type.
@@ -971,18 +883,30 @@ class LocalMephistoDB(MephistoDB):
         if worker_name == "":
             raise MephistoDBException("Empty string is not a valid requester name")
         assert_valid_provider(provider_type)
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
-                    "INSERT INTO workers(worker_name, provider_type) VALUES (?, ?);",
-                    (worker_name, provider_type),
+                    """
+                    INSERT INTO workers(
+                        worker_id,
+                        worker_name, 
+                        provider_type
+                    ) VALUES (?, ?, ?);
+                    """,
+                    (
+                        make_randomized_int_id(),
+                        worker_name,
+                        provider_type,
+                    ),
                 )
                 worker_id = str(c.lastrowid)
                 return worker_id
             except sqlite3.IntegrityError as e:
                 if is_unique_failure(e):
-                    raise EntryAlreadyExistsException()
+                    raise EntryAlreadyExistsException(
+                        e, db=self, table_name="workers", original_exc=e,
+                    )
                 raise MephistoDBException(e)
 
     def _get_worker(self, worker_id: str) -> Mapping[str, Any]:
@@ -1002,7 +926,7 @@ class LocalMephistoDB(MephistoDB):
         return all workers.
         """
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             additional_query, arg_tuple = self.__create_query_and_tuple(
                 ["worker_name", "provider_type"], [worker_name, provider_type]
@@ -1017,6 +941,7 @@ class LocalMephistoDB(MephistoDB):
             rows = c.fetchall()
             return [Worker(self, str(r["worker_id"]), row=r, _used_new_call=True) for r in rows]
 
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
     def _new_agent(
         self,
         worker_id: str,
@@ -1029,15 +954,16 @@ class LocalMephistoDB(MephistoDB):
     ) -> str:
         """
         Create a new agent with the given name and provider type.
-        Raises EntryAlreadyExistsException
-        if there is already a agent with this name
+        Raises EntryAlreadyExistsException if there is already an agent with this name
         """
         assert_valid_provider(provider_type)
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
-                    """INSERT INTO agents(
+                    """
+                    INSERT INTO agents(
+                        agent_id,
                         worker_id,
                         unit_id,
                         task_id,
@@ -1046,8 +972,10 @@ class LocalMephistoDB(MephistoDB):
                         task_type,
                         provider_type,
                         status
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);""",
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+                    """,
                     (
+                        make_randomized_int_id(),
                         int(worker_id),
                         int(unit_id),
                         int(task_id),
@@ -1076,12 +1004,16 @@ class LocalMephistoDB(MephistoDB):
             except sqlite3.IntegrityError as e:
                 if is_key_failure(e):
                     raise EntryDoesNotExistException(e)
+                elif is_unique_failure(e):
+                    raise EntryAlreadyExistsException(
+                        e, db=self, table_name="agents", original_exc=e,
+                    )
                 raise MephistoDBException(e)
 
     def _get_agent(self, agent_id: str) -> Mapping[str, Any]:
         """
         Return agent's fields by agent_id, raise EntryDoesNotExistException
-        if no id exists in agents
+        if no id exists in agents.
 
         Returns a SQLite Row object with the expected fields
         """
@@ -1089,12 +1021,13 @@ class LocalMephistoDB(MephistoDB):
 
     def _update_agent(self, agent_id: str, status: Optional[str] = None) -> None:
         """
-        Update the given task with the given parameters if possible, raise appropriate exception otherwise.
+        Update the given task with the given parameters if possible,
+        raise appropriate exception otherwise.
         """
         if status not in AgentState.valid():
             raise MephistoDBException(f"Invalid status {status} for an agent")
 
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             c.execute(
                 """
@@ -1121,7 +1054,7 @@ class LocalMephistoDB(MephistoDB):
         return all agents.
         """
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             additional_query, arg_tuple = self.__create_query_and_tuple(
                 [
@@ -1162,7 +1095,7 @@ class LocalMephistoDB(MephistoDB):
         """
         if qualification_name == "":
             raise MephistoDBException("Empty string is not a valid qualification name")
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
@@ -1173,7 +1106,9 @@ class LocalMephistoDB(MephistoDB):
                 return qualification_id
             except sqlite3.IntegrityError as e:
                 if is_unique_failure(e):
-                    raise EntryAlreadyExistsException()
+                    raise EntryAlreadyExistsException(
+                        e, db=self, table_name="units", original_exc=e,
+                    )
                 raise MephistoDBException(e)
 
     def _find_qualifications(self, qualification_name: Optional[str] = None) -> List[Qualification]:
@@ -1181,7 +1116,7 @@ class LocalMephistoDB(MephistoDB):
         Find a qualification. If no name is supplied, returns all qualifications.
         """
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             additional_query, arg_tuple = self.__create_query_and_tuple(
                 ["qualification_name"], [qualification_name]
@@ -1216,7 +1151,7 @@ class LocalMephistoDB(MephistoDB):
         if len(qualifications) == 0:
             raise EntryDoesNotExistException(f"No qualification found by name {qualification_name}")
         qualification = qualifications[0]
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             c.execute(
                 "DELETE FROM granted_qualifications WHERE qualification_id = ?1;",
@@ -1236,7 +1171,7 @@ class LocalMephistoDB(MephistoDB):
         try:
             # Update existing entry
             qual_row = self.get_granted_qualification(qualification_id, worker_id)
-            with self.table_access_condition, self._get_connection() as conn:
+            with self.table_access_condition, self.get_connection() as conn:
                 if value != qual_row["value"]:
                     c = conn.cursor()
                     c.execute(
@@ -1251,7 +1186,7 @@ class LocalMephistoDB(MephistoDB):
                     conn.commit()
                     return None
         except EntryDoesNotExistException:
-            with self.table_access_condition, self._get_connection() as conn:
+            with self.table_access_condition, self.get_connection() as conn:
                 c = conn.cursor()
                 try:
                     c.execute(
@@ -1264,12 +1199,13 @@ class LocalMephistoDB(MephistoDB):
                         """,
                         (int(qualification_id), int(worker_id), value),
                     )
-                    qualification_id = str(c.lastrowid)
                     conn.commit()
                     return None
                 except sqlite3.IntegrityError as e:
                     if is_unique_failure(e):
-                        raise EntryAlreadyExistsException()
+                        raise EntryAlreadyExistsException(
+                            e, db=self, table_name="units", original_exc=e,
+                        )
                     raise MephistoDBException(e)
 
     def _check_granted_qualifications(
@@ -1282,7 +1218,7 @@ class LocalMephistoDB(MephistoDB):
         Find granted qualifications that match the given specifications
         """
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
@@ -1314,7 +1250,7 @@ class LocalMephistoDB(MephistoDB):
         See GrantedQualification for the expected fields for the returned mapping
         """
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 f"""
@@ -1335,16 +1271,18 @@ class LocalMephistoDB(MephistoDB):
         """
         Remove the given qualification from the given worker
         """
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             c.execute(
-                """DELETE FROM granted_qualifications
+                """
+                DELETE FROM granted_qualifications
                 WHERE (qualification_id = ?1)
                 AND (worker_id = ?2);
                 """,
                 (int(qualification_id), int(worker_id)),
             )
 
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
     def _new_onboarding_agent(
         self, worker_id: str, task_id: str, task_run_id: str, task_type: str
     ) -> str:
@@ -1352,18 +1290,22 @@ class LocalMephistoDB(MephistoDB):
         Create a new agent for the given worker id to assign to the given unit
         Raises EntryAlreadyExistsException
         """
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
-                    """INSERT INTO onboarding_agents(
+                    """
+                    INSERT INTO onboarding_agents(
+                        onboarding_agent_id,
                         worker_id,
                         task_id,
                         task_run_id,
                         task_type,
                         status
-                    ) VALUES (?, ?, ?, ?, ?);""",
+                    ) VALUES (?, ?, ?, ?, ?, ?);
+                    """,
                     (
+                        make_randomized_int_id(),
                         int(worker_id),
                         int(task_id),
                         int(task_run_id),
@@ -1375,6 +1317,10 @@ class LocalMephistoDB(MephistoDB):
             except sqlite3.IntegrityError as e:
                 if is_key_failure(e):
                     raise EntryDoesNotExistException(e)
+                elif is_unique_failure(e):
+                    raise EntryAlreadyExistsException(
+                        e, db=self, table_name="onboarding_agents", original_exc=e,
+                    )
                 raise MephistoDBException(e)
 
     def _get_onboarding_agent(self, onboarding_agent_id: str) -> Mapping[str, Any]:
@@ -1395,7 +1341,7 @@ class LocalMephistoDB(MephistoDB):
         """
         if status not in AgentState.valid():
             raise MephistoDBException(f"Invalid status {status} for an agent")
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             if status is not None:
                 c.execute(
@@ -1420,7 +1366,7 @@ class LocalMephistoDB(MephistoDB):
         return all onboarding agents.
         """
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             additional_query, arg_tuple = self.__create_query_and_tuple(
                 [
@@ -1451,6 +1397,7 @@ class LocalMephistoDB(MephistoDB):
                 for r in rows
             ]
 
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
     def _new_unit_review(
         self,
         unit_id: Union[int, str],
@@ -1463,29 +1410,38 @@ class LocalMephistoDB(MephistoDB):
         """Create unit review"""
 
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
-            c.execute(
-                """
-                INSERT INTO unit_review (
-                    unit_id,
-                    worker_id,
-                    task_id,
-                    status,
-                    review_note,
-                    bonus
-                ) VALUES (?, ?, ?, ?, ?, ?);
-                """,
-                (
-                    nonesafe_int(unit_id),
-                    nonesafe_int(worker_id),
-                    nonesafe_int(task_id),
-                    status,
-                    review_note,
-                    bonus,
-                ),
-            )
-            conn.commit()
+            try:
+                c.execute(
+                    """
+                    INSERT INTO unit_review (
+                        id,
+                        unit_id,
+                        worker_id,
+                        task_id,
+                        status,
+                        review_note,
+                        bonus
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?);
+                    """,
+                    (
+                        make_randomized_int_id(),
+                        nonesafe_int(unit_id),
+                        nonesafe_int(worker_id),
+                        nonesafe_int(task_id),
+                        status,
+                        review_note,
+                        bonus,
+                    ),
+                )
+                conn.commit()
+            except sqlite3.IntegrityError as e:
+                if is_unique_failure(e):
+                    raise EntryAlreadyExistsException(
+                        e, db=self, table_name="unit_review", original_exc=e,
+                    )
+                raise MephistoDBException(e)
 
     def _update_unit_review(
         self,
@@ -1500,14 +1456,14 @@ class LocalMephistoDB(MephistoDB):
         raise appropriate exception otherwise.
         """
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
 
             c.execute(
                 """
                 SELECT * FROM unit_review
                 WHERE (unit_id = ?) AND (worker_id = ?)
-                ORDER BY created_at ASC;
+                ORDER BY creation_date ASC;
                 """,
                 (unit_id, worker_id),
             )

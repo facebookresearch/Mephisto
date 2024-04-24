@@ -18,10 +18,18 @@ from typing import Optional
 from mephisto.abstractions.databases.local_database import is_unique_failure
 from mephisto.abstractions.providers.prolific.api.constants import StudyStatus
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
+from mephisto.utils.db import apply_migrations
+from mephisto.utils.db import check_if_row_with_params_exists
+from mephisto.utils.db import EntryAlreadyExistsException
+from mephisto.utils.db import make_randomized_int_id
+from mephisto.utils.db import MephistoDBException
+from mephisto.utils.db import retry_generate_id
 from mephisto.utils.logger_core import get_logger
 from mephisto.utils.qualifications import QualificationType
 from . import prolific_datastore_tables as tables
 from .api.client import ProlificClient
+from .migrations import migrations
+from .prolific_datastore_export import export_datastore
 from .prolific_utils import get_authenticated_client
 
 logger = get_logger(name=__name__)
@@ -41,7 +49,7 @@ class ProlificDatastore:
             lambda: time.monotonic()
         )
 
-    def _get_connection(self) -> sqlite3.Connection:
+    def get_connection(self) -> sqlite3.Connection:
         """
         Returns a singular database connection to be shared amongst all calls for a given thread.
         """
@@ -62,24 +70,31 @@ class ProlificDatastore:
     def init_tables(self) -> None:
         """Run all the table creation SQL queries to ensure the expected tables exist"""
         with self.table_access_condition:
-            conn = self._get_connection()
-            conn.execute("PRAGMA foreign_keys = 1")
-            c = conn.cursor()
-            c.execute(tables.CREATE_STUDIES_TABLE)
-            c.execute(tables.CREATE_SUBMISSIONS_TABLE)
-            c.execute(tables.CREATE_REQUESTERS_TABLE)
-            c.execute(tables.CREATE_UNITS_TABLE)
-            c.execute(tables.CREATE_WORKERS_TABLE)
-            c.execute(tables.CREATE_RUNS_TABLE)
-            c.execute(tables.CREATE_RUN_MAP_TABLE)
-            c.execute(tables.CREATE_PARTICIPANT_GROUPS_TABLE)
-            c.execute(tables.CREATE_PARTICIPANT_GROUP_QUALIFICATIONS_MAPPING_TABLE)
-            conn.commit()
+            conn = self.get_connection()
+            conn.execute("PRAGMA foreign_keys = on;")
+
+            with conn:
+                c = conn.cursor()
+                c.execute(tables.CREATE_IF_NOT_EXISTS_STUDIES_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_SUBMISSIONS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_UNITS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_WORKERS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_RUNS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_RUN_MAP_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_PARTICIPANT_GROUPS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_QUALIFICATIONS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_MIGRATIONS_TABLE)
+
+            apply_migrations(self, migrations)
+
+    def get_export_data(self, **kwargs) -> dict:
+        return export_datastore(self, **kwargs)
 
     def is_study_mapping_in_sync(self, unit_id: str, compare_time: float):
         """Determine if a cached value from the given compare time is still valid"""
         return compare_time > self._last_study_mapping_update_times[unit_id]
 
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
     def new_study(
         self,
         prolific_study_id: str,
@@ -88,35 +103,74 @@ class ProlificDatastore:
         task_run_id: str,
         status: str = StudyStatus.UNPUBLISHED,
     ) -> None:
-        """Register a new Study mapping in the table"""
-        with self.table_access_condition, self._get_connection() as conn:
+        """Register a new Study in the table"""
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
-            c.execute(
-                """
-                INSERT INTO studies(
-                    prolific_study_id,
-                    task_run_id,
-                    link,
-                    assignment_time_in_seconds,
-                    status
-                ) VALUES (?, ?, ?, ?, ?);
-                """,
-                (prolific_study_id, task_run_id, study_link, duration_in_seconds, status),
-            )
-            c.execute(
-                """
-                INSERT INTO run_mappings(
-                    prolific_study_id,
-                    run_id
-                ) VALUES (?, ?);
-                """,
-                (prolific_study_id, task_run_id),
-            )
+            try:
+                c.execute(
+                    """
+                    INSERT INTO studies(
+                        id,
+                        prolific_study_id,
+                        task_run_id,
+                        link,
+                        assignment_time_in_seconds,
+                        status
+                    ) VALUES (?, ?, ?, ?, ?, ?);
+                    """,
+                    (
+                        make_randomized_int_id(),
+                        prolific_study_id,
+                        task_run_id,
+                        study_link,
+                        duration_in_seconds,
+                        status,
+                    ),
+                )
+            except sqlite3.IntegrityError as e:
+                if is_unique_failure(e):
+                    raise EntryAlreadyExistsException(
+                        e,
+                        db=self,
+                        table_name="studies",
+                        original_exc=e,
+                    )
+                raise MephistoDBException(e)
+
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
+    def new_run_mapping(self, prolific_study_id: str, task_run_id: str) -> None:
+        """Register a new Run mapping in the table"""
+        with self.table_access_condition, self.get_connection() as conn:
+            c = conn.cursor()
+            try:
+                c.execute(
+                    """
+                    INSERT INTO run_mappings(
+                        id,
+                        prolific_study_id,
+                        task_run_id
+                    ) VALUES (?, ?, ?);
+                    """,
+                    (
+                        make_randomized_int_id(),
+                        prolific_study_id,
+                        task_run_id,
+                    ),
+                )
+            except sqlite3.IntegrityError as e:
+                if is_unique_failure(e):
+                    raise EntryAlreadyExistsException(
+                        e,
+                        db=self,
+                        table_name="run_mappings",
+                        original_exc=e,
+                    )
+                raise MephistoDBException(e)
 
     def update_study_status(self, study_id: str, status: str) -> None:
         """Set the study status in datastore"""
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
@@ -129,10 +183,10 @@ class ProlificDatastore:
             conn.commit()
             return None
 
-    def all_study_units_are_expired(self, run_id: str) -> bool:
+    def all_study_units_are_expired(self, task_run_id: str) -> bool:
         """Return a list of all Study ids that haven't been assigned"""
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
 
             c.execute(
@@ -150,15 +204,16 @@ class ProlificDatastore:
                 FROM studies
                 INNER JOIN run_mappings USING (prolific_study_id)
                 WHERE
-                    run_mappings.run_id = ? AND
+                    run_mappings.task_run_id = ? AND
                     unexpired_units_count == 0
                 GROUP BY prolific_study_id;
                 """,
-                (run_id,),
+                (task_run_id,),
             )
             results = c.fetchall()
             return bool(results)
 
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
     def register_submission_to_study(
         self,
         prolific_study_id: str,
@@ -174,18 +229,44 @@ class ProlificDatastore:
             f"Unit {unit_id}, "
             f"Submission {prolific_submission_id}."
         )
-        with self.table_access_condition, self._get_connection() as conn:
+        already_exists = check_if_row_with_params_exists(
+            db=self,
+            table_name="submissions",
+            params={
+                "prolific_study_id": prolific_study_id,
+                "prolific_submission_id": prolific_submission_id,
+            },
+            select_field="id",
+        )
+
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
 
-            c.execute(
-                """
-                INSERT OR IGNORE INTO submissions(
-                    prolific_study_id,
-                    prolific_submission_id
-                ) VALUES (?, ?);
-                """,
-                (prolific_study_id, prolific_submission_id),
-            )
+            if not already_exists:
+                try:
+                    c.execute(
+                        """
+                        INSERT INTO submissions(
+                            id,
+                            prolific_study_id,
+                            prolific_submission_id
+                        ) VALUES (?, ?, ?);
+                        """,
+                        (
+                            make_randomized_int_id(),
+                            prolific_study_id,
+                            prolific_submission_id,
+                        ),
+                    )
+                except sqlite3.IntegrityError as e:
+                    if is_unique_failure(e):
+                        raise EntryAlreadyExistsException(
+                            e,
+                            db=self,
+                            table_name="submissions",
+                            original_exc=e,
+                        )
+                    raise MephistoDBException(e)
 
             if unit_id is not None:
                 self._mark_study_mapping_update(unit_id)
@@ -193,7 +274,7 @@ class ProlificDatastore:
     def update_submission_status(self, prolific_submission_id: str, status: str) -> None:
         """Set prolific_submission_id to unit"""
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
@@ -206,78 +287,57 @@ class ProlificDatastore:
             conn.commit()
             return None
 
-    def ensure_requester_exists(self, requester_id: str) -> None:
-        """Create a record of this requester if it doesn't exist"""
-        with self.table_access_condition:
-            conn = self._get_connection()
-            c = conn.cursor()
-            c.execute(
-                """
-                INSERT OR IGNORE INTO requesters(
-                    requester_id,
-                    is_registered
-                ) VALUES (?, ?);
-                """,
-                (requester_id, False),
-            )
-            conn.commit()
-            return None
-
-    def set_requester_registered(self, requester_id: str, val: bool) -> None:
-        """Set the requester registration status for the given id"""
-        self.ensure_requester_exists(requester_id)
-        with self.table_access_condition:
-            conn = self._get_connection()
-            c = conn.cursor()
-            c.execute(
-                """
-                UPDATE requesters
-                SET is_registered = ?
-                WHERE requester_id = ?
-                """,
-                (val, requester_id),
-            )
-            conn.commit()
-            return None
-
-    def get_requester_registered(self, requester_id: str) -> bool:
-        """Get the registration status of a requester"""
-        self.ensure_requester_exists(requester_id)
-        with self.table_access_condition:
-            conn = self._get_connection()
-            c = conn.cursor()
-            c.execute(
-                """
-                SELECT is_registered FROM requesters
-                WHERE requester_id = ?
-                """,
-                (requester_id,),
-            )
-            results = c.fetchall()
-            return bool(results[0]["is_registered"])
-
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
     def ensure_worker_exists(self, worker_id: str) -> None:
         """Create a record of this worker if it doesn't exist"""
+        already_exists = check_if_row_with_params_exists(
+            db=self,
+            table_name="workers",
+            params={
+                "worker_id": worker_id,
+                "is_blocked": False,
+            },
+            select_field="id",
+        )
+
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
-            c.execute(
-                """
-                INSERT OR IGNORE INTO workers(
-                    worker_id,
-                    is_blocked
-                ) VALUES (?, ?);
-                """,
-                (worker_id, False),
-            )
-            conn.commit()
+
+            if not already_exists:
+                try:
+                    c.execute(
+                        """
+                        INSERT INTO workers(
+                            id,
+                            worker_id,
+                            is_blocked
+                        ) VALUES (?, ?, ?);
+                        """,
+                        (
+                            make_randomized_int_id(),
+                            worker_id,
+                            False,
+                        ),
+                    )
+                    conn.commit()
+                except sqlite3.IntegrityError as e:
+                    if is_unique_failure(e):
+                        raise EntryAlreadyExistsException(
+                            e,
+                            db=self,
+                            table_name="workers",
+                            original_exc=e,
+                        )
+                    raise MephistoDBException(e)
+
             return None
 
     def set_worker_blocked(self, worker_id: str, is_blocked: bool) -> None:
         """Set the worker registration status for the given id"""
         self.ensure_worker_exists(worker_id)
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
@@ -294,7 +354,7 @@ class ProlificDatastore:
         """Get the blocked status of a worker"""
         self.ensure_worker_exists(worker_id)
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
@@ -309,7 +369,7 @@ class ProlificDatastore:
     def get_blocked_workers(self) -> List[dict]:
         """Get all workers with blocked status"""
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
@@ -324,46 +384,108 @@ class ProlificDatastore:
     def get_bloked_participant_ids(self) -> List[str]:
         return [w["worker_id"] for w in self.get_blocked_workers()]
 
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
     def ensure_unit_exists(self, unit_id: str) -> None:
         """Create a record of this unit if it doesn't exist"""
+        already_exists = check_if_row_with_params_exists(
+            db=self,
+            table_name="units",
+            params={
+                "unit_id": unit_id,
+                "is_expired": False,
+            },
+            select_field="id",
+        )
+
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
-            c.execute(
-                """
-                INSERT OR IGNORE INTO units(
-                    unit_id,
-                    is_expired
-                ) VALUES (?, ?);
-                """,
-                (unit_id, False),
-            )
-            conn.commit()
+
+            if not already_exists:
+                try:
+                    c.execute(
+                        """
+                        INSERT INTO units(
+                            id,
+                            unit_id,
+                            is_expired
+                        ) VALUES (?, ?, ?);
+                        """,
+                        (
+                            make_randomized_int_id(),
+                            unit_id,
+                            False,
+                        ),
+                    )
+                    conn.commit()
+                except sqlite3.IntegrityError as e:
+                    if is_unique_failure(e):
+                        raise EntryAlreadyExistsException(
+                            e,
+                            db=self,
+                            table_name="units",
+                            original_exc=e,
+                        )
+                    raise MephistoDBException(e)
+
             return None
 
-    def create_unit(self, unit_id: str, run_id: str, prolific_study_id: str) -> None:
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
+    def create_unit(self, unit_id: str, task_run_id: str, prolific_study_id: str) -> None:
         """Create the unit if not exists"""
+        already_exists = check_if_row_with_params_exists(
+            db=self,
+            table_name="units",
+            params={
+                "unit_id": unit_id,
+                "task_run_id": task_run_id,
+                "prolific_study_id": prolific_study_id,
+                "is_expired": False,
+            },
+            select_field="id",
+        )
+
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
-            c.execute(
-                """
-                INSERT OR IGNORE INTO units(
-                    unit_id,
-                    run_id,
-                    prolific_study_id,
-                    is_expired
-                ) VALUES (?, ?, ?, ?);
-                """,
-                (unit_id, run_id, prolific_study_id, False),
-            )
-            conn.commit()
+
+            if not already_exists:
+                try:
+                    c.execute(
+                        """
+                        INSERT INTO units(
+                            id,
+                            unit_id,
+                            task_run_id,
+                            prolific_study_id,
+                            is_expired
+                        ) VALUES (?, ?, ?, ?, ?);
+                        """,
+                        (
+                            make_randomized_int_id(),
+                            unit_id,
+                            task_run_id,
+                            prolific_study_id,
+                            False,
+                        ),
+                    )
+                    conn.commit()
+                except sqlite3.IntegrityError as e:
+                    if is_unique_failure(e):
+                        raise EntryAlreadyExistsException(
+                            e,
+                            db=self,
+                            table_name="units",
+                            original_exc=e,
+                        )
+                    raise MephistoDBException(e)
+
             return None
 
     def get_unit(self, unit_id: str) -> sqlite3.Row:
         """Get the details for a unit by unit_id"""
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
@@ -379,7 +501,7 @@ class ProlificDatastore:
         """Set the unit registration status for the given id"""
         self.ensure_unit_exists(unit_id)
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
@@ -396,7 +518,7 @@ class ProlificDatastore:
         """Get the registration status of a unit"""
         self.ensure_unit_exists(unit_id)
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
@@ -412,7 +534,7 @@ class ProlificDatastore:
         """Set prolific_submission_id to unit"""
         self.ensure_unit_exists(unit_id)
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
@@ -446,7 +568,7 @@ class ProlificDatastore:
     def get_qualification_mapping(self, qualification_name: str) -> Optional[sqlite3.Row]:
         """Get the mapping between Mephisto qualifications and Prolific Participant Group"""
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
@@ -460,6 +582,7 @@ class ProlificDatastore:
                 return None
             return results[0]
 
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
     def create_participant_group_mapping(
         self,
         qualification_name: str,
@@ -475,19 +598,21 @@ class ProlificDatastore:
         Repeat entries with the same `qualification_name` will be idempotent
         """
         try:
-            with self.table_access_condition, self._get_connection() as conn:
+            with self.table_access_condition, self.get_connection() as conn:
                 c = conn.cursor()
                 c.execute(
                     """
                     INSERT INTO participant_groups(
+                        id,
                         qualification_name,
                         requester_id,
                         prolific_project_id,
                         prolific_participant_group_name,
                         prolific_participant_group_id
-                    ) VALUES (?, ?, ?, ?, ?);
+                    ) VALUES (?, ?, ?, ?, ?, ?);
                     """,
                     (
+                        make_randomized_int_id(),
                         qualification_name,
                         requester_id,
                         prolific_project_id,
@@ -528,6 +653,13 @@ class ProlificDatastore:
                     )
 
                 return None
+            elif is_unique_failure(e):
+                raise EntryAlreadyExistsException(
+                    e,
+                    db=self,
+                    table_name="participant_groups",
+                    original_exc=e,
+                )
             else:
                 raise e
 
@@ -539,7 +671,7 @@ class ProlificDatastore:
         if not participant_group_ids:
             return None
 
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
 
             participant_group_ids_block = ""
@@ -557,34 +689,47 @@ class ProlificDatastore:
             )
             return None
 
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
     def create_qualification_mapping(
         self,
-        run_id: str,
+        task_run_id: str,
         prolific_participant_group_id: str,
         qualifications: List[QualificationType],
         qualification_ids: List[int],
     ) -> None:
         """Register a new participant group mapping with qualifications"""
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             qualifications_json = json.dumps(qualifications)
             qualification_ids_json = json.dumps(qualification_ids)
-            c.execute(
-                """
-                INSERT INTO qualifications(
-                    prolific_participant_group_id,
-                    task_run_id,
-                    json_qual_logic,
-                    qualification_ids
-                ) VALUES (?, ?, ?, ?);
-                """,
-                (
-                    prolific_participant_group_id,
-                    run_id,
-                    qualifications_json,
-                    qualification_ids_json,
-                ),
-            )
+            try:
+                c.execute(
+                    """
+                    INSERT INTO qualifications(
+                        id,
+                        prolific_participant_group_id,
+                        task_run_id,
+                        json_qual_logic,
+                        qualification_ids
+                    ) VALUES (?, ?, ?, ?, ?);
+                    """,
+                    (
+                        make_randomized_int_id(),
+                        prolific_participant_group_id,
+                        task_run_id,
+                        qualifications_json,
+                        qualification_ids_json,
+                    ),
+                )
+            except sqlite3.IntegrityError as e:
+                if is_unique_failure(e):
+                    raise EntryAlreadyExistsException(
+                        e,
+                        db=self,
+                        table_name="qualifications",
+                        original_exc=e,
+                    )
+                raise MephistoDBException(e)
 
     def find_studies_by_status(self, statuses: List[str], exclude: bool = False) -> List[dict]:
         """Find all studies having or excluding certain statuses"""
@@ -594,7 +739,7 @@ class ProlificDatastore:
         logic_str = "NOT" if exclude else ""
         statuses_str = ",".join([f'"{s}"' for s in statuses])
 
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             c.execute(
                 f"""
@@ -632,7 +777,7 @@ class ProlificDatastore:
         if not qualification_ids:
             return []
 
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
 
             qualification_ids_block = ""
@@ -664,7 +809,7 @@ class ProlificDatastore:
         if not participant_group_ids:
             return None
 
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
 
             participant_group_ids_block = ""
@@ -687,7 +832,7 @@ class ProlificDatastore:
         Clear the Study mapping that maps the given unit,
         if such a unit-study map exists
         """
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             c.execute(
                 """
@@ -720,7 +865,7 @@ class ProlificDatastore:
     def get_study_mapping(self, unit_id: str) -> sqlite3.Row:
         """Get the mapping between Mephisto IDs and Prolific IDs"""
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
@@ -733,9 +878,10 @@ class ProlificDatastore:
             results = c.fetchall()
             return results[0]
 
+    @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
     def register_run(
         self,
-        run_id: str,
+        task_run_id: str,
         prolific_workspace_id: str,
         prolific_project_id: str,
         prolific_study_config_path: str,
@@ -745,70 +891,82 @@ class ProlificDatastore:
         prolific_study_id: Optional[str] = None,
     ) -> None:
         """Register a new task run in the Task Runs table"""
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
-            c.execute(
-                """
-                INSERT INTO runs(
-                    run_id,
-                    arn_id,
-                    prolific_workspace_id,
-                    prolific_project_id,
-                    prolific_study_id,
-                    prolific_study_config_path,
-                    frame_height,
-                    actual_available_places,
-                    listed_available_places
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
-                """,
-                (
-                    run_id,
-                    "unused",
-                    prolific_workspace_id,
-                    prolific_project_id,
-                    prolific_study_id,
-                    prolific_study_config_path,
-                    frame_height,
-                    actual_available_places,
-                    listed_available_places,
-                ),
-            )
+            try:
+                c.execute(
+                    """
+                    INSERT INTO runs(
+                        id,
+                        task_run_id,
+                        arn_id,
+                        prolific_workspace_id,
+                        prolific_project_id,
+                        prolific_study_id,
+                        prolific_study_config_path,
+                        frame_height,
+                        actual_available_places,
+                        listed_available_places
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                    """,
+                    (
+                        make_randomized_int_id(),
+                        task_run_id,
+                        "unused",
+                        prolific_workspace_id,
+                        prolific_project_id,
+                        prolific_study_id,
+                        prolific_study_config_path,
+                        frame_height,
+                        actual_available_places,
+                        listed_available_places,
+                    ),
+                )
+            except sqlite3.IntegrityError as e:
+                if is_unique_failure(e):
+                    raise EntryAlreadyExistsException(
+                        e,
+                        db=self,
+                        table_name="runs",
+                        original_exc=e,
+                    )
+                raise MephistoDBException(e)
 
-    def get_run(self, run_id: str) -> sqlite3.Row:
+    def get_run(self, task_run_id: str) -> sqlite3.Row:
         """Get the details for a run by task_run_id"""
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
                 SELECT * from runs
-                WHERE run_id = ?;
+                WHERE task_run_id = ?;
                 """,
-                (run_id,),
+                (task_run_id,),
             )
             results = c.fetchall()
             return results[0]
 
     def set_available_places_for_run(
         self,
-        run_id: str,
+        task_run_id: str,
         actual_available_places: int,
         listed_available_places: int,
     ) -> None:
         """Set available places for a run by task_run_id"""
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
                 UPDATE runs
                 SET actual_available_places = ?, listed_available_places = ?
-                WHERE run_id = ?
+                WHERE task_run_id = ?
                 """,
                 (
                     actual_available_places,
                     listed_available_places,
-                    run_id,
+                    task_run_id,
                 ),
             )
             conn.commit()

@@ -4,38 +4,33 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.abstractions.database import (
-    MephistoDB,
-    MephistoDBException,
-    EntryAlreadyExistsException,
-    EntryDoesNotExistException,
-)
+import threading
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Mapping
+from typing import Optional
+
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
-from typing import Mapping, Optional, Any, List, Dict
-from mephisto.utils.dirs import get_data_dir
-from mephisto.operations.registry import get_valid_provider_types
-from mephisto.data_model.agent import Agent, AgentState, OnboardingAgent
-from mephisto.data_model.unit import Unit
-from mephisto.data_model.assignment import Assignment, AssignmentState
-from mephisto.data_model.constants import NO_PROJECT_NAME
+from mephisto.data_model.agent import Agent
+from mephisto.data_model.agent import OnboardingAgent
+from mephisto.data_model.assignment import Assignment
+from mephisto.data_model.assignment import AssignmentState
 from mephisto.data_model.project import Project
+from mephisto.data_model.qualification import Qualification
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
+from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
-from mephisto.data_model.qualification import Qualification, GrantedQualification
-
-import sqlite3
-from sqlite3 import Connection, Cursor
-import threading
+from mephisto.utils.logger_core import get_logger
 
 # We should be using WeakValueDictionary rather than a full dict once
 # we're better able to trade-off between memory and space.
 # from weakref import WeakValueDictionary
 
-from mephisto.utils.logger_core import get_logger
-
 logger = get_logger(name=__name__)
+
 
 # Note: This class could be a generic factory around any MephistoDB, converting
 # the system to a singleton implementation. It requires all of the data being

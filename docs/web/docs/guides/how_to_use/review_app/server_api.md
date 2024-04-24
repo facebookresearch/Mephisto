@@ -149,7 +149,7 @@ Get list of all bearers of a qualification.
             "worker_id": <int>,
             "value": <int>,
             "unit_review_id": <int>,  // latest grant of this qualification
-            "granted_at": <int>,   // maps to `unit_review.created_at` column
+            "granted_at": <int>,   // maps to `unit_review.creation_date` column
         },
         ...  // more qualified workers
     ]
@@ -301,7 +301,7 @@ Get list of all granted qualifications for a worker
             "worker_id": <int>,
             "qualification_id": <int>,
             "value": <int>,
-            "granted_at": <int>,  // maps to `unit_review.created_at` column
+            "granted_at": <int>,  // maps to `unit_review.creation_date` column
         }
     ],
     ...  // more granted qualifications

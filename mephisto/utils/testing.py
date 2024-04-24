@@ -215,17 +215,17 @@ def find_unit_reviews(
         params.append(nonesafe_int(task_id))
 
     with db.table_access_condition:
-        conn = db._get_connection()
+        conn = db.get_connection()
         c = conn.cursor()
         c.execute(
             f"""
             SELECT * FROM unit_review
             WHERE
                 (updated_qualification_id = ?1) OR
-                (revoked_qualification_id = ?1)
-                AND (worker_id = ?2)
+                (revoked_qualification_id = ?1) AND 
+                (worker_id = ?2)
                 {task_query}
-            ORDER BY created_at ASC;
+            ORDER BY creation_date ASC;
             """,
             params,
         )

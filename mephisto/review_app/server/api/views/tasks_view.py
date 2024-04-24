@@ -17,7 +17,7 @@ from mephisto.review_app.server.db_queries import find_units
 
 def _find_tasks(db, debug: bool = False) -> List[StringIDRow]:
     with db.table_access_condition:
-        conn = db._get_connection()
+        conn = db.get_connection()
 
         c = conn.cursor()
         c.execute(

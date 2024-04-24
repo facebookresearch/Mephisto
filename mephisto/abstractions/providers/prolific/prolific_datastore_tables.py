@@ -4,7 +4,16 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-CREATE_STUDIES_TABLE = """
+"""
+WARNING: In this module you can find initial table structures, but not final.
+There are can be changes in migrations. To see actual fields, constraints, etc.,
+see information in databases or look through all migrations for current database
+"""
+
+from mephisto.abstractions.databases import local_database_tables
+
+
+CREATE_IF_NOT_EXISTS_STUDIES_TABLE = """
     CREATE TABLE IF NOT EXISTS studies (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         prolific_study_id TEXT UNIQUE,
@@ -16,7 +25,7 @@ CREATE_STUDIES_TABLE = """
     );
 """
 
-CREATE_SUBMISSIONS_TABLE = """
+CREATE_IF_NOT_EXISTS_SUBMISSIONS_TABLE = """
     CREATE TABLE IF NOT EXISTS submissions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         prolific_submission_id TEXT UNIQUE,
@@ -26,7 +35,7 @@ CREATE_SUBMISSIONS_TABLE = """
     );
 """
 
-CREATE_RUN_MAP_TABLE = """
+CREATE_IF_NOT_EXISTS_RUN_MAP_TABLE = """
     CREATE TABLE IF NOT EXISTS run_mappings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         prolific_study_id TEXT,
@@ -34,15 +43,7 @@ CREATE_RUN_MAP_TABLE = """
     );
 """
 
-CREATE_REQUESTERS_TABLE = """
-    CREATE TABLE IF NOT EXISTS requesters (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        requester_id TEXT UNIQUE,
-        is_registered BOOLEAN
-    );
-"""
-
-CREATE_UNITS_TABLE = """
+CREATE_IF_NOT_EXISTS_UNITS_TABLE = """
     CREATE TABLE IF NOT EXISTS units (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         unit_id TEXT UNIQUE,
@@ -53,7 +54,7 @@ CREATE_UNITS_TABLE = """
     );
 """
 
-CREATE_WORKERS_TABLE = """
+CREATE_IF_NOT_EXISTS_WORKERS_TABLE = """
     CREATE TABLE IF NOT EXISTS workers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         worker_id TEXT UNIQUE,
@@ -61,7 +62,7 @@ CREATE_WORKERS_TABLE = """
     );
 """
 
-CREATE_RUNS_TABLE = """
+CREATE_IF_NOT_EXISTS_RUNS_TABLE = """
     CREATE TABLE IF NOT EXISTS runs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         run_id TEXT UNIQUE,
@@ -77,7 +78,7 @@ CREATE_RUNS_TABLE = """
     );
 """
 
-CREATE_PARTICIPANT_GROUPS_TABLE = """
+CREATE_IF_NOT_EXISTS_PARTICIPANT_GROUPS_TABLE = """
     CREATE TABLE IF NOT EXISTS participant_groups (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         qualification_name TEXT UNIQUE,
@@ -89,7 +90,8 @@ CREATE_PARTICIPANT_GROUPS_TABLE = """
     );
 """
 
-CREATE_PARTICIPANT_GROUP_QUALIFICATIONS_MAPPING_TABLE = """
+# Mapping between Mephisto qualifications and Prolific Participant Groups
+CREATE_IF_NOT_EXISTS_QUALIFICATIONS_TABLE = """
     CREATE TABLE IF NOT EXISTS qualifications (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         prolific_participant_group_id TEXT,
@@ -99,3 +101,5 @@ CREATE_PARTICIPANT_GROUP_QUALIFICATIONS_MAPPING_TABLE = """
         creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 """
+
+CREATE_IF_NOT_EXISTS_MIGRATIONS_TABLE = local_database_tables.CREATE_IF_NOT_EXISTS_MIGRATIONS_TABLE

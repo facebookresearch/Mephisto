@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 # Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
@@ -12,7 +13,6 @@ from typing import Optional
 import rich_click as click  # type: ignore
 from flask.cli import pass_script_info
 from flask.cli import ScriptInfo
-from rich import print
 from rich.markdown import Markdown
 from rich_click import RichCommand
 from rich_click import RichGroup
@@ -49,7 +49,10 @@ from mephisto.generators.form_composer.config_validation.utils import (
     set_custom_validators_js_env_var,
 )
 from mephisto.operations.registry import get_valid_provider_types
+from mephisto.tools.db_data_porter import DBDataPorter
+from mephisto.tools.db_data_porter.constants import DEFAULT_CONFLICT_RESOLVER
 from mephisto.tools.scripts import build_custom_bundle
+from mephisto.utils.console_writer import ConsoleWriter
 from mephisto.utils.rich import console
 from mephisto.utils.rich import create_table
 
@@ -58,6 +61,8 @@ FORM_COMPOSER__DATA_CONFIG_NAME = "task_data.json"
 FORM_COMPOSER__FORM_CONFIG_NAME = "form_config.json"
 FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME = "token_sets_values_config.json"
 FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME = "separate_token_values_config.json"
+
+logger = ConsoleWriter()
 
 
 @click.group(cls=RichGroup)
@@ -104,7 +109,7 @@ def config(identifier, value):
     else:
         # Write mode:
         add_config_arg(section, key, value)
-        print(f"[green]{identifier} succesfully updated to: {value}[/green]")
+        logger.info(f"[green]{identifier} succesfully updated to: {value}[/green]")
 
 
 @cli.command("check", cls=RichCommand)
@@ -117,10 +122,10 @@ def check():
         db = LocalMephistoDB()
         get_mock_requester(db)
     except Exception as e:
-        print("\n[red]Something went wrong.[/red]")
+        logger.exception("\n[red]Something went wrong.[/red]")
         click.echo(e)
         return
-    print("\n[green]Mephisto seems to be set up correctly.[/green]\n")
+    logger.info("\n[green]Mephisto seems to be set up correctly.[/green]\n")
 
 
 @cli.command("requesters", cls=RichCommand)
@@ -140,7 +145,7 @@ def list_requesters():
             requester_table.add_row(*requester_vals)
         console.print(requester_table)
     else:
-        print("[red]No requesters found[/red]")
+        logger.error("[red]No requesters found[/red]")
 
 
 @cli.command("register", cls=RichCommand, context_settings={"ignore_unknown_options": True})
@@ -148,14 +153,14 @@ def list_requesters():
 def register_provider(args):
     """Register a requester with a crowd provider"""
     if len(args) == 0:
-        print("\n[red]Usage: mephisto register <provider_type> arg1=value arg2=value[/red]")
-        print("\n[b]Valid Providers[/b]")
+        logger.error("\n[red]Usage: mephisto register <provider_type> arg1=value arg2=value[/red]")
+        logger.info("\n[b]Valid Providers[/b]")
         provider_text = """"""
         for provider in get_valid_provider_types():
             provider_text += "\n* " + provider
         provider_text_markdown = Markdown(provider_text)
         console.print(provider_text_markdown)
-        print("")
+        logger.info("")
         return
 
     from mephisto.abstractions.databases.local_database import LocalMephistoDB
@@ -186,7 +191,7 @@ def register_provider(args):
                     requester_table.add_row(*arg_values)
                 console.print(requester_table)
             else:
-                print("[red]Requester has no args[/red]")
+                logger.error("[red]Requester has no args[/red]")
         return
 
     try:
@@ -195,7 +200,7 @@ def register_provider(args):
         click.echo(str(e))
 
     if parsed_options.name is None:
-        print("[red]No name was specified for the requester.[/red]")
+        logger.error("[red]No name was specified for the requester.[/red]")
 
     db = LocalMephistoDB()
     requesters = db.find_requesters(requester_name=parsed_options.name)
@@ -205,7 +210,7 @@ def register_provider(args):
         requester = requesters[0]
     try:
         requester.register(parsed_options)
-        print("[green]Registered successfully.[/green]")
+        logger.info("[green]Registered successfully.[/green]")
     except Exception as e:
         click.echo(str(e))
 
@@ -232,7 +237,7 @@ def run_script(script_type, script_name, args: Optional[Any] = None):
 
     VALID_SCRIPT_TYPES = ["local_db", "heroku", "metrics", "mturk", "form_composer"]
     if script_type is None or script_type.strip() not in VALID_SCRIPT_TYPES:
-        print("")
+        logger.info("")
         raise click.UsageError(
             "You must specify a valid script_type from below. \n\nValid script types are:"
             + print_non_markdown_list(VALID_SCRIPT_TYPES)
@@ -300,7 +305,7 @@ def run_script(script_type, script_name, args: Optional[Any] = None):
     if script_name is None or (
         script_name not in script_type_to_scripts_data[script_type]["valid_script_names"]
     ):
-        print("")
+        logger.info("")
         raise click.UsageError(
             "You must specify a valid script_name from below. \n\nValid script names are:"
             + print_non_markdown_list(
@@ -324,7 +329,7 @@ def metrics_cli(args):
     )
 
     if len(args) == 0 or args[0] not in ["install", "view", "cleanup"]:
-        print("\n[red]Usage: mephisto metrics <install|view|cleanup>[/red]")
+        logger.error("\n[red]Usage: mephisto metrics <install|view|cleanup>[/red]")
         metrics_table = create_table(["Property", "Value"], "Metrics Arguments")
         metrics_table.add_row("install", f"Installs Prometheus and Grafana to {METRICS_DIR}")
         metrics_table.add_row(
@@ -388,7 +393,7 @@ def review_app(
     os.environ["HOST"] = host
     os.environ["PORT"] = str(port)
 
-    print(f'[green]Review APP will start on "{app_url}" address.[/green]')
+    logger.info(f'[green]Review APP will start on "{app_url}" address.[/green]')
 
     # Set up Review App Client
     if not skip_build:
@@ -401,9 +406,9 @@ def review_app(
 
         # Install JS requirements
         if os.path.exists(os.path.join(client_path, "node_modules")):
-            print(f"[blue]JS requirements are already installed.[/blue]")
+            logger.info(f"[blue]JS requirements are already installed.[/blue]")
         else:
-            print(f"[blue]Installing JS requirements started.[/blue]")
+            logger.info(f"[blue]Installing JS requirements started.[/blue]")
             subprocess.call(["ls"], cwd=client_path)
             app_started = subprocess.call(["npm", "install"], cwd=client_path)
             if app_started != 0:
@@ -411,19 +416,19 @@ def review_app(
                     "Please make sure npm is installed, "
                     "otherwise view the above error for more info."
                 )
-            print(f"[blue]Installing JS requirements finished.[/blue]")
+            logger.info(f"[blue]Installing JS requirements finished.[/blue]")
 
         if os.path.exists(os.path.join(client_path, "build", "index.html")) and not force_rebuild:
-            print(f"[blue]React bundle is already built.[/blue]")
+            logger.info(f"[blue]React bundle is already built.[/blue]")
         else:
-            print(f"[blue]Building React bundle started.[/blue]")
+            logger.info(f"[blue]Building React bundle started.[/blue]")
             build_custom_bundle(
                 review_app_path,
                 force_rebuild=force_rebuild,
                 webapp_name=client_dir,
                 build_command="build",
             )
-            print(f"[blue]Building React bundle finished.[/blue]")
+            logger.info(f"[blue]Building React bundle finished.[/blue]")
 
     # Set debug
     debug = debug if debug is not None else get_debug_flag()
@@ -533,15 +538,15 @@ def form_composer_config(
     else:
         app_path = _get_form_composer_app_path()
         app_data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME)
-    print(f"[blue]Using config directory: {app_data_path}[/blue]")
+    logger.info(f"[blue]Using config directory: {app_data_path}[/blue]")
 
     # Validate param values
     if not os.path.exists(app_data_path):
-        print(f"[red]Directory '{app_data_path}' does not exist[/red]")
+        logger.error(f"[red]Directory '{app_data_path}' does not exist[/red]")
         return None
 
     if use_presigned_urls and not update_file_location_values:
-        print(
+        logger.error(
             f"[red]Parameter `--use-presigned-urls` can be used "
             f"only with `--update-file-location-values` option[/red]"
         )
@@ -556,7 +561,7 @@ def form_composer_config(
 
     # Run the command
     if verify:
-        print(f"Started configs verification")
+        logger.info(f"Started configs verification")
         verify_form_composer_configs(
             task_data_config_path=task_data_config_path,
             form_config_path=form_config_path,
@@ -565,10 +570,10 @@ def form_composer_config(
             task_data_config_only=False,
             data_path=app_data_path,
         )
-        print(f"Finished configs verification")
+        logger.info(f"Finished configs verification")
 
     elif update_file_location_values:
-        print(
+        logger.info(
             f"[green]Started updating '{FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME}' "
             f"with file URLs from '{update_file_location_values}'[/green]"
         )
@@ -578,12 +583,12 @@ def form_composer_config(
                 separate_token_values_config_path=separate_token_values_config_path,
                 use_presigned_urls=use_presigned_urls,
             )
-            print(f"[green]Finished successfully[/green]")
+            logger.info(f"[green]Finished successfully[/green]")
         else:
-            print("`--update-file-location-values` must be a valid S3 URL")
+            logger.info("`--update-file-location-values` must be a valid S3 URL")
 
     elif permutate_separate_tokens:
-        print(
+        logger.info(
             f"[green]Started updating '{FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME}' "
             f"with permutated separate-token values[/green]"
         )
@@ -591,10 +596,10 @@ def form_composer_config(
             separate_token_values_config_path=separate_token_values_config_path,
             token_sets_values_config_path=token_sets_values_config_path,
         )
-        print(f"[green]Finished successfully[/green]")
+        logger.info(f"[green]Finished successfully[/green]")
 
     elif extrapolate_token_sets:
-        print(
+        logger.info(
             f"[green]Started extrapolating token sets values "
             f"from '{FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME}' [/green]"
         )
@@ -604,10 +609,10 @@ def form_composer_config(
             task_data_config_path=task_data_config_path,
             data_path=app_data_path,
         )
-        print(f"[green]Finished successfully[/green]")
+        logger.info(f"[green]Finished successfully[/green]")
 
     else:
-        print(
+        logger.error(
             f"[red]"
             f"This command must have one of following parameters:"
             f"\n-v/--verify"
@@ -616,6 +621,191 @@ def form_composer_config(
             f"\n-p/--permutate-separate-tokens"
             f"[/red]"
         )
+
+
+@cli.command("db", cls=RichCommand)
+@click.argument("action_name", required=True, nargs=1)
+@click.option("-d", "--dump-file", type=(str), default=None)
+@click.option("-i", "--export-indent", type=(int), default=None)
+@click.option("-tn", "--export-tasks-by-names", type=(str), multiple=True, default=None)
+@click.option("-ti", "--export-tasks-by-ids", type=(str), multiple=True, default=None)
+@click.option("-tr", "--export-task-runs-by-ids", type=(str), multiple=True, default=None)
+@click.option("-trs", "--export-task-runs-since-date", type=(str), default=None)
+@click.option("-tl", "--export-labels", type=(str), multiple=True, default=None)
+@click.option("-de", "--delete-exported-data", type=(bool), default=False, is_flag=True)
+@click.option("-r", "--randomize-legacy-ids", type=(bool), default=False, is_flag=True)
+@click.option("-l", "--label-name", type=(str), default=None)
+@click.option("-cr", "--conflict-resolver", type=(str), default=DEFAULT_CONFLICT_RESOLVER)
+@click.option("-k", "--keep-import-metadata", type=(bool), default=False, is_flag=True)
+@click.option("-b", "--backup-file", type=(str), default=None)
+@click.option("-v", "--verbosity", type=(int), default=0)
+def db(
+    action_name: str,
+    dump_file: Optional[str] = None,
+    export_indent: Optional[int] = None,
+    export_tasks_by_names: Optional[List[str]] = None,
+    export_tasks_by_ids: Optional[List[str]] = None,
+    export_task_runs_by_ids: Optional[List[str]] = None,
+    export_task_runs_since_date: Optional[str] = None,
+    export_labels: Optional[List[str]] = None,
+    delete_exported_data: bool = False,
+    randomize_legacy_ids: bool = False,
+    label_name: Optional[str] = None,
+    conflict_resolver: Optional[str] = DEFAULT_CONFLICT_RESOLVER,
+    keep_import_metadata: Optional[bool] = False,
+    backup_file: Optional[str] = None,
+    verbosity: int = 0,
+):
+    """
+    Operations with Mephisto DB and provider-specific datastores.
+
+    Commands:
+        1. mephisto db export
+          This command exports data from Mephisto DB and provider-specific datastores
+          as a combination of (i) a JSON file, and (ii) an archived `data` catalog with related files.
+
+          If no parameter passed, full data dump (i.e. backup) will be created.
+
+          To pass a list of values for one command option,
+          simply repeat that option name before each value.
+
+          Options (all optional):
+            `-tn/--export-tasks-by-names` - names of Tasks that will be exported
+            `-ti/--export-tasks-by-ids` - ids of Tasks that will be exported
+            `-tr/--export-task-runs-by-ids` - ids of TaskRuns that will be exported
+            `-trs/--export-task-runs-since-date` - only objects created after this
+                ISO8601 datetime will be exported
+            `-tl/--export-labels` - only data imported under these labels will be exported
+            `-de/--delete-exported-data` - after exporting data, delete it from local DB
+            `-r/--randomize-legacy-ids` - replace legacy autoincremented ids with
+                new pseudo-random ids to avoid conflicts during data merging
+            `-i/--export-indent` - make dump easy to read via formatting JSON with indentations
+            `-v/--verbosity` - write more informative messages about progress
+                (Default 0. Values: 0, 1)
+
+
+        2. mephisto db import --dump-file <dump_file_name_or_path>
+
+          This command imports data from a dump file created by `mephisto db export` command.
+
+          Options:
+            `-d/--dump-file` - location of the __***.json__ dump file (filename if created in
+                `<MEPHISTO_REPO>/outputs/export` folder, or absolute filepath)
+            `-cr/--conflict-resolver` (Optional) - name of Python class
+                to be used for resolving merging conflicts (when your local DB already has a row
+                with same unique field value as a DB row in the dump data)
+            `-l/--label-name` - a short string serving as a reference for the ported data
+                (stored in `imported_data` table), so later you can export the imported data
+                with `--export-labels` export option
+            `-k/--keep-import-metadata` - write data from `imported_data` table of the dump
+                (by default it's not imported)
+            `-v/--verbosity` - level of logging (default: 0; values: 0, 1)
+
+        3. mephisto db backup
+
+          Creates full backup of all current data (Mephisto DB, provider-specific datastores,
+          and related files) on local machine.
+
+        4. mephisto db restore --backup-file <backup_file_name_or_path>
+
+          Restores all data (Mephisto DB, provider-specific datastores, and related files)
+          from a backup archive.
+
+          Options:
+            `-b/--backup-file` - location of the __*.zip__ backup file (filename if created in
+                `<MEPHISTO_REPO>/outputs/backup` folder, or absolute filepath)
+            `-v/--verbosity` - level of logging (default: 0; values: 0, 1)
+    """
+    porter = DBDataPorter()
+
+    # --- EXPORT ---
+    if action_name == "export":
+        has_conflicting_task_runs_options = len(list(filter(bool, [
+            export_tasks_by_names,
+            export_tasks_by_ids,
+            export_task_runs_by_ids,
+            export_task_runs_since_date,
+            export_labels,
+        ]))) > 1
+
+        if has_conflicting_task_runs_options:
+            logger.warning(
+                "[yellow]"
+                "You cannot use following options together:"
+                "\n\t--export-tasks-by-names"
+                "\n\t--export-tasks-by-ids"
+                "\n\t--export-task-runs-by-ids"
+                "\n\t--export-task-runs-since-date"
+                "\n\t--export-labels"
+                "\nUse one of them or none of them to export all data."
+                "[/yellow]"
+            )
+            exit()
+
+        logger.info(f"Started exporting")
+
+        export_results = porter.export_dump(
+            json_indent=export_indent,
+            task_names=export_tasks_by_names,
+            task_ids=export_tasks_by_ids,
+            task_run_ids=export_task_runs_by_ids,
+            task_runs_since_date=export_task_runs_since_date,
+            task_runs_labels=export_labels,
+            delete_exported_data=delete_exported_data,
+            randomize_legacy_ids=randomize_legacy_ids,
+            verbosity=verbosity,
+        )
+
+        data_files_line = ""
+        if export_results["data_path"]:
+            data_files_line = f"\n\t- Data files dump - {export_results['data_path']}"
+
+        backup_line = ""
+        if export_results["backup_path"]:
+            backup_line = f"\n\t- Backup - {export_results['backup_path']}"
+
+        logger.info(
+            f"[green]"
+            f"Finished successfully! "
+            f"\nFiles created:"
+            f"\n\t- Database dump - {export_results['db_path']}"
+            f"{data_files_line}"
+            f"{backup_line}"
+            f"[/green]"
+        )
+
+    # --- IMPORT ---
+    elif action_name == "import":
+        logger.info(f"Started importing from dump '{dump_file}'")
+        porter.import_dump(
+            dump_file_name_or_path=dump_file,
+            conflict_resolver_name=conflict_resolver,
+            label=label_name,
+            keep_import_metadata=keep_import_metadata,
+            verbosity=verbosity,
+        )
+        logger.info(f"[green]Finished successfully[/green]")
+
+    # --- BACKUP ---
+    elif action_name == "backup":
+        logger.info(f"Started making backup")
+        backup_path = porter.make_backup()
+        logger.info(f"[green]Finished successfully! File: '{backup_path}[/green]")
+
+    # --- RESTORE ---
+    elif action_name == "restore":
+        logger.info(f"Started restoring from backup '{backup_file}'")
+        porter.restore_from_backup(backup_file_name_or_path=backup_file, verbosity=verbosity)
+        logger.info(f"[green]Finished successfully[/green]")
+
+    # Otherwise, error
+    else:
+        logger.error(
+            f"[red]"
+            f"Unexpected action name '{action_name}'. Available: export, import, restore."
+            f"[/red]"
+        )
+        exit()
 
 
 if __name__ == "__main__":

@@ -4,66 +4,27 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import boto3  # type: ignore
-import sqlite3
 import os
+import sqlite3
 import threading
 import time
-
-from datetime import datetime
 from collections import defaultdict
+from typing import Any
+from typing import Dict
+from typing import Optional
 
-
+import boto3  # type: ignore
 from botocore.exceptions import ClientError  # type: ignore
 from botocore.exceptions import ProfileNotFound  # type: ignore
+
 from mephisto.abstractions.databases.local_database import is_unique_failure
-
-from typing import Dict, Any, Optional
-
 from mephisto.utils.logger_core import get_logger
-
-logger = get_logger(name=__name__)
+from . import mturk_datastore_tables as tables
+from .mturk_datastore_export import export_datastore
 
 MTURK_REGION_NAME = "us-east-1"
 
-CREATE_HITS_TABLE = """CREATE TABLE IF NOT EXISTS hits (
-    hit_id TEXT PRIMARY KEY UNIQUE,
-    unit_id TEXT,
-    assignment_id TEXT,
-    link TEXT,
-    assignment_time_in_seconds INTEGER NOT NULL,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-"""
-
-CREATE_RUN_MAP_TABLE = """CREATE TABLE IF NOT EXISTS run_mappings (
-    hit_id TEXT,
-    run_id TEXT
-);
-"""
-
-CREATE_RUNS_TABLE = """CREATE TABLE IF NOT EXISTS runs (
-    run_id TEXT PRIMARY KEY UNIQUE,
-    arn_id TEXT,
-    hit_type_id TEXT NOT NULL,
-    hit_config_path TEXT NOT NULL,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    frame_height INTEGER NOT NULL DEFAULT 650
-);
-"""
-
-UPDATE_RUNS_TABLE_1 = """ALTER TABLE runs
-    ADD COLUMN frame_height INTEGER NOT NULL DEFAULT 650;
-"""
-
-CREATE_QUALIFICATIONS_TABLE = """CREATE TABLE IF NOT EXISTS qualifications (
-    qualification_name TEXT PRIMARY KEY UNIQUE,
-    requester_id TEXT,
-    mturk_qualification_name TEXT,
-    mturk_qualification_id TEXT,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-"""
+logger = get_logger(name=__name__)
 
 
 class MTurkDatastore:
@@ -86,8 +47,9 @@ class MTurkDatastore:
             lambda: time.monotonic()
         )
 
-    def _get_connection(self) -> sqlite3.Connection:
-        """Returns a singular database connection to be shared amongst all
+    def get_connection(self) -> sqlite3.Connection:
+        """
+        Returns a singular database connection to be shared amongst all
         calls for a given thread.
         """
         curr_thread = threading.get_ident()
@@ -109,20 +71,27 @@ class MTurkDatastore:
         Run all the table creation SQL queries to ensure the expected tables exist
         """
         with self.table_access_condition:
-            conn = self._get_connection()
-            conn.execute("PRAGMA foreign_keys = 1")
+            conn = self.get_connection()
+            conn.execute("PRAGMA foreign_keys = on;")
+
             with conn:
                 c = conn.cursor()
-                c.execute(CREATE_HITS_TABLE)
-                c.execute(CREATE_RUNS_TABLE)
-                c.execute(CREATE_RUN_MAP_TABLE)
-                c.execute(CREATE_QUALIFICATIONS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_HITS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_RUNS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_RUN_MAP_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_QUALIFICATIONS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_MIGRATIONS_TABLE)
+
+            # Migrations
             with conn:
                 try:
                     c = conn.cursor()
-                    c.execute(UPDATE_RUNS_TABLE_1)
-                except Exception as _e:
+                    c.execute(tables.UPDATE_RUNS_TABLE_1)
+                except Exception:
                     pass  # extra column already exists
+
+    def get_export_data(self, **kwargs) -> dict:
+        return export_datastore(self, **kwargs)
 
     def is_hit_mapping_in_sync(self, unit_id: str, compare_time: float):
         """
@@ -132,21 +101,25 @@ class MTurkDatastore:
 
     def new_hit(self, hit_id: str, hit_link: str, duration: int, run_id: str) -> None:
         """Register a new HIT mapping in the table"""
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             c.execute(
-                """INSERT INTO hits(
+                """
+                INSERT INTO hits(
                     hit_id,
                     link,
                     assignment_time_in_seconds
-                ) VALUES (?, ?, ?);""",
+                ) VALUES (?, ?, ?);
+                """,
                 (hit_id, hit_link, duration),
             )
             c.execute(
-                """INSERT INTO run_mappings(
+                """
+                INSERT INTO run_mappings(
                     hit_id,
                     run_id
-                ) VALUES (?, ?);""",
+                ) VALUES (?, ?);
+                """,
                 (hit_id, run_id),
             )
 
@@ -155,7 +128,7 @@ class MTurkDatastore:
         Return a list of all HIT ids that haven't been assigned
         """
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
@@ -188,7 +161,7 @@ class MTurkDatastore:
         logger.debug(
             f"Attempting to assign HIT {hit_id}, Unit {unit_id}, Assignment {assignment_id}."
         )
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             c.execute(
                 """
@@ -204,7 +177,8 @@ class MTurkDatastore:
                 logger.debug(f"Cleared HIT mapping cache for previous unit, {old_unit_id}")
 
             c.execute(
-                """UPDATE hits
+                """
+                UPDATE hits
                 SET assignment_id = ?, unit_id = ?
                 WHERE hit_id = ?
                 """,
@@ -218,7 +192,7 @@ class MTurkDatastore:
         Clear the hit mapping that maps the given unit,
         if such a unit-hit map exists
         """
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             c.execute(
                 """
@@ -238,7 +212,8 @@ class MTurkDatastore:
                 )
             result_hit_id = results[0]["hit_id"]
             c.execute(
-                """UPDATE hits
+                """
+                UPDATE hits
                 SET assignment_id = ?, unit_id = ?
                 WHERE hit_id = ?
                 """,
@@ -249,7 +224,7 @@ class MTurkDatastore:
     def get_hit_mapping(self, unit_id: str) -> sqlite3.Row:
         """Get the mapping between Mephisto IDs and MTurk ids"""
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
@@ -269,23 +244,31 @@ class MTurkDatastore:
         frame_height: int = 0,
     ) -> None:
         """Register a new task run in the mturk table"""
-        with self.table_access_condition, self._get_connection() as conn:
+        with self.table_access_condition, self.get_connection() as conn:
             c = conn.cursor()
             c.execute(
-                """INSERT INTO runs(
+                """
+                INSERT INTO runs(
                     run_id,
                     arn_id,
                     hit_type_id,
                     hit_config_path,
                     frame_height
-                ) VALUES (?, ?, ?, ?, ?);""",
-                (run_id, "unused", hit_type_id, hit_config_path, frame_height),
+                ) VALUES (?, ?, ?, ?, ?);
+                """,
+                (
+                    run_id,
+                    "unused",
+                    hit_type_id,
+                    hit_config_path,
+                    frame_height,
+                ),
             )
 
     def get_run(self, run_id: str) -> sqlite3.Row:
         """Get the details for a run by task_run_id"""
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
@@ -311,15 +294,17 @@ class MTurkDatastore:
         Repeat entries with the same `qualification_name` will be idempotent
         """
         try:
-            with self.table_access_condition, self._get_connection() as conn:
+            with self.table_access_condition, self.get_connection() as conn:
                 c = conn.cursor()
                 c.execute(
-                    """INSERT INTO qualifications(
+                    """
+                    INSERT INTO qualifications(
                         qualification_name,
                         requester_id,
                         mturk_qualification_name,
                         mturk_qualification_id
-                    ) VALUES (?, ?, ?, ?);""",
+                    ) VALUES (?, ?, ?, ?);
+                    """,
                     (
                         qualification_name,
                         requester_id,
@@ -337,19 +322,23 @@ class MTurkDatastore:
                     f"Found existing one: {qual}. "
                 )
                 assert qual is not None, "Cannot be none given is_unique_failure on insert"
+
                 cur_requester_id = qual["requester_id"]
                 cur_mturk_qualification_name = qual["mturk_qualification_name"]
-                cur_mturk_qualification_id = qual["mturk_qualification_id"]
                 if cur_requester_id != requester_id:
                     logger.warning(
-                        f"MTurk Qualification mapping create for {qualification_name} under requester "
-                        f"{requester_id}, already exists under {cur_requester_id}."
+                        f"MTurk Qualification mapping create for {qualification_name} "
+                        f"under requester {requester_id}, already exists under {cur_requester_id}."
                     )
+
                 if cur_mturk_qualification_name != mturk_qualification_name:
                     logger.warning(
-                        f"MTurk Qualification mapping create for {qualification_name} with mturk name "
-                        f"{mturk_qualification_name}, already exists under {cur_mturk_qualification_name}."
+                        f"MTurk Qualification mapping create "
+                        f"for {qualification_name} with mturk name "
+                        f"{mturk_qualification_name}, already exists "
+                        f"under {cur_mturk_qualification_name}."
                     )
+
                 return None
             else:
                 raise e
@@ -357,7 +346,7 @@ class MTurkDatastore:
     def get_qualification_mapping(self, qualification_name: str) -> Optional[sqlite3.Row]:
         """Get the mapping between Mephisto qualifications and MTurk qualifications"""
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
