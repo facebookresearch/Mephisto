@@ -47,7 +47,10 @@ class BaseMergeConflictResolver:
 
     @staticmethod
     def _merge_rows_after_resolving(
-        table_pk_field_name: str, db_row: dict, dump_row: dict, resolved_row: dict,
+        table_pk_field_name: str,
+        db_row: dict,
+        dump_row: dict,
+        resolved_row: dict,
     ) -> dict:
         """
         After we've resolved merging conflicts with rows fields,
@@ -81,32 +84,37 @@ class BaseMergeConflictResolver:
 
     @staticmethod
     def _serialize_compared_fields_in_rows(
-        db_row: dict, dump_row: dict, compared_field_name: str,
+        db_row: dict,
+        dump_row: dict,
+        row_field_name: str,
     ) -> Tuple[dict, dict]:
-        db_value = db_row[compared_field_name]
-        dump_value = dump_row[compared_field_name]
+        db_value = db_row[row_field_name]
+        dump_value = dump_row[row_field_name]
 
         # Date fields
-        if compared_field_name.endswith("_at") or compared_field_name.endswith("_date"):
-            db_row[compared_field_name] = serialize_date_to_python(db_value)
-            dump_row[compared_field_name] = serialize_date_to_python(dump_value)
+        if row_field_name.endswith("_at") or row_field_name.endswith("_date"):
+            db_row[row_field_name] = serialize_date_to_python(db_value)
+            dump_row[row_field_name] = serialize_date_to_python(dump_value)
 
         # Numeric fields (integer or float)
         # Note: We cast both compared values to a numeric type
         # ONLY when one value is numeric, and another one is a string
         # (to avoid, for example, casting float to integer)
         for _type in [int, float]:
-            if (
-                (isinstance(db_value, _type) and isinstance(dump_value, str)) or
-                (isinstance(db_value, str) and isinstance(dump_value, _type))
+            if (isinstance(db_value, _type) and isinstance(dump_value, str)) or (
+                isinstance(db_value, str) and isinstance(dump_value, _type)
             ):
-                db_row[compared_field_name] = _type(db_value)
-                dump_row[compared_field_name] = _type(dump_value)
+                db_row[row_field_name] = _type(db_value)
+                dump_row[row_field_name] = _type(dump_value)
 
         return db_row, dump_row
 
     def resolve(
-        self, table_name: str, table_pk_field_name: str, db_row: dict, dump_row: dict,
+        self,
+        table_name: str,
+        table_pk_field_name: str,
+        db_row: dict,
+        dump_row: dict,
     ) -> dict:
         """
         Default logic of validating `strategies_config`,
@@ -144,7 +152,10 @@ class BaseMergeConflictResolver:
 
         # 4. Merge data
         merged_row = self._merge_rows_after_resolving(
-            table_pk_field_name, db_row, dump_row, resolved_row,
+            table_pk_field_name,
+            db_row,
+            dump_row,
+            resolved_row,
         )
 
         # 4. Return merged row
@@ -152,13 +163,18 @@ class BaseMergeConflictResolver:
 
     # --- Prepared most cummon strategies ---
     def pick_row_with_smaller_value(
-        self, db_row: dict, dump_row: dict, compared_field_name: str,
+        self,
+        db_row: dict,
+        dump_row: dict,
+        row_field_name: str,
     ) -> dict:
         db_row, dump_row = self._serialize_compared_fields_in_rows(
-            db_row, dump_row, compared_field_name,
+            db_row,
+            dump_row,
+            row_field_name,
         )
-        db_value = db_row[compared_field_name]
-        dump_value = dump_row[compared_field_name]
+        db_value = db_row[row_field_name]
+        dump_value = dump_row[row_field_name]
 
         # None cannot be compared with anything
         if db_value is None:
@@ -172,13 +188,18 @@ class BaseMergeConflictResolver:
         return dump_row
 
     def pick_row_with_larger_value(
-        self, db_row: dict, dump_row: dict, compared_field_name: str,
+        self,
+        db_row: dict,
+        dump_row: dict,
+        row_field_name: str,
     ) -> dict:
         db_row, dump_row = self._serialize_compared_fields_in_rows(
-            db_row, dump_row, compared_field_name,
+            db_row,
+            dump_row,
+            row_field_name,
         )
-        db_value = db_row[compared_field_name]
-        dump_value = dump_row[compared_field_name]
+        db_value = db_row[row_field_name]
+        dump_value = dump_row[row_field_name]
 
         # None cannot be compared with anything
         if db_value is None:
@@ -192,23 +213,34 @@ class BaseMergeConflictResolver:
         return dump_row
 
     def pick_row_from_db(
-        self, db_row: dict, dump_row: dict, compared_field_name: Optional[str] = None,
+        self,
+        db_row: dict,
+        dump_row: dict,
+        row_field_name: Optional[str] = None,
     ) -> dict:
         return db_row
 
     def pick_row_from_dump(
-        self, db_row: dict, dump_row: dict, compared_field_name: Optional[str] = None,
+        self,
+        db_row: dict,
+        dump_row: dict,
+        row_field_name: Optional[str] = None,
     ) -> dict:
         return dump_row
 
     def pick_row_with_earlier_value(
-        self, db_row: dict, dump_row: dict, compared_field_name: str = "creation_date",
+        self,
+        db_row: dict,
+        dump_row: dict,
+        row_field_name: str = "creation_date",
     ) -> dict:
         db_row, dump_row = self._serialize_compared_fields_in_rows(
-            db_row, dump_row, compared_field_name,
+            db_row,
+            dump_row,
+            row_field_name,
         )
-        db_value = db_row[compared_field_name]
-        dump_value = dump_row[compared_field_name]
+        db_value = db_row[row_field_name]
+        dump_value = dump_row[row_field_name]
 
         # None cannot be compared with anything
         if db_value is None:
@@ -221,13 +253,18 @@ class BaseMergeConflictResolver:
         return dump_row
 
     def pick_row_with_later_value(
-        self, db_row: dict, dump_row: dict, compared_field_name: str = "creation_date",
+        self,
+        db_row: dict,
+        dump_row: dict,
+        row_field_name: str = "creation_date",
     ) -> dict:
         db_row, dump_row = self._serialize_compared_fields_in_rows(
-            db_row, dump_row, compared_field_name,
+            db_row,
+            dump_row,
+            row_field_name,
         )
-        db_value = db_row[compared_field_name]
-        dump_value = dump_row[compared_field_name]
+        db_value = db_row[row_field_name]
+        dump_value = dump_row[row_field_name]
 
         # None cannot be compared with anything
         if db_value is None:

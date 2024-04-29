@@ -26,7 +26,7 @@ class DefaultMergeConflictResolver(BaseMergeConflictResolver):
                 # Go with more restrictive value
                 "method": "pick_row_with_smaller_value",
                 "kwargs": {
-                    "compared_field_name": "value",
+                    "row_field_name": "value",
                 },
             },
         },
@@ -36,7 +36,7 @@ class DefaultMergeConflictResolver(BaseMergeConflictResolver):
                 # Note that `is_blocked` is SQLite-boolean, which is an integer in Python
                 "method": "pick_row_with_larger_value",
                 "kwargs": {
-                    "compared_field_name": "is_blocked",
+                    "row_field_name": "is_blocked",
                 },
             },
         },

@@ -224,7 +224,7 @@ class LocalMephistoDB(MephistoDB):
                     (
                         make_randomized_int_id(),
                         project_name,
-                    )
+                    ),
                 )
                 project_id = str(c.lastrowid)
                 return project_id
@@ -264,7 +264,8 @@ class LocalMephistoDB(MephistoDB):
                 """
                 SELECT * from projects
                 """
-                + additional_query,
+                + additional_query
+                + " ORDER BY creation_date ASC",
                 arg_tuple,
             )
             rows = c.fetchall()
@@ -311,7 +312,10 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryDoesNotExistException(e)
                 elif is_unique_failure(e):
                     raise EntryAlreadyExistsException(
-                        e, db=self, table_name="tasks", original_exc=e,
+                        e,
+                        db=self,
+                        table_name="tasks",
+                        original_exc=e,
                     )
                 raise MephistoDBException(e)
 
@@ -344,7 +348,8 @@ class LocalMephistoDB(MephistoDB):
                 """
                 SELECT * from tasks
                 """
-                + additional_query,
+                + additional_query
+                + " ORDER BY creation_date ASC",
                 arg_tuple,
             )
             rows = c.fetchall()
@@ -449,7 +454,10 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryDoesNotExistException(e)
                 elif is_unique_failure(e):
                     raise EntryAlreadyExistsException(
-                        e, db=self, table_name="task_runs", original_exc=e,
+                        e,
+                        db=self,
+                        table_name="task_runs",
+                        original_exc=e,
                     )
                 raise MephistoDBException(e)
 
@@ -483,7 +491,8 @@ class LocalMephistoDB(MephistoDB):
                 """
                 SELECT * from task_runs
                 """
-                + additional_query,
+                + additional_query
+                + " ORDER BY creation_date ASC",
                 arg_tuple,
             )
             rows = c.fetchall()
@@ -552,7 +561,10 @@ class LocalMephistoDB(MephistoDB):
             except sqlite3.IntegrityError as e:
                 if is_unique_failure(e):
                     raise EntryAlreadyExistsException(
-                        e, db=self, table_name="assignments", original_exc=e,
+                        e,
+                        db=self,
+                        table_name="assignments",
+                        original_exc=e,
                     )
                 raise MephistoDBException(e)
 
@@ -603,7 +615,8 @@ class LocalMephistoDB(MephistoDB):
                 """
                 SELECT * from assignments
                 """
-                + additional_query,
+                + additional_query
+                + " ORDER BY creation_date ASC",
                 arg_tuple,
             )
             rows = c.fetchall()
@@ -668,7 +681,10 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryDoesNotExistException(e)
                 elif is_unique_failure(e):
                     raise EntryAlreadyExistsException(
-                        e, db=self, table_name="units", original_exc=e,
+                        e,
+                        db=self,
+                        table_name="units",
+                        original_exc=e,
                     )
                 raise MephistoDBException(e)
 
@@ -734,7 +750,8 @@ class LocalMephistoDB(MephistoDB):
                 """
                 SELECT * from units
                 """
-                + additional_query,
+                + additional_query
+                + " ORDER BY creation_date ASC",
                 arg_tuple,
             )
             rows = c.fetchall()
@@ -817,7 +834,7 @@ class LocalMephistoDB(MephistoDB):
                     """
                     INSERT INTO requesters(
                         requester_id,
-                        requester_name, 
+                        requester_name,
                         provider_type
                     ) VALUES (?, ?, ?);
                     """,
@@ -832,7 +849,10 @@ class LocalMephistoDB(MephistoDB):
             except sqlite3.IntegrityError as e:
                 if is_unique_failure(e):
                     raise EntryAlreadyExistsException(
-                        e, db=self, table_name="requesters", original_exc=e,
+                        e,
+                        db=self,
+                        table_name="requesters",
+                        original_exc=e,
                     )
                 raise MephistoDBException(e)
 
@@ -862,7 +882,8 @@ class LocalMephistoDB(MephistoDB):
                 """
                 SELECT * from requesters
                 """
-                + additional_query,
+                + additional_query
+                + " ORDER BY creation_date ASC",
                 arg_tuple,
             )
             rows = c.fetchall()
@@ -890,7 +911,7 @@ class LocalMephistoDB(MephistoDB):
                     """
                     INSERT INTO workers(
                         worker_id,
-                        worker_name, 
+                        worker_name,
                         provider_type
                     ) VALUES (?, ?, ?);
                     """,
@@ -905,7 +926,10 @@ class LocalMephistoDB(MephistoDB):
             except sqlite3.IntegrityError as e:
                 if is_unique_failure(e):
                     raise EntryAlreadyExistsException(
-                        e, db=self, table_name="workers", original_exc=e,
+                        e,
+                        db=self,
+                        table_name="workers",
+                        original_exc=e,
                     )
                 raise MephistoDBException(e)
 
@@ -935,7 +959,8 @@ class LocalMephistoDB(MephistoDB):
                 """
                 SELECT * from workers
                 """
-                + additional_query,
+                + additional_query
+                + " ORDER BY creation_date ASC",
                 arg_tuple,
             )
             rows = c.fetchall()
@@ -1006,7 +1031,10 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryDoesNotExistException(e)
                 elif is_unique_failure(e):
                     raise EntryAlreadyExistsException(
-                        e, db=self, table_name="agents", original_exc=e,
+                        e,
+                        db=self,
+                        table_name="agents",
+                        original_exc=e,
                     )
                 raise MephistoDBException(e)
 
@@ -1082,7 +1110,8 @@ class LocalMephistoDB(MephistoDB):
                 """
                 SELECT * from agents
                 """
-                + additional_query,
+                + additional_query
+                + " ORDER BY creation_date ASC",
                 arg_tuple,
             )
             rows = c.fetchall()
@@ -1107,7 +1136,10 @@ class LocalMephistoDB(MephistoDB):
             except sqlite3.IntegrityError as e:
                 if is_unique_failure(e):
                     raise EntryAlreadyExistsException(
-                        e, db=self, table_name="units", original_exc=e,
+                        e,
+                        db=self,
+                        table_name="units",
+                        original_exc=e,
                     )
                 raise MephistoDBException(e)
 
@@ -1125,7 +1157,8 @@ class LocalMephistoDB(MephistoDB):
                 """
                 SELECT * from qualifications
                 """
-                + additional_query,
+                + additional_query
+                + " ORDER BY creation_date ASC",
                 arg_tuple,
             )
             rows = c.fetchall()
@@ -1204,7 +1237,10 @@ class LocalMephistoDB(MephistoDB):
                 except sqlite3.IntegrityError as e:
                     if is_unique_failure(e):
                         raise EntryAlreadyExistsException(
-                            e, db=self, table_name="units", original_exc=e,
+                            e,
+                            db=self,
+                            table_name="units",
+                            original_exc=e,
                         )
                     raise MephistoDBException(e)
 
@@ -1319,7 +1355,10 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryDoesNotExistException(e)
                 elif is_unique_failure(e):
                     raise EntryAlreadyExistsException(
-                        e, db=self, table_name="onboarding_agents", original_exc=e,
+                        e,
+                        db=self,
+                        table_name="onboarding_agents",
+                        original_exc=e,
                     )
                 raise MephistoDBException(e)
 
@@ -1388,7 +1427,8 @@ class LocalMephistoDB(MephistoDB):
                 """
                 SELECT * from onboarding_agents
                 """
-                + additional_query,
+                + additional_query
+                + " ORDER BY creation_date ASC",
                 arg_tuple,
             )
             rows = c.fetchall()
@@ -1439,7 +1479,10 @@ class LocalMephistoDB(MephistoDB):
             except sqlite3.IntegrityError as e:
                 if is_unique_failure(e):
                     raise EntryAlreadyExistsException(
-                        e, db=self, table_name="unit_review", original_exc=e,
+                        e,
+                        db=self,
+                        table_name="unit_review",
+                        original_exc=e,
                     )
                 raise MephistoDBException(e)
 

@@ -15,9 +15,7 @@ def serialize_date_to_python(value: Any) -> datetime:
     # If integer timestamp
     if isinstance(value, int):
         timestamp_is_in_msec = len(str(value)) == 13
-        datetime_value = datetime.fromtimestamp(
-            value / 1000 if timestamp_is_in_msec else value
-        )
+        datetime_value = datetime.fromtimestamp(value / 1000 if timestamp_is_in_msec else value)
     # If datetime string
     else:
         datetime_value = dateutil_parse(str(value))

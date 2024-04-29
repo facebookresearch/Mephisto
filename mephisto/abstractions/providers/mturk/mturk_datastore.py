@@ -18,8 +18,10 @@ from botocore.exceptions import ClientError  # type: ignore
 from botocore.exceptions import ProfileNotFound  # type: ignore
 
 from mephisto.abstractions.databases.local_database import is_unique_failure
+from mephisto.utils.db import apply_migrations
 from mephisto.utils.logger_core import get_logger
 from . import mturk_datastore_tables as tables
+from .migrations import migrations
 from .mturk_datastore_export import export_datastore
 
 MTURK_REGION_NAME = "us-east-1"
@@ -89,6 +91,8 @@ class MTurkDatastore:
                     c.execute(tables.UPDATE_RUNS_TABLE_1)
                 except Exception:
                     pass  # extra column already exists
+
+            apply_migrations(self, migrations)
 
     def get_export_data(self, **kwargs) -> dict:
         return export_datastore(self, **kwargs)

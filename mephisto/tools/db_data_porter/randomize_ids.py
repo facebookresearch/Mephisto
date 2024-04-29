@@ -30,7 +30,9 @@ class RandomizedIDsType(TypedDict):
 
 
 def _randomize_ids_for_mephisto(
-    db: "MephistoDB", mephisto_dump: dict, legacy_only: bool = False,
+    db: "MephistoDB",
+    mephisto_dump: dict,
+    legacy_only: bool = False,
 ) -> DBPKSubstitutionsType:
     table_names = [t for t in mephisto_dump.keys() if t not in [IMPORTED_DATA_TABLE_NAME]]
 
@@ -152,7 +154,9 @@ def _randomize_ids_for_provider(
 
 
 def randomize_ids(
-    db: "MephistoDB", full_dump: dict, legacy_only: bool = False,
+    db: "MephistoDB",
+    full_dump: dict,
+    legacy_only: bool = False,
 ) -> RandomizedIDsType:
     pk_substitutions: PKSubstitutionsType = {}
 
@@ -166,7 +170,9 @@ def randomize_ids(
     for provider_type in provider_types:
         provider_dump = full_dump[provider_type]
         randomized_ids_for_provider = _randomize_ids_for_provider(
-            provider_type, provider_dump, mephisto_pk_substitutions,
+            provider_type,
+            provider_dump,
+            mephisto_pk_substitutions,
         )
 
         if randomized_ids_for_provider:
@@ -179,7 +185,9 @@ def randomize_ids(
 
 
 def get_old_pk_from_substitutions(
-    pk: str, substitutions: dict, table_name: str,
+    pk: str,
+    substitutions: dict,
+    table_name: str,
 ) -> str:
     # After we created a dump file, we already can have new randomized PKs.
     # But we still have old ones in Mephisto DB.

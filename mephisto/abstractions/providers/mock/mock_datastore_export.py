@@ -27,14 +27,20 @@ def export_datastore(
     # Find and serialize `units`
     unit_ids = [i["unit_id"] for i in mephisto_db_data["units"]]
     unit_rows = db_utils.select_rows_by_list_of_field_values(
-        datastore, "units", ["unit_id"], [unit_ids],
+        datastore,
+        "units",
+        ["unit_id"],
+        [unit_ids],
     )
     dump_data["units"] = db_utils.serialize_data_for_table(unit_rows)
 
     # Find and serialize `workers`
     worker_ids = [i["worker_id"] for i in mephisto_db_data["workers"]]
     workers_rows = db_utils.select_rows_by_list_of_field_values(
-        datastore, "workers", ["worker_id"], [worker_ids],
+        datastore,
+        "workers",
+        ["worker_id"],
+        [worker_ids],
     )
     dump_data["workers"] = db_utils.serialize_data_for_table(workers_rows)
 

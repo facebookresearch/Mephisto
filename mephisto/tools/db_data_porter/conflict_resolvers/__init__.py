@@ -21,8 +21,8 @@ for (_, module_name, _) in iter_modules([current_dir]):
         attribute = getattr(module, attribute_name)
 
         if (
-            isclass(attribute) and
-            issubclass(attribute, BaseMergeConflictResolver) and
-            attribute is not BaseMergeConflictResolver
+            isclass(attribute)
+            and issubclass(attribute, BaseMergeConflictResolver)
+            and attribute is not BaseMergeConflictResolver
         ):
             globals().update({attribute.__name__: attribute})

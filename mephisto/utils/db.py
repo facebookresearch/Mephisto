@@ -29,6 +29,7 @@ logger = ConsoleWriter()
 
 # --- Exceptions ---
 
+
 class MephistoDBException(Exception):
     pass
 
@@ -51,6 +52,7 @@ class EntryDoesNotExistException(MephistoDBException):
 
 # --- Functions ---
 
+
 def _select_all_rows_from_table(db: "MephistoDB", table_name: str) -> List[dict]:
     with db.table_access_condition, db.get_connection() as conn:
         c = conn.cursor()
@@ -60,13 +62,17 @@ def _select_all_rows_from_table(db: "MephistoDB", table_name: str) -> List[dict]
 
 
 def _select_rows_from_table_related_to_task(
-    db: "MephistoDB", table_name: str, task_ids: List[str],
+    db: "MephistoDB",
+    table_name: str,
+    task_ids: List[str],
 ) -> List[dict]:
     return select_rows_by_list_of_field_values(db, table_name, ["task_id"], [task_ids])
 
 
 def select_rows_from_table_related_to_task_run(
-    db: "MephistoDB", table_name: str, task_run_ids: List[str],
+    db: "MephistoDB",
+    table_name: str,
+    task_run_ids: List[str],
 ) -> List[dict]:
     return select_rows_by_list_of_field_values(db, table_name, ["task_run_id"], [task_run_ids])
 
@@ -107,7 +113,7 @@ def get_task_ids_by_task_names(db: "MephistoDB", task_names: List[str]) -> List[
         task_names_string = ",".join([f"'{s}'" for s in task_names])
         c.execute(
             f"""
-            SELECT task_id FROM tasks 
+            SELECT task_id FROM tasks
             WHERE task_name IN ({task_names_string});
             """
         )
@@ -121,7 +127,7 @@ def get_task_run_ids_ids_by_task_ids(db: "MephistoDB", task_ids: List[str]) -> L
         task_ids_string = ",".join([f"'{s}'" for s in task_ids])
         c.execute(
             f"""
-            SELECT task_run_id FROM task_runs 
+            SELECT task_run_id FROM task_runs
             WHERE task_id IN ({task_ids_string});
             """
         )
@@ -141,7 +147,7 @@ def get_task_run_ids_ids_by_labels(db: "MephistoDB", labels: List[str]) -> List[
 
         c.execute(
             f"""
-            SELECT unique_field_values FROM imported_data 
+            SELECT unique_field_values FROM imported_data
             WHERE table_name = 'task_runs' {where_labels_string};
             """
         )
@@ -163,9 +169,7 @@ def get_table_pk_field_name(db: "MephistoDB", table_name: str):
     """
     with db.table_access_condition, db.get_connection() as conn:
         c = conn.cursor()
-        c.execute(
-            f"SELECT name FROM pragma_table_info('{table_name}') WHERE pk;"
-        )
+        c.execute(f"SELECT name FROM pragma_table_info('{table_name}') WHERE pk;")
         table_unique_field_name = c.fetchone()["name"]
         return table_unique_field_name
 
@@ -173,9 +177,7 @@ def get_table_pk_field_name(db: "MephistoDB", table_name: str):
 def select_all_table_rows(db: "MephistoDB", table_name: str) -> List[dict]:
     with db.table_access_condition, db.get_connection() as conn:
         c = conn.cursor()
-        c.execute(
-            f"SELECT * FROM {table_name};"
-        )
+        c.execute(f"SELECT * FROM {table_name};")
         rows = c.fetchall()
         return [dict(row) for row in rows]
 
@@ -207,10 +209,12 @@ def select_rows_by_list_of_field_values(
             _field_values = field_values[i]
             field_values_string = ",".join([f"'{s}'" for s in _field_values])
             where_list.append([field_name, field_values_string])
-        where_string = " AND ".join([
-            f"{field_name} IN ({field_values_string})"
-            for field_name, field_values_string in where_list
-        ])
+        where_string = " AND ".join(
+            [
+                f"{field_name} IN ({field_values_string})"
+                for field_name, field_values_string in where_list
+            ]
+        )
 
         # Combine ORDER BY statement
         order_by_string = ""
@@ -221,7 +225,7 @@ def select_rows_by_list_of_field_values(
 
         c.execute(
             f"""
-            SELECT * FROM {table_name} 
+            SELECT * FROM {table_name}
             WHERE {where_string}
             {order_by_string};
             """
@@ -232,15 +236,15 @@ def select_rows_by_list_of_field_values(
 
 
 def delete_exported_data_without_fk_constraints(
-    db: "MephistoDB", db_dump: dict, table_names_can_be_cleaned: Optional[List[str]] = None,
+    db: "MephistoDB",
+    db_dump: dict,
+    table_names_can_be_cleaned: Optional[List[str]] = None,
 ):
     table_names_can_be_cleaned = table_names_can_be_cleaned or []
 
     with db.table_access_condition, db.get_connection() as conn:
         c = conn.cursor()
-        c.execute(
-            "PRAGMA foreign_keys = off;"
-        )
+        c.execute("PRAGMA foreign_keys = off;")
 
         delete_queries = []
         for table_name, rows in db_dump.items():
@@ -255,9 +259,7 @@ def delete_exported_data_without_fk_constraints(
             )
         c.executescript("\n".join(delete_queries))
 
-        c.execute(
-            "PRAGMA foreign_keys = on;"
-        )
+        c.execute("PRAGMA foreign_keys = on;")
 
 
 def delete_entire_exported_data(db: "MephistoDB"):
@@ -268,9 +270,7 @@ def delete_entire_exported_data(db: "MephistoDB"):
 
     with db.table_access_condition, db.get_connection() as conn:
         c = conn.cursor()
-        c.execute(
-            "PRAGMA foreign_keys = off;"
-        )
+        c.execute("PRAGMA foreign_keys = off;")
 
         delete_queries = []
         for table_name in table_names:
@@ -281,31 +281,29 @@ def delete_entire_exported_data(db: "MephistoDB"):
 
         c.executescript("\n".join(delete_queries))
 
-        c.execute(
-            "PRAGMA foreign_keys = on;"
-        )
+        c.execute("PRAGMA foreign_keys = on;")
 
 
 def get_list_of_provider_types(db: "MephistoDB") -> List[str]:
     with db.table_access_condition, db.get_connection() as conn:
         c = conn.cursor()
-        c.execute(
-            "SELECT provider_type FROM requesters;"
-        )
+        c.execute("SELECT provider_type FROM requesters;")
         rows = c.fetchall()
         return [r["provider_type"] for r in rows]
 
 
 def get_latest_row_from_table(
-    db: "MephistoDB", table_name: str, order_by: Optional[str] = "creation_date",
+    db: "MephistoDB",
+    table_name: str,
+    order_by: Optional[str] = "creation_date",
 ) -> Optional[dict]:
     with db.table_access_condition, db.get_connection() as conn:
         c = conn.cursor()
         c.execute(
             f"""
             SELECT *
-            FROM {table_name} 
-            ORDER BY {order_by} DESC 
+            FROM {table_name}
+            ORDER BY {order_by} DESC
             LIMIT 1;
             """,
         )
@@ -371,8 +369,25 @@ def get_list_of_tables_to_export(db: "MephistoDB") -> List[str]:
     return filtered_table_names
 
 
+def get_list_of_available_labels(db: "MephistoDB") -> List[str]:
+    with db.table_access_condition, db.get_connection() as conn:
+        c = conn.cursor()
+        c.execute("SELECT data_labels FROM imported_data;")
+        rows = c.fetchall()
+
+        labels = []
+        for row in rows:
+            row_labels: List[List[str]] = json.loads(row["data_labels"])
+            labels += row_labels
+
+        return list(set(labels))
+
+
 def check_if_row_with_params_exists(
-    db: "MephistoDB", table_name: str, params: dict, select_field: Optional[str] = "*",
+    db: "MephistoDB",
+    table_name: str,
+    params: dict,
+    select_field: Optional[str] = "*",
 ) -> bool:
     """
     Check if row exists in `table_name` for passed dict of `params`
@@ -391,8 +406,8 @@ def check_if_row_with_params_exists(
 
         c.execute(
             f"""
-            SELECT {select_field} 
-            FROM {table_name} {where_string} 
+            SELECT {select_field}
+            FROM {table_name} {where_string}
             LIMIT 1;
             """,
             execute_args,
@@ -462,36 +477,56 @@ def mephisto_db_to_dict_for_task_runs(
     # Find and serialize `projects`
     project_ids = list(set(filter(bool, [i["project_id"] for i in dump_data["tasks"]])))
     project_rows = select_rows_by_list_of_field_values(
-        db, "projects", ["project_id"], [project_ids],
+        db,
+        "projects",
+        ["project_id"],
+        [project_ids],
     )
     dump_data["projects"] = serialize_data_for_table(project_rows)
 
     # Find and serialize `requesters`
     requester_ids = list(set(filter(bool, [i["requester_id"] for i in dump_data["task_runs"]])))
     requester_rows = select_rows_by_list_of_field_values(
-        db, "requesters", ["requester_id"], [requester_ids],
+        db,
+        "requesters",
+        ["requester_id"],
+        [requester_ids],
     )
     dump_data["requesters"] = serialize_data_for_table(requester_rows)
 
     # Find and serialize `workers`
     worker_ids = list(set(filter(bool, [i["worker_id"] for i in dump_data["units"]])))
     worker_rows = select_rows_by_list_of_field_values(
-        db, "workers", ["worker_id"], [worker_ids],
+        db,
+        "workers",
+        ["worker_id"],
+        [worker_ids],
     )
     dump_data["workers"] = serialize_data_for_table(worker_rows)
 
     # Find and serialize `granted_qualifications`
     granted_qualification_rows = select_rows_by_list_of_field_values(
-        db, "granted_qualifications", ["worker_id"], [worker_ids],
+        db,
+        "granted_qualifications",
+        ["worker_id"],
+        [worker_ids],
     )
     dump_data["granted_qualifications"] = serialize_data_for_table(granted_qualification_rows)
 
     # Find and serialize `qualifications`
-    qualification_ids = list(set(filter(
-        bool, [i["qualification_id"] for i in dump_data["granted_qualifications"]],
-    )))
+    qualification_ids = list(
+        set(
+            filter(
+                bool,
+                [i["qualification_id"] for i in dump_data["granted_qualifications"]],
+            )
+        )
+    )
     qualification_rows = select_rows_by_list_of_field_values(
-        db, "qualifications", ["qualification_id"], [qualification_ids],
+        db,
+        "qualifications",
+        ["qualification_id"],
+        [qualification_ids],
     )
     dump_data["qualifications"] = serialize_data_for_table(qualification_rows)
 
@@ -560,7 +595,10 @@ def insert_new_row_in_table(db: "MephistoDB", table_name: str, row: dict):
 
 
 def update_row_in_table(
-    db: "MephistoDB", table_name: str, row: dict, pk_field_name: Optional[str] = None,
+    db: "MephistoDB",
+    table_name: str,
+    row: dict,
+    pk_field_name: Optional[str] = None,
 ):
     row = deepcopy(row)
 
@@ -588,6 +626,7 @@ def update_row_in_table(
 
 # --- Decorators ---
 
+
 def retry_generate_id(caught_excs: Optional[List[Type[Exception]]] = None):
     """
     A decorator that attempts to call create DB entry until ID will be unique.
@@ -597,6 +636,7 @@ def retry_generate_id(caught_excs: Optional[List[Type[Exception]]] = None):
         - db
         - table_name
     """
+
     def decorator(unreliable_fn: Callable):
         def wrapped_fn(*args, **kwargs):
             caught_excs_tuple = tuple(caught_excs or [Exception])
@@ -614,16 +654,22 @@ def retry_generate_id(caught_excs: Optional[List[Type[Exception]]] = None):
                     # Othervise, we just leave error as is
                     exc_message = str(getattr(e, "original_exc", None) or "")
                     db = getattr(e, "db", None)
-                    table_name = getattr(e, "table_name", None)
-                    is_unique_constraint = exc_message.startswith("UNIQUE constraint")
+                    table_name = getattr(e, "table_name", "")
+                    pk_fieldname = get_table_pk_field_name(db, table_name=table_name)
+                    is_pk_unique_constraint = (
+                        exc_message.startswith("UNIQUE constraint")
+                        and f"{table_name}.{pk_fieldname}" in exc_message
+                    )
 
-                    if db and table_name and is_unique_constraint:
-                        pk_field_name = get_table_pk_field_name(db, table_name=table_name)
-                        if pk_field_name in exc_message:
-                            pk_exists = True
+                    if db and table_name and is_pk_unique_constraint:
+                        pk_exists = True
+                    else:
+                        # In case if we caught other unique constraint, reraise it
+                        raise
 
         # Set original function name to wrapped one.
         wrapped_fn.__name__ = unreliable_fn.__name__
 
         return wrapped_fn
+
     return decorator

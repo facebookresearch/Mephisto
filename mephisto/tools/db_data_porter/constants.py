@@ -7,7 +7,7 @@
 from mephisto.abstractions.providers.mock.provider_type import PROVIDER_TYPE as MOCK_PROVIDER_TYPE
 from mephisto.abstractions.providers.mturk.provider_type import PROVIDER_TYPE as MTURK_PROVIDER_TYPE
 from mephisto.abstractions.providers.prolific.provider_type import (
-    PROVIDER_TYPE as PROLIFIC_PROVIDER_TYPE
+    PROVIDER_TYPE as PROLIFIC_PROVIDER_TYPE,
 )
 
 
@@ -213,3 +213,5 @@ IMPORTED_DATA_TABLE_NAMES = [
 # We mark rows in `imported_data` with labels and this label is used
 # if conflicted row was already presented in local DB
 LOCAL_DB_LABEL = "_"
+
+DEFAULT_ARCHIVE_FORMAT = "zip"

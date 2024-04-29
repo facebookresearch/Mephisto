@@ -45,8 +45,8 @@ mephisto db backup
 And you will see text like this
 
 ```
-Started making backup
-Finished successfully! File: '/<MEPHISTO_PATH>/outputs/backup/2024_01_01_00_00_01_mephisto_backup.zip
+Started creating backup file ...
+Finished successfully! File: /<MEPHISTO_PATH>/outputs/backup/2024_01_01_00_00_01_mephisto_backup.zip
 ```
 
 Find and copy this file.
@@ -79,31 +79,30 @@ mephisto db export --randomize-legacy-ids
 And you will see text like this
 
 ```
-Started exporting
-Run command for all TaskRuns.
+Started exporting data ...
+No filter for TaskRun specified - exporting all TaskRuns.
 Finished successfully! 
 Files created:
-        - Database dump - /<MEPHISTO_PATH>/outputs/export/2024_01_01_00_00_01_mephisto_dump.json
-        - Data files dump - /<MEPHISTO_PATH>/outputs/export/2024_01_01_00_00_01_mephisto_dump.zip
+        - Dump archive - /<MEPHISTO_PATH>/outputs/export/2024_01_01_00_00_01_mephisto_dump.zip
 ```
 
 ### Import just created dump into main project
 
-Put your dump into export directory `/mephisto/outputs/export/` and you can use just a dump name in the command,
+Put your dump into export directory `/<MEPHISTO_PATH>/outputs/export/` and you can use just a dump name in the command,
 or use a full path to the file. 
 Let's just imagine, you put file in export directory:
 
 ```shell
-mephisto db import --dump-file 2024_01_01_00_00_01_mephisto_dump.json
+mephisto db import --file 2024_01_01_00_00_01_mephisto_dump.zip
 ```
 
 And you will see text like this
 
 ```
-Started importing from dump '2024_01_01_00_00_01_mephisto_dump.json'
 Are you sure? It will affect your databases and related files. Type 'yes' and press Enter if you want to proceed: yes
 Just in case, we are making a backup of all your local data. If something went wrong during import, we will restore all your data from this backup
-Backup was created successfully! File: '/mephisto/outputs/backup/2024_01_01_00_10_01_mephisto_backup.zip'
+Backup was created successfully! File: '/<MEPHISTO_PATH>/outputs/backup/2024_04_25_17_11_56_mephisto_backup.zip'
+Started importing from dump file /<MEPHISTO_PATH>/outputs/export/2024_04_25_17_11_43_mephisto_dump.zip ...
 Finished successfully
 ```
 
@@ -117,14 +116,14 @@ Also, we create a backup automatically just in case too, just before all changes
 No worries, just restore everything from your or our backup:
 
 ```shell
-mephisto db restore --backup-file 2024_01_01_00_10_01.zip
+mephisto db restore --file 2024_01_01_00_10_01_mephisto_backup.zip
 ```
 
 And you will see text like this
 
 ```
-Started restoring from backup '2024_01_01_00_10_01.zip'
 Are you sure? It will affect your databases and related files. Type 'yes' and press Enter if you want to proceed: yes
+Started restoring from backup /<MEPHISTO_PATH>/outputs/backup/2024_01_01_00_10_01_mephisto_backup.zip ...
 Finished successfully
 ```
 

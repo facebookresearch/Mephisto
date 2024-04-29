@@ -222,7 +222,7 @@ def find_unit_reviews(
             SELECT * FROM unit_review
             WHERE
                 (updated_qualification_id = ?1) OR
-                (revoked_qualification_id = ?1) AND 
+                (revoked_qualification_id = ?1) AND
                 (worker_id = ?2)
                 {task_query}
             ORDER BY creation_date ASC;

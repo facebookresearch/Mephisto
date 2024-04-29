@@ -132,7 +132,6 @@ class MockDatastore:
             table_name="workers",
             params={
                 "worker_id": worker_id,
-                "is_blocked": False,
             },
             select_field="worker_id",
         )

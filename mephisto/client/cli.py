@@ -31,6 +31,7 @@ import mephisto.scripts.mturk.identify_broken_units as identify_broken_units_mtu
 import mephisto.scripts.mturk.launch_makeup_hits as launch_makeup_hits_mturk
 import mephisto.scripts.mturk.print_outstanding_hit_status as soft_block_workers_by_mturk_id_mturk
 from mephisto.client.cli_commands import get_wut_arguments
+from mephisto.client.cli_db_commands import db_cli
 from mephisto.generators.form_composer.config_validation.separate_token_values_config import (
     update_separate_token_values_config_with_file_urls,
 )
@@ -49,8 +50,6 @@ from mephisto.generators.form_composer.config_validation.utils import (
     set_custom_validators_js_env_var,
 )
 from mephisto.operations.registry import get_valid_provider_types
-from mephisto.tools.db_data_porter import DBDataPorter
-from mephisto.tools.db_data_porter.constants import DEFAULT_CONFLICT_RESOLVER
 from mephisto.tools.scripts import build_custom_bundle
 from mephisto.utils.console_writer import ConsoleWriter
 from mephisto.utils.rich import console
@@ -81,8 +80,8 @@ click.rich_click.ERRORS_EPILOGUE = (
 
 
 @cli.command("config", cls=RichCommand)
-@click.argument("identifier", type=(str), default=None, required=False)
-@click.argument("value", type=(str), default=None, required=False)
+@click.argument("identifier", type=str, default=None, required=False)
+@click.argument("value", type=str, default=None, required=False)
 def config(identifier, value):
     from mephisto.operations.config_handler import (
         get_config_arg,
@@ -197,6 +196,7 @@ def register_provider(args):
     try:
         parsed_options = parse_arg_dict(RequesterClass, args_dict)
     except Exception as e:
+        parsed_options = None
         click.echo(str(e))
 
     if parsed_options.name is None:
@@ -364,11 +364,11 @@ def metrics_cli(args):
 
 
 @cli.command("review_app", cls=RichCommand)
-@click.option("-h", "--host", type=(str), default="127.0.0.1")
-@click.option("-p", "--port", type=(int), default=5000)
-@click.option("-d", "--debug", type=(bool), default=False, is_flag=True)
-@click.option("-f", "--force-rebuild", type=(bool), default=False, is_flag=True)
-@click.option("-s", "--skip-build", type=(bool), default=False, is_flag=True)
+@click.option("-h", "--host", type=str, default="127.0.0.1")
+@click.option("-p", "--port", type=int, default=5000)
+@click.option("-d", "--debug", type=bool, default=False, is_flag=True)
+@click.option("-f", "--force-rebuild", type=bool, default=False, is_flag=True)
+@click.option("-s", "--skip-build", type=bool, default=False, is_flag=True)
 @pass_script_info
 def review_app(
     info: ScriptInfo,
@@ -462,7 +462,7 @@ def _get_form_composer_app_path() -> str:
 
 
 @cli.command("form_composer", cls=RichCommand)
-@click.option("-o", "--task-data-config-only", type=(bool), default=True, is_flag=True)
+@click.option("-o", "--task-data-config-only", type=bool, default=True, is_flag=True)
 def form_composer(task_data_config_only: bool = True):
     # Get app path to run Python script from there (instead of the current file's directory).
     # This is necessary, because the whole infrastructure is built relative to the location
@@ -501,12 +501,12 @@ def form_composer(task_data_config_only: bool = True):
 
 
 @cli.command("form_composer_config", cls=RichCommand)
-@click.option("-v", "--verify", type=(bool), default=False, is_flag=True)
-@click.option("-f", "--update-file-location-values", type=(str), default=None)
-@click.option("-e", "--extrapolate-token-sets", type=(bool), default=False, is_flag=True)
-@click.option("-p", "--permutate-separate-tokens", type=(bool), default=False, is_flag=True)
-@click.option("-d", "--directory", type=(str), default=None)
-@click.option("-u", "--use-presigned-urls", type=(bool), default=False, is_flag=True)
+@click.option("-v", "--verify", type=bool, default=False, is_flag=True)
+@click.option("-f", "--update-file-location-values", type=str, default=None)
+@click.option("-e", "--extrapolate-token-sets", type=bool, default=False, is_flag=True)
+@click.option("-p", "--permutate-separate-tokens", type=bool, default=False, is_flag=True)
+@click.option("-d", "--directory", type=str, default=None)
+@click.option("-u", "--use-presigned-urls", type=bool, default=False, is_flag=True)
 def form_composer_config(
     verify: Optional[bool] = False,
     update_file_location_values: Optional[str] = None,
@@ -623,189 +623,7 @@ def form_composer_config(
         )
 
 
-@cli.command("db", cls=RichCommand)
-@click.argument("action_name", required=True, nargs=1)
-@click.option("-d", "--dump-file", type=(str), default=None)
-@click.option("-i", "--export-indent", type=(int), default=None)
-@click.option("-tn", "--export-tasks-by-names", type=(str), multiple=True, default=None)
-@click.option("-ti", "--export-tasks-by-ids", type=(str), multiple=True, default=None)
-@click.option("-tr", "--export-task-runs-by-ids", type=(str), multiple=True, default=None)
-@click.option("-trs", "--export-task-runs-since-date", type=(str), default=None)
-@click.option("-tl", "--export-labels", type=(str), multiple=True, default=None)
-@click.option("-de", "--delete-exported-data", type=(bool), default=False, is_flag=True)
-@click.option("-r", "--randomize-legacy-ids", type=(bool), default=False, is_flag=True)
-@click.option("-l", "--label-name", type=(str), default=None)
-@click.option("-cr", "--conflict-resolver", type=(str), default=DEFAULT_CONFLICT_RESOLVER)
-@click.option("-k", "--keep-import-metadata", type=(bool), default=False, is_flag=True)
-@click.option("-b", "--backup-file", type=(str), default=None)
-@click.option("-v", "--verbosity", type=(int), default=0)
-def db(
-    action_name: str,
-    dump_file: Optional[str] = None,
-    export_indent: Optional[int] = None,
-    export_tasks_by_names: Optional[List[str]] = None,
-    export_tasks_by_ids: Optional[List[str]] = None,
-    export_task_runs_by_ids: Optional[List[str]] = None,
-    export_task_runs_since_date: Optional[str] = None,
-    export_labels: Optional[List[str]] = None,
-    delete_exported_data: bool = False,
-    randomize_legacy_ids: bool = False,
-    label_name: Optional[str] = None,
-    conflict_resolver: Optional[str] = DEFAULT_CONFLICT_RESOLVER,
-    keep_import_metadata: Optional[bool] = False,
-    backup_file: Optional[str] = None,
-    verbosity: int = 0,
-):
-    """
-    Operations with Mephisto DB and provider-specific datastores.
-
-    Commands:
-        1. mephisto db export
-          This command exports data from Mephisto DB and provider-specific datastores
-          as a combination of (i) a JSON file, and (ii) an archived `data` catalog with related files.
-
-          If no parameter passed, full data dump (i.e. backup) will be created.
-
-          To pass a list of values for one command option,
-          simply repeat that option name before each value.
-
-          Options (all optional):
-            `-tn/--export-tasks-by-names` - names of Tasks that will be exported
-            `-ti/--export-tasks-by-ids` - ids of Tasks that will be exported
-            `-tr/--export-task-runs-by-ids` - ids of TaskRuns that will be exported
-            `-trs/--export-task-runs-since-date` - only objects created after this
-                ISO8601 datetime will be exported
-            `-tl/--export-labels` - only data imported under these labels will be exported
-            `-de/--delete-exported-data` - after exporting data, delete it from local DB
-            `-r/--randomize-legacy-ids` - replace legacy autoincremented ids with
-                new pseudo-random ids to avoid conflicts during data merging
-            `-i/--export-indent` - make dump easy to read via formatting JSON with indentations
-            `-v/--verbosity` - write more informative messages about progress
-                (Default 0. Values: 0, 1)
-
-
-        2. mephisto db import --dump-file <dump_file_name_or_path>
-
-          This command imports data from a dump file created by `mephisto db export` command.
-
-          Options:
-            `-d/--dump-file` - location of the __***.json__ dump file (filename if created in
-                `<MEPHISTO_REPO>/outputs/export` folder, or absolute filepath)
-            `-cr/--conflict-resolver` (Optional) - name of Python class
-                to be used for resolving merging conflicts (when your local DB already has a row
-                with same unique field value as a DB row in the dump data)
-            `-l/--label-name` - a short string serving as a reference for the ported data
-                (stored in `imported_data` table), so later you can export the imported data
-                with `--export-labels` export option
-            `-k/--keep-import-metadata` - write data from `imported_data` table of the dump
-                (by default it's not imported)
-            `-v/--verbosity` - level of logging (default: 0; values: 0, 1)
-
-        3. mephisto db backup
-
-          Creates full backup of all current data (Mephisto DB, provider-specific datastores,
-          and related files) on local machine.
-
-        4. mephisto db restore --backup-file <backup_file_name_or_path>
-
-          Restores all data (Mephisto DB, provider-specific datastores, and related files)
-          from a backup archive.
-
-          Options:
-            `-b/--backup-file` - location of the __*.zip__ backup file (filename if created in
-                `<MEPHISTO_REPO>/outputs/backup` folder, or absolute filepath)
-            `-v/--verbosity` - level of logging (default: 0; values: 0, 1)
-    """
-    porter = DBDataPorter()
-
-    # --- EXPORT ---
-    if action_name == "export":
-        has_conflicting_task_runs_options = len(list(filter(bool, [
-            export_tasks_by_names,
-            export_tasks_by_ids,
-            export_task_runs_by_ids,
-            export_task_runs_since_date,
-            export_labels,
-        ]))) > 1
-
-        if has_conflicting_task_runs_options:
-            logger.warning(
-                "[yellow]"
-                "You cannot use following options together:"
-                "\n\t--export-tasks-by-names"
-                "\n\t--export-tasks-by-ids"
-                "\n\t--export-task-runs-by-ids"
-                "\n\t--export-task-runs-since-date"
-                "\n\t--export-labels"
-                "\nUse one of them or none of them to export all data."
-                "[/yellow]"
-            )
-            exit()
-
-        logger.info(f"Started exporting")
-
-        export_results = porter.export_dump(
-            json_indent=export_indent,
-            task_names=export_tasks_by_names,
-            task_ids=export_tasks_by_ids,
-            task_run_ids=export_task_runs_by_ids,
-            task_runs_since_date=export_task_runs_since_date,
-            task_runs_labels=export_labels,
-            delete_exported_data=delete_exported_data,
-            randomize_legacy_ids=randomize_legacy_ids,
-            verbosity=verbosity,
-        )
-
-        data_files_line = ""
-        if export_results["data_path"]:
-            data_files_line = f"\n\t- Data files dump - {export_results['data_path']}"
-
-        backup_line = ""
-        if export_results["backup_path"]:
-            backup_line = f"\n\t- Backup - {export_results['backup_path']}"
-
-        logger.info(
-            f"[green]"
-            f"Finished successfully! "
-            f"\nFiles created:"
-            f"\n\t- Database dump - {export_results['db_path']}"
-            f"{data_files_line}"
-            f"{backup_line}"
-            f"[/green]"
-        )
-
-    # --- IMPORT ---
-    elif action_name == "import":
-        logger.info(f"Started importing from dump '{dump_file}'")
-        porter.import_dump(
-            dump_file_name_or_path=dump_file,
-            conflict_resolver_name=conflict_resolver,
-            label=label_name,
-            keep_import_metadata=keep_import_metadata,
-            verbosity=verbosity,
-        )
-        logger.info(f"[green]Finished successfully[/green]")
-
-    # --- BACKUP ---
-    elif action_name == "backup":
-        logger.info(f"Started making backup")
-        backup_path = porter.make_backup()
-        logger.info(f"[green]Finished successfully! File: '{backup_path}[/green]")
-
-    # --- RESTORE ---
-    elif action_name == "restore":
-        logger.info(f"Started restoring from backup '{backup_file}'")
-        porter.restore_from_backup(backup_file_name_or_path=backup_file, verbosity=verbosity)
-        logger.info(f"[green]Finished successfully[/green]")
-
-    # Otherwise, error
-    else:
-        logger.error(
-            f"[red]"
-            f"Unexpected action name '{action_name}'. Available: export, import, restore."
-            f"[/red]"
-        )
-        exit()
+cli.add_command(db_cli)
 
 
 if __name__ == "__main__":

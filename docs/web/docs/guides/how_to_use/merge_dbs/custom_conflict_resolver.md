@@ -36,3 +36,7 @@ and perhaps `default_strategy_name` value (see `DefaultMergeConflictResolver` as
 NOTE: All available providers must be present in `strategies_config`.
 Table names (under each provider key) are optional, and if missing, `default_strategy_name`
 will be used for all conflicts related to this table.
+
+4. There is an example of a working custom conflict resolver in module `mephisto/tools/db_data_porter/conflict_resolvers/example_merge_conflict_resolver.py`. You can launch it like this:
+
+`mephisto db import ... --conflict-resolver ExampleMergeConflictResolver`

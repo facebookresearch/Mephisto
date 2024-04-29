@@ -78,8 +78,8 @@ def validate_dump_data(db: "MephistoDB", dump_data: dict) -> Optional[List[str]]
                     )
                     continue
 
-                incorrect_field_names = list(filter(
-                    lambda fn: not isinstance(fn, str), table_row.keys())
+                incorrect_field_names = list(
+                    filter(lambda fn: not isinstance(fn, str), table_row.keys())
                 )
                 if incorrect_field_names:
                     errors.append(

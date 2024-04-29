@@ -66,7 +66,7 @@ def import_single_db(
     provider_type: str,
     dump_data: dict,
     conflict_resolver_name: str,
-    label: str,
+    labels: List[str],
     verbosity: int = 0,
 ) -> ImportSingleDBsType:
     # Results of the function
@@ -117,12 +117,11 @@ def import_single_db(
 
             # Imported data vars
             imported_data_needs_to_be_updated = (
-                provider_type == MEPHISTO_DUMP_KEY and
-                table_name in IMPORTED_DATA_TABLE_NAMES
+                provider_type == MEPHISTO_DUMP_KEY and table_name in IMPORTED_DATA_TABLE_NAMES
             )
 
-            newly_imported_labels = json.dumps([label])
-            conflicted_labels = json.dumps([LOCAL_DB_LABEL, label])
+            newly_imported_labels = json.dumps(sorted(labels))
+            conflicted_labels = json.dumps(sorted([LOCAL_DB_LABEL, *labels]))
             imported_data_for_table = {
                 newly_imported_labels: [],
                 conflicted_labels: [],
@@ -146,7 +145,10 @@ def import_single_db(
                 imported_data_conflicted_row = False
 
                 _update_row_with_pks_from_resolvings_mappings(
-                    db, table_name, dump_row, resolvings_mapping,
+                    db,
+                    table_name,
+                    dump_row,
+                    resolvings_mapping,
                 )
 
                 # Table with non-PK unique field
@@ -169,7 +171,7 @@ def import_single_db(
                     # If local DB does not have this row
                     if not existing_rows:
                         if verbosity:
-                            logger.info(f"Inserting new row into table '{table_name}': {dump_row}")
+                            logger.debug(f"Inserting new row into table '{table_name}': {dump_row}")
 
                         db_utils.insert_new_row_in_table(db, table_name, dump_row)
 
@@ -180,17 +182,30 @@ def import_single_db(
                         existing_db_row = existing_rows[-1]
 
                         if verbosity:
-                            logger.info(
+                            logger.debug(
                                 f"Conflicts during inserting row in table '{table_name}': "
                                 f"{dump_row}. "
                                 f"Existing row in your database: {existing_db_row}"
                             )
 
                         resolved_conflicting_row = conflict_resolver_name.resolve(
-                            table_name, table_pk_field_name, existing_db_row, dump_row,
+                            table_name,
+                            table_pk_field_name,
+                            existing_db_row,
+                            dump_row,
                         )
+
+                        if verbosity:
+                            logger.debug(
+                                f"Resolving finished successfully. "
+                                f"Chosen row: {resolved_conflicting_row}"
+                            )
+
                         db_utils.update_row_in_table(
-                            db, table_name, resolved_conflicting_row, table_pk_field_name,
+                            db,
+                            table_name,
+                            resolved_conflicting_row,
+                            table_pk_field_name,
                         )
 
                         # Saving resolved a pair of PKs
@@ -205,6 +220,9 @@ def import_single_db(
 
                 # Regular table. Create new row as is
                 else:
+                    if verbosity:
+                        logger.debug(f"Inserting new row into table '{table_name}': {dump_row}")
+
                     db_utils.insert_new_row_in_table(db, table_name, dump_row)
 
                 # Update table lists of Imported data
@@ -214,10 +232,12 @@ def import_single_db(
                     else:
                         _label = newly_imported_labels
 
-                    imported_data_for_table[_label].append({
-                        UNIQUE_FIELD_NAMES: unique_field_names or [table_pk_field_name],
-                        UNIQUE_FIELD_VALUES: imported_data_row_unique_field_values,
-                    })
+                    imported_data_for_table[_label].append(
+                        {
+                            UNIQUE_FIELD_NAMES: unique_field_names or [table_pk_field_name],
+                            UNIQUE_FIELD_VALUES: imported_data_row_unique_field_values,
+                        }
+                    )
 
             # Add table into Imported data
             if imported_data_needs_to_be_updated:
@@ -228,38 +248,45 @@ def import_single_db(
         if provider_type == MEPHISTO_DUMP_KEY:
             for unit_id, agent_id in units_agents.items():
                 db_utils.update_row_in_table(
-                    db, "units", {"unit_id": unit_id, "agent_id": agent_id}, "unit_id",
+                    db,
+                    "units",
+                    {"unit_id": unit_id, "agent_id": agent_id},
+                    "unit_id",
                 )
         # --- HACK (#UNIT.AGENT_ID) END #3:
 
     except Exception as e:
+        error_message_ending = ""
+
         # Custom error message in cases when we can guess what happens
         # using small info SQLite gives us
         possible_issue = ""
         if in_progress_table_pk_field_name in str(e) and "UNIQUE constraint" in str(e):
             pk_value = in_progress_dump_row[in_progress_table_pk_field_name]
+            error_message_ending = (
+                f". Local database already has Primary Key '{pk_value}' "
+                f"in table '{in_progress_table_name}'."
+            )
             possible_issue = (
-                f"\nPossible issue: "
-                f"Local database already have Primary Key '{pk_value}' "
-                f"in table '{in_progress_table_name}'. "
-                f"Maybe you are trying to run already merged dump file. "
-                f"Or if you have old databases, you may bump into same Primary Keys. "
-                f"If you are sure that all data from this dump is unique and "
-                f"still have access to the dumped project, "
-                f"try to create dump with parameter `--randomize-legacy-ids` "
-                f"and start importing again."
+                f"\n\n[bold]Possible issue:[/bold] "
+                f"You may be trying to import an already imported dump file. "
+                f"Or this could be related to legacy auto-increment database primary keys "
+                f"(in which case the dump needs to be re-created "
+                f"with -r/--randomize-legacy-ids option)."
             )
 
-        default_error_message_beginning = ""
+        error_message_beginning = ""
         if not possible_issue:
-            default_error_message_beginning = "Unexpected error happened: "
+            error_message_beginning = "Unexpected error happened: "
 
         errors.append(
-            f"{default_error_message_beginning}{e}."
+            f"{error_message_beginning}{e}{error_message_ending}"
             f"{possible_issue}"
-            f"\nProvider: {provider_type}."
-            f"\nTable: {in_progress_table_name}."
-            f"\nRow: {json.dumps(in_progress_dump_row, indent=2)}."
+            f"\n"
+            f"\n[bold]Provider:[/bold] {provider_type}."
+            f"\n[bold]Table:[/bold] {in_progress_table_name}."
+            f"\n[bold]Row:[/bold]\n{json.dumps(in_progress_dump_row, indent=2)}."
+            f"\n"
         )
 
     return {
@@ -269,8 +296,15 @@ def import_single_db(
 
 
 def fill_imported_data_with_imported_dump(
-    db: "MephistoDB", imported_data: dict, source_file_name: str,
+    db: "MephistoDB",
+    imported_data: dict,
+    source_file_name: str,
+    verbosity: int = 0,
 ):
+    if verbosity:
+        if imported_data:
+            logger.debug("Saving information about imported data ...")
+
     for table_name, table_info in imported_data.items():
         for labels, labels_rows in table_info.items():
             for row in labels_rows:
@@ -291,8 +325,22 @@ def fill_imported_data_with_imported_dump(
                     },
                 )
 
+    if verbosity:
+        if imported_data:
+            logger.debug("Saving information about imported data finished")
 
-def import_table_imported_data_from_dump(db: "MephistoDB", imported_data_rows: List[dict]):
+
+def import_table_imported_data_from_dump(
+    db: "MephistoDB",
+    imported_data_rows: List[dict],
+    verbosity: int = 0,
+):
+    if verbosity:
+        if imported_data_rows:
+            logger.debug(
+                "Updating local information about imported data with imported data from dump ..."
+            )
+
     for row in imported_data_rows:
         table_name = row["table_name"]
         unique_field_names = row["unique_field_names"]
@@ -316,13 +364,19 @@ def import_table_imported_data_from_dump(db: "MephistoDB", imported_data_rows: L
 
         # Update existing row
         if existing_row:
+            if verbosity:
+                logger.debug(f"Updating already existing row for `{table_name}`: {existing_row}")
+
             # Merge existing labels with from imported row
             existing_data_labels = json.loads(existing_row["data_labels"])
             existing_data_labels += importing_data_labels
-            existing_row["data_labels"] = json.dumps(list(set(existing_data_labels)))
+            existing_row["data_labels"] = json.dumps(sorted(list(set(existing_data_labels))))
 
             db_utils.update_row_in_table(
-                db=db, table_name="imported_data", row=existing_row, pk_field_name="id",
+                db=db,
+                table_name="imported_data",
+                row=existing_row,
+                pk_field_name="id",
             )
 
         # Create new row
@@ -331,4 +385,14 @@ def import_table_imported_data_from_dump(db: "MephistoDB", imported_data_rows: L
             row.pop("id", None)
             row["data_labels"] = json.dumps(data_labels_without_local)
 
+            if verbosity:
+                logger.debug(f"Inserting new row for `{table_name}`: {row}")
+
             db_utils.insert_new_row_in_table(db=db, table_name="imported_data", row=row)
+
+    if verbosity:
+        if imported_data_rows:
+            logger.debug(
+                "Updating local information about imported data "
+                "with imported data from dump finished"
+            )
