@@ -106,10 +106,28 @@ Options:
 - `-v/--verbosity` - level of logging (default: 0; values: 0, 1)
 
 
-## Note on legacy PKs
+## Important notes
+
+### Data dump vs backup
+
+Mephisto stores local data in `outputs` and `data` folders. The safest way to back Mephisto up is to create a copy of the `data` folder - and that's what a Mephisto backup contains.
+
+On the other hand, partial data export is written into a data dump that contains:
+
+- a JSON file representing relevant data entries from DB tables
+- a folder with all files related to the exported data entries
+
+With the export command, you **can** create a dump of the entire data as well, and here's when it's useful:
+- Use `mephisto db backup` as the safest option, and if you only intend to restore this data instead of previous one
+- Use `mephisto db export` to dump complete data from a small Mephisto project, so it can be imported into a larger Mephisto project later.
+
+
+### Legacy PKs
 
 Prior to release `v1.4` of Mephisto, its DB schemas used auto-incremented integer primary keys. While convenient for debugging, it causes problems during data import/export.
 
 As of `v1.4` we have replaced these "legacy" PKs with quazi-random integers (for backward compatibility their values are designed to be above 1,000,000).
 
 If you do wish to use import/export commands with your "legacy" data, include the `--randomize-legacy-ids` option. It prevents data corruption when merging 2 sets of "legacy" data (because they will contain same integer PKs `1, 2, 3,...` for completely unrelated objects).
+
+This handling of legacy PKs ensures that Data Porter feature is backward compatible, and wll work with your previous existing Mephisto data.

@@ -72,9 +72,10 @@ def get_root_data_dir() -> str:
         actual_data_dir = get_config_arg(CORE_SECTION, DATA_STORAGE_KEY)
         if actual_data_dir is None:
             data_dir_location = input(
-                "Please enter the full path to a location to store Mephisto run data. By default this "
-                f"would be at '{default_data_dir}'. This dir should NOT be on a distributed file "
-                "store. Press enter to use the default: "
+                "Please enter the full path to a location to store Mephisto run data. "
+                "By default this would be at '{default_data_dir}'. "
+                "This dir should NOT be on a distributed file store. "
+                "Press enter to use the default: "
             ).strip()
             if len(data_dir_location) == 0:
                 data_dir_location = default_data_dir
@@ -85,8 +86,9 @@ def get_root_data_dir() -> str:
             if os.path.exists(database_loc) and data_dir_location != default_data_dir:
                 should_migrate = (
                     input(
-                        "We have found an existing database in the default data directory, do you want to "
-                        f"copy any existing data from the default location to {data_dir_location}? (y)es/no: "
+                        f"We have found an existing database in the default data directory, "
+                        f"do you want to copy any existing data from the default location to "
+                        f"{data_dir_location}? (y)es/no: "
                     )
                     .lower()
                     .strip()
@@ -94,8 +96,8 @@ def get_root_data_dir() -> str:
                 if len(should_migrate) == 0 or should_migrate[0] == "y":
                     copy_tree(default_data_dir, data_dir_location)
                     print(
-                        "Mephisto data successfully copied, once you've confirmed the migration worked, "
-                        "feel free to remove all of the contents in "
+                        "Mephisto data successfully copied, once you've confirmed "
+                        "the migration worked, feel free to remove all of the contents in "
                         f"{default_data_dir} EXCEPT for `README.md`."
                     )
             add_config_arg(CORE_SECTION, DATA_STORAGE_KEY, data_dir_location)

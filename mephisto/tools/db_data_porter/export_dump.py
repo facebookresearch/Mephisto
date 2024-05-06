@@ -12,7 +12,7 @@ from typing import Any
 from typing import Dict
 from typing import List
 
-from rich_click import RichContext
+import click
 
 from mephisto.data_model.task_run import TaskRun
 from mephisto.tools.db_data_porter.constants import AGENTS_TABLE_NAME
@@ -215,7 +215,7 @@ def unarchive_data_files(
             logger.debug("Removing unpacked TaskRuns files finished")
 
 
-def get_export_options_for_metadata(ctx: RichContext, options: dict) -> Dict[str, Any]:
+def get_export_options_for_metadata(ctx: click.Context, options: dict) -> Dict[str, Any]:
     export_options_for_metadata = {}
 
     for param in ctx.command.params:

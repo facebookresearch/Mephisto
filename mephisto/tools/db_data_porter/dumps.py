@@ -100,7 +100,7 @@ def prepare_partial_dump_data(
             task_ids = task_ids or []
 
             # Get TaskRun IDs by Task IDs
-            task_run_ids = db_utils.get_task_run_ids_ids_by_task_ids(db, task_ids)
+            task_run_ids = db_utils.get_task_run_ids_by_task_ids(db, task_ids)
         elif task_runs_labels:
             # Validate on correct values of passed TaskRun labels
             db_labels = db_utils.get_list_of_available_labels(db)
@@ -117,7 +117,7 @@ def prepare_partial_dump_data(
                 exit()
 
             # Get TaskRun IDs
-            task_run_ids = db_utils.get_task_run_ids_ids_by_labels(db, task_runs_labels)
+            task_run_ids = db_utils.get_task_run_ids_by_labels(db, task_runs_labels)
         elif since_datetime:
             # Get TaskRun IDs
             task_run_ids = db_utils.select_task_run_ids_since_date(db, since_datetime)

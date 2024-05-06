@@ -19,11 +19,12 @@ from mephisto.abstractions.database import MephistoDB
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.generators.form_composer.config_validation.utils import make_error_message
 from mephisto.tools.db_data_porter import backups
-from mephisto.tools.db_data_porter import export_dump
 from mephisto.tools.db_data_porter import dumps
+from mephisto.tools.db_data_porter import export_dump
 from mephisto.tools.db_data_porter import import_dump
 from mephisto.tools.db_data_porter.constants import BACKUP_OUTPUT_DIR
 from mephisto.tools.db_data_porter.constants import DEFAULT_ARCHIVE_FORMAT
+from mephisto.tools.db_data_porter.constants import DEFAULT_CONFLICT_RESOLVER
 from mephisto.tools.db_data_porter.constants import EXPORT_OUTPUT_DIR
 from mephisto.tools.db_data_porter.constants import IMPORTED_DATA_TABLE_NAME
 from mephisto.tools.db_data_porter.constants import MEPHISTO_DUMP_KEY
@@ -301,7 +302,7 @@ class DBDataPorter:
     def import_dump(
         self,
         dump_archive_file_name_or_path: str,
-        conflict_resolver_name: str,
+        conflict_resolver_name: Optional[str] = DEFAULT_CONFLICT_RESOLVER,
         labels: Optional[List[str]] = None,
         keep_import_metadata: Optional[bool] = None,
         verbosity: int = 0,

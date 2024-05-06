@@ -37,7 +37,7 @@ def _randomize_ids_for_mephisto(
     table_names = [t for t in mephisto_dump.keys() if t not in [IMPORTED_DATA_TABLE_NAME]]
 
     # Find Foreign Keys' field names for all tables in Mephist DB
-    tables_fks = db_utils.select_fk_mappings_for_all_tables(db, table_names)
+    tables_fks = db_utils.select_fk_mappings_for_tables(db, table_names)
 
     # Make new Primary Keys for all or legacy values
     mephisto_pk_substitutions = {}

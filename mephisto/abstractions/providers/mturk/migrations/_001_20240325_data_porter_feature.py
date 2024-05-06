@@ -5,11 +5,12 @@
 # LICENSE file in the root directory of this source tree.
 
 """
-1. Modified default value for `creation_date`
+List of changes:
+1. Modify default value for `creation_date`
 """
 
 
-PREPARING_DB_FOR_MERGE_DBS_COMMAND = """
+MODIFICATIONS_FOR_DATA_PORTER = """
     /* Disable FK constraints */
     PRAGMA foreign_keys = off;
 
@@ -36,8 +37,8 @@ PREPARING_DB_FOR_MERGE_DBS_COMMAND = """
     INSERT INTO _run_mappings SELECT * FROM run_mappings;
     DROP TABLE run_mappings;
     ALTER TABLE _run_mappings RENAME TO run_mappings;
-    
-    
+
+
     /* Runs */
     CREATE TABLE IF NOT EXISTS _runs (
         run_id TEXT PRIMARY KEY UNIQUE,
@@ -50,8 +51,8 @@ PREPARING_DB_FOR_MERGE_DBS_COMMAND = """
     INSERT INTO _runs SELECT * FROM runs;
     DROP TABLE runs;
     ALTER TABLE _runs RENAME TO runs;
-    
-    
+
+
     /* Qualifications */
     CREATE TABLE IF NOT EXISTS _qualifications (
         qualification_name TEXT PRIMARY KEY UNIQUE,

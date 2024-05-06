@@ -53,14 +53,6 @@ class EntryDoesNotExistException(MephistoDBException):
 # --- Functions ---
 
 
-def _select_all_rows_from_table(db: "MephistoDB", table_name: str) -> List[dict]:
-    with db.table_access_condition, db.get_connection() as conn:
-        c = conn.cursor()
-        c.execute(f"SELECT * FROM {table_name};")
-        rows = c.fetchall()
-        return [dict(row) for row in rows]
-
-
 def _select_rows_from_table_related_to_task(
     db: "MephistoDB",
     table_name: str,
@@ -121,7 +113,7 @@ def get_task_ids_by_task_names(db: "MephistoDB", task_names: List[str]) -> List[
         return [r["task_id"] for r in rows]
 
 
-def get_task_run_ids_ids_by_task_ids(db: "MephistoDB", task_ids: List[str]) -> List[str]:
+def get_task_run_ids_by_task_ids(db: "MephistoDB", task_ids: List[str]) -> List[str]:
     with db.table_access_condition, db.get_connection() as conn:
         c = conn.cursor()
         task_ids_string = ",".join([f"'{s}'" for s in task_ids])
@@ -135,7 +127,7 @@ def get_task_run_ids_ids_by_task_ids(db: "MephistoDB", task_ids: List[str]) -> L
         return [r["task_run_id"] for r in rows]
 
 
-def get_task_run_ids_ids_by_labels(db: "MephistoDB", labels: List[str]) -> List[str]:
+def get_task_run_ids_by_labels(db: "MephistoDB", labels: List[str]) -> List[str]:
     with db.table_access_condition, db.get_connection() as conn:
         if not labels:
             return []
@@ -174,10 +166,15 @@ def get_table_pk_field_name(db: "MephistoDB", table_name: str):
         return table_unique_field_name
 
 
-def select_all_table_rows(db: "MephistoDB", table_name: str) -> List[dict]:
+def select_all_table_rows(
+    db: "MephistoDB",
+    table_name: str,
+    order_by: Optional[str] = None,
+) -> List[dict]:
+    order_by_string = f" ORDER BY {order_by}" if order_by else ""
     with db.table_access_condition, db.get_connection() as conn:
         c = conn.cursor()
-        c.execute(f"SELECT * FROM {table_name};")
+        c.execute(f"SELECT * FROM {table_name}{order_by_string};")
         rows = c.fetchall()
         return [dict(row) for row in rows]
 
@@ -428,7 +425,7 @@ def db_or_datastore_to_dict(db: "MephistoDB") -> dict:
     dump_data = {}
     table_names = get_list_of_tables_to_export(db)
     for table_name in table_names:
-        table_rows = _select_all_rows_from_table(db, table_name)
+        table_rows = select_all_table_rows(db, table_name)
         table_data = serialize_data_for_table(table_rows)
         dump_data[table_name] = table_data
 
@@ -547,7 +544,7 @@ def select_task_run_ids_since_date(db: "MephistoDB", since: datetime) -> List[st
     return task_run_ids_since
 
 
-def select_fk_mappings_for_table(db: "MephistoDB", table_name: str) -> dict:
+def select_fk_mappings_for_single_table(db: "MephistoDB", table_name: str) -> dict:
     with db.table_access_condition, db.get_connection() as conn:
         c = conn.cursor()
         c.execute(f"SELECT * FROM pragma_foreign_key_list('{table_name}');")
@@ -567,10 +564,10 @@ def select_fk_mappings_for_table(db: "MephistoDB", table_name: str) -> dict:
         return table_fks
 
 
-def select_fk_mappings_for_all_tables(db: "MephistoDB", table_names: List[str]) -> dict:
+def select_fk_mappings_for_tables(db: "MephistoDB", table_names: List[str]) -> dict:
     tables_fks = {}
     for table_name in table_names:
-        table_fks = select_fk_mappings_for_table(db, table_name)
+        table_fks = select_fk_mappings_for_single_table(db, table_name)
         tables_fks.update({table_name: table_fks})
     return tables_fks
 

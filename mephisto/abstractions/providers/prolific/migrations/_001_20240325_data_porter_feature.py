@@ -5,16 +5,17 @@
 # LICENSE file in the root directory of this source tree.
 
 """
+List of changes:
 1. Remove autoincrement parameter for all Primary Keys
-2. Added `update_date` and `creation_date` in `workers` table
-3. Added `creation_date` in `units` table
+2. Add `update_date` and `creation_date` in `workers` table
+3. Add `creation_date` in `units` table
 4. Rename field `run_id` -> `task_run_id`
 5. Remove table `requesters`
-6. Modified default value for `creation_date`
+6. Modify default value for `creation_date`
 """
 
 
-PREPARING_DB_FOR_MERGE_DBS_COMMAND = """
+MODIFICATIONS_FOR_DATA_PORTER = """
     /* Disable FK constraints */
     PRAGMA foreign_keys = off;
 

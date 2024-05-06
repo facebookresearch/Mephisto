@@ -45,5 +45,5 @@ def restore_from_backup(
         if remove_backup:
             Path(backup_file_path).unlink(missing_ok=True)
     except Exception as e:
-        logger.exception(f"[red]Could not restore backup '{backup_file_path}'. Error: {e}[/red]")
+        logger.exception(f"[red]Could not restore backup {backup_file_path}. Error: {e}[/red]")
         exit()

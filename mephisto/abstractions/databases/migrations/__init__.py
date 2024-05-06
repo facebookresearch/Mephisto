@@ -4,9 +4,9 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from ._001_20240325_preparing_db_for_merge_dbs_command import *
+from ._001_20240325_data_porter_feature import *
 
 
 migrations = {
-    "20240418_preparing_db_for_merge_dbs_command": PREPARING_DB_FOR_MERGE_DBS_COMMAND,
+    "20240418_data_porter_feature": MODIFICATIONS_FOR_DATA_PORTER,
 }

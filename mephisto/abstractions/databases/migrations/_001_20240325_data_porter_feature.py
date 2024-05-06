@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 """
+List of changes:
 1. Rename `unit_review.created_at` -> `unit_review.creation_date`
 2. Remove autoincrement parameter for all Primary Keys
 3. Add missed Foreign Keys in `agents` table
@@ -13,7 +14,7 @@
 """
 
 
-PREPARING_DB_FOR_MERGE_DBS_COMMAND = """
+MODIFICATIONS_FOR_DATA_PORTER = """
     ALTER TABLE unit_review RENAME COLUMN created_at TO creation_date;
 
     /* Disable FK constraints */

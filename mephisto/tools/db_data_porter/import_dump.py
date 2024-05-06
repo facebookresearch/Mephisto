@@ -44,7 +44,7 @@ def _update_row_with_pks_from_resolvings_mappings(
     row: dict,
     resolvings_mapping: MappingResolvingsType,
 ) -> dict:
-    table_fks = db_utils.select_fk_mappings_for_table(db, table_name)
+    table_fks = db_utils.select_fk_mappings_for_single_table(db, table_name)
 
     # Update FK fields from resolving mappings if needed
     for fk_table, fk_table_fields in table_fks.items():

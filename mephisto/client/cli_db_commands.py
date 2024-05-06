@@ -9,7 +9,6 @@ from typing import Optional
 
 import click
 from rich_click import RichCommand
-from rich_click import RichContext
 
 from mephisto.tools.db_data_porter import DBDataPorter
 from mephisto.tools.db_data_porter.constants import DEFAULT_CONFLICT_RESOLVER
@@ -22,7 +21,7 @@ VERBOSITY_DEFAULT_VALUE = 0
 logger = ConsoleWriter()
 
 
-def _print_used_options_for_running_command_message(ctx: RichContext, options: dict):
+def _print_used_options_for_running_command_message(ctx: click.Context, options: dict):
     message = "Running command with the following options:\n"
     for p in ctx.command.params:
         values = options[p.name]
@@ -112,7 +111,7 @@ def db_cli():
     ),
 )
 @click.option("-v", "--verbosity", type=int, default=VERBOSITY_DEFAULT_VALUE, help=VERBOSITY_HELP)
-def export(ctx: RichContext, **options: dict):
+def export(ctx: click.Context, **options: dict):
     """
     This command exports data from Mephisto DB and provider-specific datastores
     as an archived combination of (i) a JSON file, and (ii) a `data` catalog with related files.
@@ -238,7 +237,7 @@ def export(ctx: RichContext, **options: dict):
     help="write data from `imported_data` table of the dump (by default it's not imported)",
 )
 @click.option("-v", "--verbosity", type=int, default=VERBOSITY_DEFAULT_VALUE, help=VERBOSITY_HELP)
-def _import(ctx: RichContext, **options: dict):
+def _import(ctx: click.Context, **options: dict):
     """
     This command imports data from a dump file created by `mephisto db export` command.
 
@@ -271,7 +270,7 @@ def _import(ctx: RichContext, **options: dict):
 @db_cli.command("backup", cls=RichCommand)
 @click.pass_context
 @click.option("-v", "--verbosity", type=int, default=VERBOSITY_DEFAULT_VALUE, help=VERBOSITY_HELP)
-def backup(ctx: RichContext, **options: dict):
+def backup(ctx: click.Context, **options: dict):
     """
     Creates full backup of all current data (Mephisto DB, provider-specific datastores,
     and related files) on local machine.
@@ -301,7 +300,7 @@ def backup(ctx: RichContext, **options: dict):
     ),
 )
 @click.option("-v", "--verbosity", type=int, default=VERBOSITY_DEFAULT_VALUE, help=VERBOSITY_HELP)
-def restore(ctx: RichContext, **options):
+def restore(ctx: click.Context, **options):
     """
     Restores all data (Mephisto DB, provider-specific datastores, and related files)
     from a backup archive.
