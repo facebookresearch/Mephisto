@@ -20,7 +20,7 @@ def _find_granted_qualifications(db: LocalMephistoDB, qualification_id: str) -> 
     """Return the granted qualifications in the database by the given qualification id"""
 
     with db.table_access_condition:
-        conn = db._get_connection()
+        conn = db.get_connection()
         c = conn.cursor()
         c.execute(
             f"""
@@ -50,13 +50,13 @@ def _find_unit_reviews(
         params.append(nonesafe_int(task_id))
 
     with db.table_access_condition:
-        conn = db._get_connection()
+        conn = db.get_connection()
         c = conn.cursor()
         c.execute(
             f"""
             SELECT * FROM unit_review
             WHERE (updated_qualification_id = ?1) AND (worker_id = ?2) {task_query}
-            ORDER BY created_at ASC;
+            ORDER BY creation_date ASC;
             """,
             params,
         )
@@ -89,7 +89,7 @@ class QualificationWorkersView(MethodView):
             if unit_reviews:
                 latest_unit_review = unit_reviews[-1]
                 unit_review_id = latest_unit_review["id"]
-                granted_at = latest_unit_review["created_at"]
+                granted_at = latest_unit_review["creation_date"]
             else:
                 continue
 
@@ -98,7 +98,7 @@ class QualificationWorkersView(MethodView):
                     "worker_id": gq["worker_id"],
                     "value": gq["value"],
                     "unit_review_id": unit_review_id,  # latest grant of this qualification
-                    "granted_at": granted_at,  # maps to `unit_review.created_at` column
+                    "granted_at": granted_at,  # maps to `unit_review.creation_date` column
                 }
             )
 

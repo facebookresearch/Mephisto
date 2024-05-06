@@ -76,14 +76,14 @@ class TestUnitsView(BaseTestApiViewCase):
         unit_1_id = get_test_unit(self.db)
         unit_1: Unit = Unit.get(self.db, unit_1_id)
         unit_2_id = self.db.new_unit(
-            unit_1.task_id,
-            unit_1.task_run_id,
-            unit_1.requester_id,
-            unit_1.db_id,
-            2,
-            1,
-            unit_1.provider_type,
-            unit_1.task_type,
+            task_id=unit_1.task_id,
+            task_run_id=unit_1.task_run_id,
+            requester_id=unit_1.requester_id,
+            assignment_id=unit_1.assignment_id,
+            unit_index=2,
+            pay_amount=1,
+            provider_type=unit_1.provider_type,
+            task_type=unit_1.task_type,
         )
         unit_2: Unit = Unit.get(self.db, unit_2_id)
         unit_1.set_db_status(AssignmentState.COMPLETED)
@@ -104,14 +104,14 @@ class TestUnitsView(BaseTestApiViewCase):
         unit_1_id = get_test_unit(self.db)
         unit_1: Unit = Unit.get(self.db, unit_1_id)
         unit_2_id = self.db.new_unit(
-            unit_1.task_id,
-            unit_1.task_run_id,
-            unit_1.requester_id,
-            unit_1.db_id,
-            2,
-            1,
-            unit_1.provider_type,
-            unit_1.task_type,
+            task_id=unit_1.task_id,
+            task_run_id=unit_1.task_run_id,
+            requester_id=unit_1.requester_id,
+            assignment_id=unit_1.assignment_id,
+            unit_index=2,
+            pay_amount=1,
+            provider_type=unit_1.provider_type,
+            task_type=unit_1.task_type,
         )
 
         unit_2: Unit = Unit.get(self.db, unit_2_id)

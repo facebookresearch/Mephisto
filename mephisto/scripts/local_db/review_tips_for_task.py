@@ -117,6 +117,7 @@ def main():
     if len(units) == 0:
         print("[red]No units were received[/red]")
         quit()
+
     for unit in units:
         if unit.agent_id is not None:
             unit_data = mephisto_data_browser.get_data_from_unit(unit)
@@ -125,15 +126,18 @@ def main():
             if tips is not None and len(tips) > 0:
                 tips_copy = tips.copy()
                 for i in range(len(tips)):
-                    if tips[i]["accepted"] == False:
+                    if tips[i]["accepted"] is False:
+                        title = (
+                            "\nTip {current_tip} of {total_number_of_tips} from Agent {agent_id}"
+                        ).format(
+                            current_tip=i + 1,
+                            total_number_of_tips=len(tips),
+                            agent_id=unit.agent_id,
+                        )
                         current_tip_table = Table(
                             "Property",
                             "Value",
-                            title="\nTip {current_tip} of {total_number_of_tips} From Agent {agent_id}".format(
-                                current_tip=i + 1,
-                                total_number_of_tips=len(tips),
-                                agent_id=unit.agent_id,
-                            ),
+                            title=title,
                             box=box.ROUNDED,
                             expand=True,
                             show_lines=True,
@@ -157,17 +161,20 @@ def main():
                             print("[green]Tip Accepted[/green]")
                             # given the option to pay a bonus to the worker who wrote the tip
                             bonus = FloatPrompt.ask(
-                                "\nHow much would you like to bonus the tip submitter? (Default: 0.0)",
+                                "\nHow much would you like to bonus the tip submitter? "
+                                "(Default: 0.0)",
                                 show_default=False,
                                 default=0.0,
                             )
                             if bonus > 0:
                                 reason = Prompt.ask(
-                                    "\nWhat reason would you like to give the worker for this tip? NOTE: This will be shared with the worker.(Default: Thank you for submitting a tip!)",
+                                    "\nWhat reason would you like to give the worker for this tip? "
+                                    "NOTE: This will be shared with the worker. "
+                                    "(Default: Thank you for submitting a tip!)",
                                     default="Thank you for submitting a tip!",
                                     show_default=False,
                                 )
-                                worker_id = float(unit_data["worker_id"])
+                                worker_id = unit_data["worker_id"]
                                 worker = Worker.get(db, worker_id)
                                 if worker is not None:
                                     bonus_successfully_paid = worker.bonus_worker(
@@ -177,7 +184,9 @@ def main():
                                         print("\n[green]Bonus Successfully Paid![/green]\n")
                                     else:
                                         print(
-                                            "\n[red]There was an error when paying out your bonus[/red]\n"
+                                            "\n[red]"
+                                            "There was an error when paying out your bonus"
+                                            "[/red]\n"
                                         )
 
                         elif tip_response == TipsReviewType.REJECTED.value:

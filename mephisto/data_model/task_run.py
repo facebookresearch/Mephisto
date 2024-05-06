@@ -8,6 +8,8 @@
 import os
 import json
 from dataclasses import dataclass, field
+from datetime import datetime
+from dateutil.parser import parse
 
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.constants.assignment_state import AssignmentState
@@ -202,6 +204,7 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         self.task_type: str = row["task_type"]
         self.sandbox: bool = row["sandbox"]
         self.assignments_generator_done: bool = False
+        self.creation_date: Optional[datetime] = parse(row["creation_date"])
 
         # properties with deferred loading
         self.__is_completed = row["is_completed"]

@@ -18,7 +18,7 @@ def _find_granted_qualifications(db: LocalMephistoDB, worker_id: str) -> List[St
     """Return the granted qualifications in the database by the given worker id"""
 
     with db.table_access_condition:
-        conn = db._get_connection()
+        conn = db.get_connection()
         c = conn.cursor()
         c.execute(
             """
@@ -27,14 +27,14 @@ def _find_granted_qualifications(db: LocalMephistoDB, worker_id: str) -> List[St
                 gq.worker_id,
                 gq.qualification_id,
                 gq.granted_qualification_id,
-                ur.created_at AS granted_at
+                ur.creation_date AS granted_at
             FROM granted_qualifications AS gq
             LEFT JOIN (
                 SELECT
                     updated_qualification_id,
-                    created_at
+                    creation_date
                 FROM unit_review
-                ORDER BY created_at DESC
+                ORDER BY creation_date DESC
                 /*
                 We’re retrieving unit_review data only
                 for the latest update of the worker-qualification pair.
@@ -70,7 +70,7 @@ class WorkerGrantedQualificationsView(MethodView):
                     "worker_id": gq["worker_id"],
                     "qualification_id": gq["qualification_id"],
                     "value": int(gq["value"]),
-                    "granted_at": gq["worker_id"],  # maps to `unit_review.created_at` column
+                    "granted_at": gq["granted_at"],  # maps to `unit_review.creation_date` column
                 },
             )
 

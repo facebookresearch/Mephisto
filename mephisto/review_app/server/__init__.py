@@ -18,11 +18,11 @@ from werkzeug import Response
 from werkzeug.exceptions import HTTPException as WerkzeugHTTPException
 from werkzeug.utils import import_string
 
-from mephisto.abstractions.database import EntryDoesNotExistException
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.abstractions.providers.prolific.api import status
 from mephisto.abstractions.providers.prolific.api.exceptions import ProlificException
 from mephisto.tools.data_browser import DataBrowser
+from mephisto.utils.db import EntryDoesNotExistException
 from mephisto.utils.logger_core import get_logger
 from .urls import init_urls
 
