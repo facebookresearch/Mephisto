@@ -47,7 +47,7 @@ class DBDataPorter:
     This class contains the main logic of commands `mephisto db ...`.
     """
 
-    def __init__(self, db=None):
+    def __init__(self, db: "MephistoDB" = None):
         # Load Mephisto DB and providers' datastores
         if db is None:
             db = LocalMephistoDB()
@@ -324,7 +324,7 @@ class DBDataPorter:
 
         if not os.path.exists(dump_archive_file_name_or_path):
             error_message = (
-                f"Could not find dump file '{dump_archive_file_name_or_path}'. "
+                f"Could not find dump file {dump_archive_file_name_or_path}. "
                 f"Please specify full path to existing file or "
                 f"only filename if located in <MEPHISTO_REPO>/{EXPORT_OUTPUT_DIR}."
             )
@@ -342,7 +342,7 @@ class DBDataPorter:
                     dump_file_data: dict = json.loads(f.read())
                 except Exception as e:
                     error_message = (
-                        f"Could not read JSON from dump file '{dump_archive_file_name_or_path}'. "
+                        f"Could not read JSON from dump file {dump_archive_file_name_or_path}. "
                         f"Please, check if file '{json_dump_file_name}' in it "
                         f"has the correct format. Reason: {str(e)}"
                     )
@@ -377,7 +377,7 @@ class DBDataPorter:
         dump_timestamp = self._make_export_timestamp()
         backup_path = backups.make_backup_file_path_by_timestamp(backup_dir, dump_timestamp)
         backups.make_full_data_dir_backup(backup_path)
-        logger.info(f"Backup was created successfully! File: '{backup_path}'")
+        logger.info(f"Backup was created successfully! File: {backup_path}")
 
         # 7. Write dump data into local DBs
         logger.info(f"Started importing from dump file {dump_archive_file_name_or_path} ...")

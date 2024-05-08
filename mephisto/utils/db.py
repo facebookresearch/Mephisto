@@ -572,7 +572,7 @@ def select_fk_mappings_for_tables(db: "MephistoDB", table_names: List[str]) -> d
     return tables_fks
 
 
-def insert_new_row_in_table(db: "MephistoDB", table_name: str, row: dict):
+def insert_new_row_in_table(db: "MephistoDB", table_name: str, row: dict) -> str:
     with db.table_access_condition, db.get_connection() as conn:
         c = conn.cursor()
 
@@ -589,6 +589,9 @@ def insert_new_row_in_table(db: "MephistoDB", table_name: str, row: dict):
             """,
             values,
         )
+
+        _id = str(c.lastrowid)
+        return _id
 
 
 def update_row_in_table(

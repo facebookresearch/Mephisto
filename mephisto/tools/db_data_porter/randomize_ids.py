@@ -168,7 +168,11 @@ def randomize_ids(
     # Providers' DBs
     provider_types = [i["provider_type"] for i in mephisto_dump["requesters"]]
     for provider_type in provider_types:
-        provider_dump = full_dump[provider_type]
+        provider_dump = full_dump.get(provider_type)
+
+        if not provider_dump:
+            continue
+
         randomized_ids_for_provider = _randomize_ids_for_provider(
             provider_type,
             provider_dump,
