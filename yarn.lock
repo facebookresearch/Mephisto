@@ -1799,6 +1799,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@docsearch/css@npm:3.6.0":
+  version: 3.6.0
+  resolution: "@docsearch/css@npm:3.6.0"
+  checksum: 6fa5d7a386f56dc90a2e060e3e368e075356709dd412df2a03bb7b4041c5c6dcf379078163c16d022c2a27fdd4c75596c33485d1bd6b37ad6fbac80f51704af1
+  languageName: node
+  linkType: hard
+
 "@docsearch/react@npm:3.2.1":
   version: 3.2.1
   resolution: "@docsearch/react@npm:3.2.1"
@@ -17365,7 +17372,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "web@workspace:docs/web"
   dependencies:
-    "@docsearch/css": 3.2.1
+    "@docsearch/css": 3.6.0
     "@docsearch/react": 3.2.1
     "@docusaurus/core": 2.2.0
     "@docusaurus/preset-classic": 2.2.0
