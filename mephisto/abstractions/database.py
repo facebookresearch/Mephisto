@@ -6,42 +6,35 @@
 
 
 import os
-import sqlite3
 import warnings
+from abc import ABC
+from abc import abstractmethod
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Mapping
+from typing import Optional
+from typing import Union
+
 from prometheus_client import Histogram  # type: ignore
 
-from abc import ABC, abstractmethod
-from mephisto.utils.dirs import get_data_dir
-from mephisto.operations.registry import (
-    get_crowd_provider_from_type,
-    get_valid_provider_types,
-)
-from typing import Mapping, Optional, Any, List, Dict, Union
-import enum
-from mephisto.data_model.agent import Agent, OnboardingAgent
-from mephisto.data_model.unit import Unit
+from mephisto.data_model.agent import Agent
+from mephisto.data_model.agent import OnboardingAgent
 from mephisto.data_model.assignment import Assignment
 from mephisto.data_model.project import Project
+from mephisto.data_model.qualification import GrantedQualification
+from mephisto.data_model.qualification import Qualification
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
+from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
-from mephisto.data_model.qualification import Qualification, GrantedQualification
+from mephisto.operations.registry import get_crowd_provider_from_type
+from mephisto.operations.registry import get_valid_provider_types
+from mephisto.utils.dirs import get_data_dir
 
 
 # TODO(#101) investigate cursors for DB queries as the project scales
-
-
-class MephistoDBException(Exception):
-    pass
-
-
-class EntryAlreadyExistsException(MephistoDBException):
-    pass
-
-
-class EntryDoesNotExistException(MephistoDBException):
-    pass
 
 
 # Initialize histogram for database latency

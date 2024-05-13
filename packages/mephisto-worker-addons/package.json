@@ -36,7 +36,7 @@
     "prop-types": "^15.8.1",
     "raw-loader": "^4.0.2",
     "react-popper-tooltip": "^4.4.2",
-    "react-shadow": "^19.0.3",
+    "react-shadow": "^20.4.0",
     "style-loader": "^3.3.1"
   }
 }

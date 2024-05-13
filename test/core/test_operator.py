@@ -15,6 +15,7 @@ import threading
 from unittest.mock import patch
 from tqdm import TMonitor  # type: ignore
 
+from mephisto.data_model.assignment import Assignment
 from mephisto.utils.testing import get_test_requester
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
@@ -90,7 +91,7 @@ class OperatorBaseTest(object):
             f"Expected only main thread at teardown after {SHUTDOWN_TIMEOUT} seconds, found {target_threads}",
         )
 
-    def wait_for_complete_assignment(self, assignment, timeout: int):
+    def wait_for_complete_assignment(self, assignment: Assignment, timeout: int):
         start_time = time.time()
         while time.time() - start_time < timeout:
             if assignment.get_status() == AssignmentState.COMPLETED:

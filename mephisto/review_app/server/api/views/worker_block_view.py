@@ -11,9 +11,9 @@ from flask import request
 from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
 
-from mephisto.abstractions.database import EntryDoesNotExistException
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
+from mephisto.utils.db import EntryDoesNotExistException
 
 
 def _update_blocked_worker_in_unit_review(
@@ -25,14 +25,14 @@ def _update_blocked_worker_in_unit_review(
     """Update unit review in the db with blocking Worker value"""
 
     with db.table_access_condition:
-        conn = db._get_connection()
+        conn = db.get_connection()
         c = conn.cursor()
 
         c.execute(
             """
             SELECT * FROM unit_review
             WHERE (unit_id = ?) AND (worker_id = ?)
-            ORDER BY created_at ASC;
+            ORDER BY creation_date ASC;
             """,
             (unit_id, worker_id),
         )

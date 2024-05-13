@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 # Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
@@ -12,7 +13,6 @@ from typing import Optional
 import rich_click as click  # type: ignore
 from flask.cli import pass_script_info
 from flask.cli import ScriptInfo
-from rich import print
 from rich.markdown import Markdown
 from rich_click import RichCommand
 from rich_click import RichGroup
@@ -31,6 +31,7 @@ import mephisto.scripts.mturk.identify_broken_units as identify_broken_units_mtu
 import mephisto.scripts.mturk.launch_makeup_hits as launch_makeup_hits_mturk
 import mephisto.scripts.mturk.print_outstanding_hit_status as soft_block_workers_by_mturk_id_mturk
 from mephisto.client.cli_commands import get_wut_arguments
+from mephisto.client.cli_db_commands import db_cli
 from mephisto.generators.form_composer.config_validation.separate_token_values_config import (
     update_separate_token_values_config_with_file_urls,
 )
@@ -50,6 +51,7 @@ from mephisto.generators.form_composer.config_validation.utils import (
 )
 from mephisto.operations.registry import get_valid_provider_types
 from mephisto.tools.scripts import build_custom_bundle
+from mephisto.utils.console_writer import ConsoleWriter
 from mephisto.utils.rich import console
 from mephisto.utils.rich import create_table
 
@@ -58,6 +60,8 @@ FORM_COMPOSER__DATA_CONFIG_NAME = "task_data.json"
 FORM_COMPOSER__FORM_CONFIG_NAME = "form_config.json"
 FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME = "token_sets_values_config.json"
 FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME = "separate_token_values_config.json"
+
+logger = ConsoleWriter()
 
 
 @click.group(cls=RichGroup)
@@ -76,8 +80,8 @@ click.rich_click.ERRORS_EPILOGUE = (
 
 
 @cli.command("config", cls=RichCommand)
-@click.argument("identifier", type=(str), default=None, required=False)
-@click.argument("value", type=(str), default=None, required=False)
+@click.argument("identifier", type=str, default=None, required=False)
+@click.argument("value", type=str, default=None, required=False)
 def config(identifier, value):
     from mephisto.operations.config_handler import (
         get_config_arg,
@@ -104,7 +108,7 @@ def config(identifier, value):
     else:
         # Write mode:
         add_config_arg(section, key, value)
-        print(f"[green]{identifier} succesfully updated to: {value}[/green]")
+        logger.info(f"[green]{identifier} succesfully updated to: {value}[/green]")
 
 
 @cli.command("check", cls=RichCommand)
@@ -117,10 +121,10 @@ def check():
         db = LocalMephistoDB()
         get_mock_requester(db)
     except Exception as e:
-        print("\n[red]Something went wrong.[/red]")
+        logger.exception("\n[red]Something went wrong.[/red]")
         click.echo(e)
         return
-    print("\n[green]Mephisto seems to be set up correctly.[/green]\n")
+    logger.info("\n[green]Mephisto seems to be set up correctly.[/green]\n")
 
 
 @cli.command("requesters", cls=RichCommand)
@@ -140,7 +144,7 @@ def list_requesters():
             requester_table.add_row(*requester_vals)
         console.print(requester_table)
     else:
-        print("[red]No requesters found[/red]")
+        logger.error("[red]No requesters found[/red]")
 
 
 @cli.command("register", cls=RichCommand, context_settings={"ignore_unknown_options": True})
@@ -148,14 +152,14 @@ def list_requesters():
 def register_provider(args):
     """Register a requester with a crowd provider"""
     if len(args) == 0:
-        print("\n[red]Usage: mephisto register <provider_type> arg1=value arg2=value[/red]")
-        print("\n[b]Valid Providers[/b]")
+        logger.error("\n[red]Usage: mephisto register <provider_type> arg1=value arg2=value[/red]")
+        logger.info("\n[b]Valid Providers[/b]")
         provider_text = """"""
         for provider in get_valid_provider_types():
             provider_text += "\n* " + provider
         provider_text_markdown = Markdown(provider_text)
         console.print(provider_text_markdown)
-        print("")
+        logger.info("")
         return
 
     from mephisto.abstractions.databases.local_database import LocalMephistoDB
@@ -186,16 +190,17 @@ def register_provider(args):
                     requester_table.add_row(*arg_values)
                 console.print(requester_table)
             else:
-                print("[red]Requester has no args[/red]")
+                logger.error("[red]Requester has no args[/red]")
         return
 
     try:
         parsed_options = parse_arg_dict(RequesterClass, args_dict)
     except Exception as e:
+        parsed_options = None
         click.echo(str(e))
 
     if parsed_options.name is None:
-        print("[red]No name was specified for the requester.[/red]")
+        logger.error("[red]No name was specified for the requester.[/red]")
 
     db = LocalMephistoDB()
     requesters = db.find_requesters(requester_name=parsed_options.name)
@@ -205,7 +210,7 @@ def register_provider(args):
         requester = requesters[0]
     try:
         requester.register(parsed_options)
-        print("[green]Registered successfully.[/green]")
+        logger.info("[green]Registered successfully.[/green]")
     except Exception as e:
         click.echo(str(e))
 
@@ -232,7 +237,7 @@ def run_script(script_type, script_name, args: Optional[Any] = None):
 
     VALID_SCRIPT_TYPES = ["local_db", "heroku", "metrics", "mturk", "form_composer"]
     if script_type is None or script_type.strip() not in VALID_SCRIPT_TYPES:
-        print("")
+        logger.info("")
         raise click.UsageError(
             "You must specify a valid script_type from below. \n\nValid script types are:"
             + print_non_markdown_list(VALID_SCRIPT_TYPES)
@@ -300,7 +305,7 @@ def run_script(script_type, script_name, args: Optional[Any] = None):
     if script_name is None or (
         script_name not in script_type_to_scripts_data[script_type]["valid_script_names"]
     ):
-        print("")
+        logger.info("")
         raise click.UsageError(
             "You must specify a valid script_name from below. \n\nValid script names are:"
             + print_non_markdown_list(
@@ -324,7 +329,7 @@ def metrics_cli(args):
     )
 
     if len(args) == 0 or args[0] not in ["install", "view", "cleanup"]:
-        print("\n[red]Usage: mephisto metrics <install|view|cleanup>[/red]")
+        logger.error("\n[red]Usage: mephisto metrics <install|view|cleanup>[/red]")
         metrics_table = create_table(["Property", "Value"], "Metrics Arguments")
         metrics_table.add_row("install", f"Installs Prometheus and Grafana to {METRICS_DIR}")
         metrics_table.add_row(
@@ -359,11 +364,11 @@ def metrics_cli(args):
 
 
 @cli.command("review_app", cls=RichCommand)
-@click.option("-h", "--host", type=(str), default="127.0.0.1")
-@click.option("-p", "--port", type=(int), default=5000)
-@click.option("-d", "--debug", type=(bool), default=False, is_flag=True)
-@click.option("-f", "--force-rebuild", type=(bool), default=False, is_flag=True)
-@click.option("-s", "--skip-build", type=(bool), default=False, is_flag=True)
+@click.option("-h", "--host", type=str, default="127.0.0.1")
+@click.option("-p", "--port", type=int, default=5000)
+@click.option("-d", "--debug", type=bool, default=False, is_flag=True)
+@click.option("-f", "--force-rebuild", type=bool, default=False, is_flag=True)
+@click.option("-s", "--skip-build", type=bool, default=False, is_flag=True)
 @pass_script_info
 def review_app(
     info: ScriptInfo,
@@ -388,7 +393,7 @@ def review_app(
     os.environ["HOST"] = host
     os.environ["PORT"] = str(port)
 
-    print(f'[green]Review APP will start on "{app_url}" address.[/green]')
+    logger.info(f'[green]Review APP will start on "{app_url}" address.[/green]')
 
     # Set up Review App Client
     if not skip_build:
@@ -401,9 +406,9 @@ def review_app(
 
         # Install JS requirements
         if os.path.exists(os.path.join(client_path, "node_modules")):
-            print(f"[blue]JS requirements are already installed.[/blue]")
+            logger.info(f"[blue]JS requirements are already installed.[/blue]")
         else:
-            print(f"[blue]Installing JS requirements started.[/blue]")
+            logger.info(f"[blue]Installing JS requirements started.[/blue]")
             subprocess.call(["ls"], cwd=client_path)
             app_started = subprocess.call(["npm", "install"], cwd=client_path)
             if app_started != 0:
@@ -411,19 +416,19 @@ def review_app(
                     "Please make sure npm is installed, "
                     "otherwise view the above error for more info."
                 )
-            print(f"[blue]Installing JS requirements finished.[/blue]")
+            logger.info(f"[blue]Installing JS requirements finished.[/blue]")
 
         if os.path.exists(os.path.join(client_path, "build", "index.html")) and not force_rebuild:
-            print(f"[blue]React bundle is already built.[/blue]")
+            logger.info(f"[blue]React bundle is already built.[/blue]")
         else:
-            print(f"[blue]Building React bundle started.[/blue]")
+            logger.info(f"[blue]Building React bundle started.[/blue]")
             build_custom_bundle(
                 review_app_path,
                 force_rebuild=force_rebuild,
                 webapp_name=client_dir,
                 build_command="build",
             )
-            print(f"[blue]Building React bundle finished.[/blue]")
+            logger.info(f"[blue]Building React bundle finished.[/blue]")
 
     # Set debug
     debug = debug if debug is not None else get_debug_flag()
@@ -457,7 +462,7 @@ def _get_form_composer_app_path() -> str:
 
 
 @cli.command("form_composer", cls=RichCommand)
-@click.option("-o", "--task-data-config-only", type=(bool), default=True, is_flag=True)
+@click.option("-o", "--task-data-config-only", type=bool, default=True, is_flag=True)
 def form_composer(task_data_config_only: bool = True):
     # Get app path to run Python script from there (instead of the current file's directory).
     # This is necessary, because the whole infrastructure is built relative to the location
@@ -496,12 +501,12 @@ def form_composer(task_data_config_only: bool = True):
 
 
 @cli.command("form_composer_config", cls=RichCommand)
-@click.option("-v", "--verify", type=(bool), default=False, is_flag=True)
-@click.option("-f", "--update-file-location-values", type=(str), default=None)
-@click.option("-e", "--extrapolate-token-sets", type=(bool), default=False, is_flag=True)
-@click.option("-p", "--permutate-separate-tokens", type=(bool), default=False, is_flag=True)
-@click.option("-d", "--directory", type=(str), default=None)
-@click.option("-u", "--use-presigned-urls", type=(bool), default=False, is_flag=True)
+@click.option("-v", "--verify", type=bool, default=False, is_flag=True)
+@click.option("-f", "--update-file-location-values", type=str, default=None)
+@click.option("-e", "--extrapolate-token-sets", type=bool, default=False, is_flag=True)
+@click.option("-p", "--permutate-separate-tokens", type=bool, default=False, is_flag=True)
+@click.option("-d", "--directory", type=str, default=None)
+@click.option("-u", "--use-presigned-urls", type=bool, default=False, is_flag=True)
 def form_composer_config(
     verify: Optional[bool] = False,
     update_file_location_values: Optional[str] = None,
@@ -533,15 +538,15 @@ def form_composer_config(
     else:
         app_path = _get_form_composer_app_path()
         app_data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME)
-    print(f"[blue]Using config directory: {app_data_path}[/blue]")
+    logger.info(f"[blue]Using config directory: {app_data_path}[/blue]")
 
     # Validate param values
     if not os.path.exists(app_data_path):
-        print(f"[red]Directory '{app_data_path}' does not exist[/red]")
+        logger.error(f"[red]Directory '{app_data_path}' does not exist[/red]")
         return None
 
     if use_presigned_urls and not update_file_location_values:
-        print(
+        logger.error(
             f"[red]Parameter `--use-presigned-urls` can be used "
             f"only with `--update-file-location-values` option[/red]"
         )
@@ -556,7 +561,7 @@ def form_composer_config(
 
     # Run the command
     if verify:
-        print(f"Started configs verification")
+        logger.info(f"Started configs verification")
         verify_form_composer_configs(
             task_data_config_path=task_data_config_path,
             form_config_path=form_config_path,
@@ -565,10 +570,10 @@ def form_composer_config(
             task_data_config_only=False,
             data_path=app_data_path,
         )
-        print(f"Finished configs verification")
+        logger.info(f"Finished configs verification")
 
     elif update_file_location_values:
-        print(
+        logger.info(
             f"[green]Started updating '{FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME}' "
             f"with file URLs from '{update_file_location_values}'[/green]"
         )
@@ -578,12 +583,12 @@ def form_composer_config(
                 separate_token_values_config_path=separate_token_values_config_path,
                 use_presigned_urls=use_presigned_urls,
             )
-            print(f"[green]Finished successfully[/green]")
+            logger.info(f"[green]Finished successfully[/green]")
         else:
-            print("`--update-file-location-values` must be a valid S3 URL")
+            logger.info("`--update-file-location-values` must be a valid S3 URL")
 
     elif permutate_separate_tokens:
-        print(
+        logger.info(
             f"[green]Started updating '{FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME}' "
             f"with permutated separate-token values[/green]"
         )
@@ -591,10 +596,10 @@ def form_composer_config(
             separate_token_values_config_path=separate_token_values_config_path,
             token_sets_values_config_path=token_sets_values_config_path,
         )
-        print(f"[green]Finished successfully[/green]")
+        logger.info(f"[green]Finished successfully[/green]")
 
     elif extrapolate_token_sets:
-        print(
+        logger.info(
             f"[green]Started extrapolating token sets values "
             f"from '{FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME}' [/green]"
         )
@@ -604,10 +609,10 @@ def form_composer_config(
             task_data_config_path=task_data_config_path,
             data_path=app_data_path,
         )
-        print(f"[green]Finished successfully[/green]")
+        logger.info(f"[green]Finished successfully[/green]")
 
     else:
-        print(
+        logger.error(
             f"[red]"
             f"This command must have one of following parameters:"
             f"\n-v/--verify"
@@ -616,6 +621,9 @@ def form_composer_config(
             f"\n-p/--permutate-separate-tokens"
             f"[/red]"
         )
+
+
+cli.add_command(db_cli)
 
 
 if __name__ == "__main__":

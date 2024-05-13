@@ -4,33 +4,17 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import sqlite3
 import os
+import sqlite3
 import threading
+from typing import Any
+from typing import Dict
 
-from datetime import datetime
-
-from typing import Dict, Any, Optional
+from mephisto.utils.db import check_if_row_with_params_exists
+from . import mock_datastore_tables as tables
+from .mock_datastore_export import export_datastore
 
 MTURK_REGION_NAME = "us-east-1"
-
-CREATE_REQUESTERS_TABLE = """CREATE TABLE IF NOT EXISTS requesters (
-    requester_id TEXT PRIMARY KEY UNIQUE,
-    is_registered BOOLEAN
-);
-"""
-
-CREATE_UNITS_TABLE = """CREATE TABLE IF NOT EXISTS units (
-    unit_id TEXT PRIMARY KEY UNIQUE,
-    is_expired BOOLEAN
-);
-"""
-
-CREATE_WORKERS_TABLE = """CREATE TABLE IF NOT EXISTS workers (
-    worker_id TEXT PRIMARY KEY UNIQUE,
-    is_blocked BOOLEAN
-);
-"""
 
 
 class MockDatastore:
@@ -48,8 +32,9 @@ class MockDatastore:
         self.init_tables()
         self.datastore_root = datastore_root
 
-    def _get_connection(self) -> sqlite3.Connection:
-        """Returns a singular database connection to be shared amongst all
+    def get_connection(self) -> sqlite3.Connection:
+        """
+        Returns a singular database connection to be shared amongst all
         calls for a given thread.
         """
         curr_thread = threading.get_ident()
@@ -64,37 +49,58 @@ class MockDatastore:
         Run all the table creation SQL queries to ensure the expected tables exist
         """
         with self.table_access_condition:
-            conn = self._get_connection()
-            conn.execute("PRAGMA foreign_keys = 1")
-            c = conn.cursor()
-            c.execute(CREATE_REQUESTERS_TABLE)
-            c.execute(CREATE_UNITS_TABLE)
-            c.execute(CREATE_WORKERS_TABLE)
-            conn.commit()
+            conn = self.get_connection()
+            conn.execute("PRAGMA foreign_keys = on;")
+
+            with conn:
+                c = conn.cursor()
+                c.execute(tables.CREATE_IF_NOT_EXISTS_REQUESTERS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_UNITS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_WORKERS_TABLE)
+                c.execute(tables.CREATE_IF_NOT_EXISTS_MIGRATIONS_TABLE)
+
+    def get_export_data(self, **kwargs) -> dict:
+        return export_datastore(self, **kwargs)
 
     def ensure_requester_exists(self, requester_id: str) -> None:
         """Create a record of this requester if it doesn't exist"""
+        already_exists = check_if_row_with_params_exists(
+            db=self,
+            table_name="requesters",
+            params={
+                "requester_id": requester_id,
+                "is_registered": False,
+            },
+            select_field="requester_id",
+        )
+
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
-            c.execute(
-                """INSERT OR IGNORE INTO requesters(
-                    requester_id,
-                    is_registered
-                ) VALUES (?, ?);""",
-                (requester_id, False),
-            )
-            conn.commit()
+
+            if not already_exists:
+                c.execute(
+                    """
+                    INSERT INTO requesters(
+                        requester_id,
+                        is_registered
+                    ) VALUES (?, ?);
+                    """,
+                    (requester_id, False),
+                )
+                conn.commit()
+
             return None
 
     def set_requester_registered(self, requester_id: str, val: bool) -> None:
         """Set the requester registration status for the given id"""
         self.ensure_requester_exists(requester_id)
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
-                """UPDATE requesters
+                """
+                UPDATE requesters
                 SET is_registered = ?
                 WHERE requester_id = ?
                 """,
@@ -107,7 +113,7 @@ class MockDatastore:
         """Get the registration status of a requester"""
         self.ensure_requester_exists(requester_id)
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
@@ -121,27 +127,42 @@ class MockDatastore:
 
     def ensure_worker_exists(self, worker_id: str) -> None:
         """Create a record of this worker if it doesn't exist"""
+        already_exists = check_if_row_with_params_exists(
+            db=self,
+            table_name="workers",
+            params={
+                "worker_id": worker_id,
+            },
+            select_field="worker_id",
+        )
+
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
-            c.execute(
-                """INSERT OR IGNORE INTO workers(
-                    worker_id,
-                    is_blocked
-                ) VALUES (?, ?);""",
-                (worker_id, False),
-            )
-            conn.commit()
+
+            if not already_exists:
+                c.execute(
+                    """
+                    INSERT INTO workers(
+                        worker_id,
+                        is_blocked
+                    ) VALUES (?, ?);
+                    """,
+                    (worker_id, False),
+                )
+                conn.commit()
+
             return None
 
     def set_worker_blocked(self, worker_id: str, val: bool) -> None:
         """Set the worker registration status for the given id"""
         self.ensure_worker_exists(worker_id)
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
-                """UPDATE workers
+                """
+                UPDATE workers
                 SET is_blocked = ?
                 WHERE worker_id = ?
                 """,
@@ -154,7 +175,7 @@ class MockDatastore:
         """Get the registration status of a worker"""
         self.ensure_worker_exists(worker_id)
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """
@@ -168,27 +189,43 @@ class MockDatastore:
 
     def ensure_unit_exists(self, unit_id: str) -> None:
         """Create a record of this unit if it doesn't exist"""
+        already_exists = check_if_row_with_params_exists(
+            db=self,
+            table_name="units",
+            params={
+                "unit_id": unit_id,
+                "is_expired": False,
+            },
+            select_field="unit_id",
+        )
+
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
-            c.execute(
-                """INSERT OR IGNORE INTO units(
-                    unit_id,
-                    is_expired
-                ) VALUES (?, ?);""",
-                (unit_id, False),
-            )
-            conn.commit()
+
+            if not already_exists:
+                c.execute(
+                    """
+                    INSERT INTO units(
+                        unit_id,
+                        is_expired
+                    ) VALUES (?, ?);
+                    """,
+                    (unit_id, False),
+                )
+                conn.commit()
+
             return None
 
     def set_unit_expired(self, unit_id: str, val: bool) -> None:
         """Set the unit registration status for the given id"""
         self.ensure_unit_exists(unit_id)
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
-                """UPDATE units
+                """
+                UPDATE units
                 SET is_expired = ?
                 WHERE unit_id = ?
                 """,
@@ -201,7 +238,7 @@ class MockDatastore:
         """Get the registration status of a unit"""
         self.ensure_unit_exists(unit_id)
         with self.table_access_condition:
-            conn = self._get_connection()
+            conn = self.get_connection()
             c = conn.cursor()
             c.execute(
                 """

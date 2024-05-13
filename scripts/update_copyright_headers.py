@@ -47,7 +47,7 @@ def _add_prefix_suffix(prefix: str, lines: List[str], suffix: Optional[str] = No
     return lines
 
 
-def _make_copyright_lines(ext: str) -> List[str]:
+def _make_copyright_lines(file_type: str) -> List[str]:
     """
     Insert copyright as comment lines specific to file extension
     """
@@ -56,15 +56,14 @@ def _make_copyright_lines(ext: str) -> List[str]:
     # Copyright notice must not contain blank lines
     copyright_lines = list(filter(None, copyright_lines))
 
-    ext = ext.lstrip(".")
-    if ext in ["py", "sh", "yml", "yaml"]:
+    if file_type in ["py", "sh", "yml", "yaml"]:
         lines = _add_prefix_suffix("# ", copyright_lines)
-    elif ext in ["js", "jsx", "ts", "tsx", "css", "scss"]:
+    elif file_type in ["js", "jsx", "ts", "tsx", "css", "scss"]:
         lines = ["/*"] + _add_prefix_suffix(" * ", copyright_lines) + [" */"]
-    elif ext in ["md", "html"]:
+    elif file_type in ["md", "html"]:
         lines = ["<!---"] + _add_prefix_suffix("  ", copyright_lines) + ["-->"]
     else:
-        raise UnsupportedFile(f"Unsupported file extension `{ext}`")
+        raise UnsupportedFile(f"Unsupported file extension `{file_type}`")
 
     return _add_prefix_suffix(None, lines, "\n")
 
@@ -73,7 +72,7 @@ def _update_copyright_header(file_path: str, replace_existing: bool = False):
     """
     Add or replace copyright notice at the top of a file
     """
-    ext = os.path.splitext(file_path)[1].lower()
+    ext = os.path.splitext(file_path)[1].lower().lstrip(".")
 
     EXAMINED_LINES = 12
     EXAMINED_SYMBOLS = 50
@@ -85,6 +84,12 @@ def _update_copyright_header(file_path: str, replace_existing: bool = False):
         raise UnsupportedFile("File has fewer than one line")
 
     maybe_shebang = lambda i: lines[i][0] == "#" and lines[i].lstrip("#")[0] != " "
+    maybe_docusaurus = lambda i: (
+        len(lines[i]) > 3 and lines[i].startswith("---") and lines[i][3] != "-"
+    )
+    if maybe_docusaurus(0):
+        # If Docusaurus markdown contains a YAML header at the top, we insert a YAML-style comment
+        ext = "yaml"
 
     # Check copyright presence at the top of the file
     anchor_line_number = None
@@ -107,6 +112,9 @@ def _update_copyright_header(file_path: str, replace_existing: bool = False):
         if maybe_shebang(0) and not maybe_shebang(1):
             # Skipping shebang line (for shell scripts, hydra configs, etc)
             insert_at_line_number = 1
+        elif maybe_docusaurus(0):
+            # Skipping Docusaurus header line
+            insert_at_line_number = 1
         else:
             # Insert at the top of the file
             insert_at_line_number = 0
@@ -127,6 +135,8 @@ def _update_copyright_header(file_path: str, replace_existing: bool = False):
 
         first_line_number = 0
         if maybe_shebang(0) and not maybe_shebang(1):
+            first_line_number = 1
+        elif maybe_docusaurus(0):
             first_line_number = 1
 
         last_line_number = None

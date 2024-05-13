@@ -22,7 +22,7 @@ def _find_qualifications_by_ids(
     debug: bool = False,
 ) -> List[Qualification]:
     with db.table_access_condition:
-        conn = db._get_connection()
+        conn = db.get_connection()
 
         c = conn.cursor()
 

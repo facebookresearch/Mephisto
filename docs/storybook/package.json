@@ -40,10 +40,10 @@
     "@storybook/addon-actions": "^6.5.10",
     "@storybook/addon-docs": "^6.5.10",
     "@storybook/addon-essentials": "^6.5.10",
-    "@storybook/addon-links": "^6.5.10",
+    "@storybook/addon-links": "^8.0.10",
     "@storybook/node-logger": "^6.5.10",
     "@storybook/preset-create-react-app": "^4.1.2",
-    "@storybook/react": "^6.5.10",
+    "@storybook/react": "^8.0.10",
     "prop-types": "^15.8.1",
     "webpack-hot-middleware": "^2.25.2"
   },

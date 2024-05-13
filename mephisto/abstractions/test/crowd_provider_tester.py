@@ -5,22 +5,17 @@
 # LICENSE file in the root directory of this source tree.
 
 
-import unittest
-from typing import Optional, Tuple, Type
-import tempfile
-import mephisto
 import os
 import shutil
+import tempfile
+import unittest
+from typing import Type
+
+from mephisto.abstractions.crowd_provider import CrowdProvider
+from mephisto.abstractions.database import MephistoDB
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.worker import Worker
-from mephisto.abstractions.database import (
-    MephistoDB,
-    MephistoDBException,
-    EntryAlreadyExistsException,
-    EntryDoesNotExistException,
-)
-from mephisto.abstractions.databases.local_database import LocalMephistoDB
-from mephisto.abstractions.crowd_provider import CrowdProvider
 
 
 class CrowdProviderTests(unittest.TestCase):
