@@ -2318,22 +2318,23 @@ testing = ["docopt", "pytest (<6.0.0)"]
 
 [[package]]
 name = "pdoc"
-version = "10.0.4"
+version = "14.4.0"
 description = "API Documentation for Python Projects"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "pdoc-10.0.4-py3-none-any.whl", hash = "sha256:39186fa0a12b903388fc6e8a85cbe682dc40de59ea97f2fa45ae316bdbad8d40"},
+    {file = "pdoc-14.4.0-py3-none-any.whl", hash = "sha256:6ea4fe07620b1f7601e2708a307a257636ec206e20b5611640b30f2e3cab47d6"},
+    {file = "pdoc-14.4.0.tar.gz", hash = "sha256:c92edc425429ccbe287ace2a027953c24f13de53eab484c1a6d31ca72dd2fda9"},
 ]
 
 [package.dependencies]
 astunparse = {version = "*", markers = "python_version < \"3.9\""}
 Jinja2 = ">=2.11.0"
 MarkupSafe = "*"
-pygments = "*"
+pygments = ">=2.12.0"
 
 [package.extras]
-dev = ["flake8", "hypothesis", "mypy", "pytest", "pytest-cov", "pytest-timeout", "tox"]
+dev = ["hypothesis", "mypy", "pdoc-pyo3-sample-library (==1.0.11)", "pygments (>=2.14.0)", "pytest", "pytest-cov", "pytest-timeout", "ruff", "tox", "types-pygments"]
 
 [[package]]
 name = "pexpect"
@@ -4651,4 +4652,4 @@ worker-addons = ["detoxify"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "a9144bc39161c00e2036412cb1ca85b880de4e8ea231e2e087086c901eba937f"
+content-hash = "3178d1bde4df12013fd72515a9777e773fb584e3426c9df2b53144ef17f21677"
