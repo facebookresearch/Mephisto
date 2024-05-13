@@ -103,7 +103,7 @@ jobs:
           npm link
 
       - name: ⌛️ Running cypress tests
-        uses: cypress-io/github-action@v3.1.0
+        uses: cypress-io/github-action@v6.6.1
         with:
           build: npm i -D cypress@11
           install: false
@@ -150,7 +150,7 @@ jobs:
           npm link
 
       - name: ⌛️ Running cypress tests
-        uses: cypress-io/github-action@v3.1.0
+        uses: cypress-io/github-action@v6.6.1
         with:
           build: npm i -D cypress@11
           install: false
@@ -197,7 +197,7 @@ jobs:
           npm link
 
       - name: ⌛️ Running cypress tests
-        uses: cypress-io/github-action@v3.1.0
+        uses: cypress-io/github-action@v6.6.1
         with:
           build: npm i -D cypress@11
           install: false
@@ -245,7 +245,7 @@ jobs:
           npm link
 
       - name: ⌛️ Running cypress tests
-        uses: cypress-io/github-action@v3.1.0
+        uses: cypress-io/github-action@v6.6.1
         with:
           build: npm i -D cypress@11
           install: false
@@ -293,7 +293,7 @@ jobs:
           npm link
 
       - name: ⌛️ Running cypress tests
-        uses: cypress-io/github-action@v3.1.0
+        uses: cypress-io/github-action@v6.6.1
         with:
           build: npm i -D cypress@11
           install: false
@@ -348,7 +348,7 @@ jobs:
           npm link
 
       - name: ⌛️ Running pre-submission cypress tests
-        uses: cypress-io/github-action@v3.1.0
+        uses: cypress-io/github-action@v6.6.1
         with:
           build: npm i -D cypress@11
           install: false
@@ -422,7 +422,7 @@ jobs:
           EOF
 
       - name: ⌛️ Running post-submission cypress tests
-        uses: cypress-io/github-action@v3.1.0
+        uses: cypress-io/github-action@v6.6.1
         with:
           build: npm i -D cypress@11
           install: false
