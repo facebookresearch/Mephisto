@@ -1795,12 +1795,12 @@ files = [
 
 [[package]]
 name = "mdutils"
-version = "1.4.0"
+version = "1.6.0"
 description = "Useful package for creating Markdown files while executing python code."
 optional = false
-python-versions = "*"
+python-versions = "^3.6"
 files = [
-    {file = "mdutils-1.4.0.tar.gz", hash = "sha256:999b702734259716af720ac3e416f56712ff4aeeabc55192a5352e3cf5f2a463"},
+    {file = "mdutils-1.6.0.tar.gz", hash = "sha256:647f3cf00df39fee6c57fa6738dc1160fce1788276b5530c87d43a70cdefdaf1"},
 ]
 
 [[package]]
@@ -4652,4 +4652,4 @@ worker-addons = ["detoxify"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "3178d1bde4df12013fd72515a9777e773fb584e3426c9df2b53144ef17f21677"
+content-hash = "d713826417ba770e0a5c3c170589c606de7ca648800ba332a2c89f117fa1cf3a"
