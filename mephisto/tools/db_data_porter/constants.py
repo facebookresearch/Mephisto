@@ -23,6 +23,7 @@ AVAILABLE_PROVIDER_TYPES = [
 ]
 DATASTORE_EXPORT_METHOD_NAME = "get_export_data"
 DEFAULT_CONFLICT_RESOLVER = "DefaultMergeConflictResolver"
+EXAMPLE_CONFLICT_RESOLVER = "ExampleMergeConflictResolver"
 IMPORTED_DATA_TABLE_NAME = "imported_data"
 MIGRATIONS_TABLE_NAME = "migrations"
 TASK_RUNS_TABLE_NAME = "task_runs"
