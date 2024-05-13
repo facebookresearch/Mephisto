@@ -11,7 +11,6 @@ import time
 import threading
 import signal
 import asyncio
-import traceback
 
 from mephisto.operations.datatypes import LiveTaskRun, LoopWrapper
 
@@ -27,8 +26,9 @@ from mephisto.abstractions.blueprint import SharedTaskState
 from mephisto.abstractions.blueprints.mixins.onboarding_required import (
     OnboardingRequired,
 )
-from mephisto.abstractions.database import MephistoDB, EntryDoesNotExistException
+from mephisto.abstractions.database import MephistoDB
 from mephisto.data_model.qualification import QUAL_NOT_EXIST
+from mephisto.utils.db import EntryDoesNotExistException
 from mephisto.utils.qualifications import make_qualification_dict
 from mephisto.operations.task_launcher import TaskLauncher
 from mephisto.operations.client_io_handler import ClientIOHandler
@@ -52,13 +52,12 @@ from mephisto.utils.logger_core import (
 )
 from omegaconf import DictConfig, OmegaConf
 
-logger = get_logger(name=__name__)
-
 if TYPE_CHECKING:
     from mephisto.abstractions.blueprint import Blueprint
     from mephisto.abstractions.crowd_provider import CrowdProvider
     from mephisto.abstractions.architect import Architect
 
+logger = get_logger(name=__name__)
 
 RUN_STATUS_POLL_TIME = 10
 

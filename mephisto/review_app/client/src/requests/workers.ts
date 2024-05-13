@@ -16,7 +16,7 @@ export function postWorkerBlock(
   data: { [key: string]: string | number | number[] },
   abortController?: AbortController
 ) {
-  const url = generateURL(urls.server.workersBlock(id), null, null);
+  const url = generateURL(urls.server.workersBlock, [id], null);
 
   makeRequest(
     "POST",
@@ -26,6 +26,27 @@ export function postWorkerBlock(
     setLoadingAction,
     setErrorsAction,
     "postWorkerBlock error:",
+    abortController
+  );
+}
+
+export function getWorkerGrantedQualifications(
+  id: number,
+  setDataAction: SetRequestDataActionType,
+  setLoadingAction: SetRequestLoadingActionType,
+  setErrorsAction: SetRequestErrorsActionType,
+  abortController?: AbortController
+) {
+  const url = generateURL(urls.server.workerGrantedQualifications, [id]);
+
+  makeRequest(
+    "GET",
+    url,
+    null,
+    (data) => setDataAction(data.granted_qualifications),
+    setLoadingAction,
+    setErrorsAction,
+    "getWorkerGrantedQualifications error:",
     abortController
   );
 }

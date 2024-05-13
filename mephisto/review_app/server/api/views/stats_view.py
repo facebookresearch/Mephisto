@@ -42,7 +42,7 @@ def _find_unit_reviews(
     if status:
         params.append(status)
 
-    since_query = "created_at >= ?" if since else ""
+    since_query = "creation_date >= ?" if since else ""
     if since:
         params.append(since)
 
@@ -67,13 +67,13 @@ def _find_unit_reviews(
         params.append(nonesafe_int(limit))
 
     with db.table_access_condition:
-        conn = db._get_connection()
+        conn = db.get_connection()
         c = conn.cursor()
         c.execute(
             f"""
             SELECT * FROM unit_review
             {where_query}
-            ORDER BY created_at ASC {limit_query};
+            ORDER BY creation_date ASC {limit_query};
             """,
             params,
         )
@@ -128,7 +128,7 @@ def _find_units_for_worker(
         params.append(nonesafe_int(limit))
 
     with db.table_access_condition:
-        conn = db._get_connection()
+        conn = db.get_connection()
         c = conn.cursor()
         c.execute(
             f"""

@@ -332,7 +332,7 @@ class ProlificProvider(CrowdProvider):
                     if q.qualification_name in qualification_names
                 ]
                 self.datastore.create_qualification_mapping(
-                    run_id=task_run_id,
+                    task_run_id=task_run_id,
                     prolific_participant_group_id=prolific_participant_group.id,
                     qualifications=qualifications,
                     qualification_ids=qualifications_ids,
@@ -361,7 +361,7 @@ class ProlificProvider(CrowdProvider):
 
         # Register TaskRun in Datastore
         self.datastore.register_run(
-            run_id=task_run_id,
+            task_run_id=task_run_id,
             prolific_workspace_id=prolific_workspace.id,
             prolific_project_id=prolific_project.id,
             prolific_study_config_path=config_dir,
@@ -377,6 +377,8 @@ class ProlificProvider(CrowdProvider):
             task_run_id=task_run_id,
             status=StudyStatus.ACTIVE,
         )
+        self.datastore.new_run_mapping(prolific_study.id, task_run_id)
+
         logger.debug(
             f'{self.log_prefix}Prolific Study "{prolific_study.id}" has been saved into datastore'
         )

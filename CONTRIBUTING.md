@@ -25,7 +25,7 @@ We actively welcome your pull requests.
 ## Cypress Testing
 For cypress testing the base url is: http://localhost:3000/?worker_id=x&assignment_id=1
 
-### Running end to end tests on a task:
+### Running end-to-end tests on a task:
 1. Run the task by running python run_task.py in the appropriate task folder
 2. In a separate terminal window go into the webapp directory and run `npm run test`
 3. This should open a cypress app

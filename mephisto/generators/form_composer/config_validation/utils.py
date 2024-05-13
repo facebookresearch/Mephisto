@@ -9,6 +9,7 @@ from json import JSONDecodeError
 from pathlib import Path
 from typing import Any
 from typing import List
+from typing import Optional
 from typing import Tuple
 from typing import Union
 from urllib.parse import urljoin
@@ -72,10 +73,16 @@ def read_config_file(
     return config_data
 
 
-def make_error_message(main_message: str, error_list: List[str], indent: int = 2) -> str:
+# TODO: Move this function and its tests into `mephisto.utils`, as it is too useful for one app
+def make_error_message(
+    main_message: str,
+    error_list: List[str],
+    indent: int = 2,
+    list_title: Optional[str] = "Errors",
+) -> str:
     prefix = "\n" + (" " * indent) + "- "
     errors_bullets = prefix + prefix.join(map(str, error_list))
-    error_title = f"{main_message.rstrip('.')}. Errors:" if main_message else ""
+    error_title = f"{main_message.rstrip('.')}. {list_title}:" if main_message else ""
     return error_title + errors_bullets
 
 

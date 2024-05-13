@@ -46,25 +46,29 @@ MOCK_CONFIG = MephistoConfig(
 )
 
 
-def get_test_project(db: MephistoDB) -> Tuple[str, str]:
+def get_test_project(db: MephistoDB, project_name: Optional[str] = None) -> Tuple[str, str]:
     """Helper to create a project for tests"""
-    project_name = "test_project"
+    project_name = project_name or "test_project"
     project_id = db.new_project(project_name)
     return project_name, project_id
 
 
-def get_test_worker(db: MephistoDB) -> Tuple[str, str]:
+def get_test_worker(db: MephistoDB, worker_name: Optional[str] = None) -> Tuple[str, str]:
     """Helper to create a worker for tests"""
-    worker_name = "test_worker"
+    worker_name = worker_name or "test_worker"
     provider_type = "mock"
     worker_id = db.new_worker(worker_name, provider_type)
     return worker_name, worker_id
 
 
-def get_test_requester(db: MephistoDB) -> Tuple[str, str]:
+def get_test_requester(
+    db: MephistoDB,
+    requester_name: Optional[str] = None,
+    provider_type: Optional[str] = None,
+) -> Tuple[str, str]:
     """Helper to create a requester for tests"""
-    requester_name = "test_requester"
-    provider_type = "mock"
+    requester_name = requester_name or "test_requester"
+    provider_type = provider_type or "mock"
     requester_id = db.new_requester(requester_name, provider_type)
     return requester_name, requester_id
 
@@ -78,18 +82,26 @@ def get_mock_requester(db) -> "Requester":
     return mock_requesters[0]
 
 
-def get_test_task(db: MephistoDB) -> Tuple[str, str]:
+def get_test_task(db: MephistoDB, task_name: Optional[str] = None) -> Tuple[str, str]:
     """Helper to create a task for tests"""
-    task_name = "test_task"
+    task_name = task_name or "test_task"
     task_type = "mock"
     task_id = db.new_task(task_name, task_type)
     return task_name, task_id
 
 
-def get_test_task_run(db: MephistoDB) -> str:
+def get_test_task_run(
+    db: MephistoDB,
+    task_id: Optional[str] = None,
+    requester_id: Optional[str] = None,
+) -> str:
     """Helper to create a task run for tests"""
-    task_name, task_id = get_test_task(db)
-    requester_name, requester_id = get_test_requester(db)
+    if not task_id:
+        _, task_id = get_test_task(db)
+
+    if not requester_id:
+        _, requester_id = get_test_requester(db)
+
     init_params = OmegaConf.to_yaml(OmegaConf.structured(MOCK_CONFIG))
     return db.new_task_run(task_id, requester_id, json.dumps(init_params), "mock", "mock")
 
@@ -191,7 +203,7 @@ def make_completed_unit(db: MephistoDB) -> str:
     return unit.db_id
 
 
-def get_test_qualification(db: MephistoDB, name="test_qualification") -> str:
+def get_test_qualification(db: MephistoDB, name: str = "test_qualification") -> str:
     return db.make_qualification(name)
 
 
@@ -215,17 +227,17 @@ def find_unit_reviews(
         params.append(nonesafe_int(task_id))
 
     with db.table_access_condition:
-        conn = db._get_connection()
+        conn = db.get_connection()
         c = conn.cursor()
         c.execute(
             f"""
             SELECT * FROM unit_review
             WHERE
                 (updated_qualification_id = ?1) OR
-                (revoked_qualification_id = ?1)
-                AND (worker_id = ?2)
+                (revoked_qualification_id = ?1) AND
+                (worker_id = ?2)
                 {task_query}
-            ORDER BY created_at ASC;
+            ORDER BY creation_date ASC;
             """,
             params,
         )
