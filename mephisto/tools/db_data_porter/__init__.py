@@ -1,7 +1,7 @@
+#!/usr/bin/env python3
+
 # Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-label: "Upgrading to Version 1.0"
-collapsed: true
-position: 5
+from .db_data_porter import DBDataPorter

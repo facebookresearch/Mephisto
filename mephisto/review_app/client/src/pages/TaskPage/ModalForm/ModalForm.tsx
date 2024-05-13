@@ -10,9 +10,12 @@ import { useEffect } from "react";
 import { Button, Col, Form, Row } from "react-bootstrap";
 import { getQualifications, postQualification } from "requests/qualifications";
 import "./ModalForm.css";
+import { getWorkerGrantedQualifications } from "requests/workers";
 
 const BONUS_FOR_WORKER_ENABLED = true;
 const FEEDBACK_FOR_WORKER_ENABLED = true;
+const QUALIFICATION_VALUE_MIN = 1;
+const QUALIFICATION_VALUE_MAX = 10;
 
 const range = (start, end) => Array.from(Array(end + 1).keys()).slice(start);
 
@@ -24,13 +27,14 @@ type ModalFormProps = {
 };
 
 function ModalForm(props: ModalFormProps) {
-  const [qualifications, setQualifications] = React.useState<
-    Array<QualificationType>
-  >(null);
   const [
-    getQualificationsloading,
-    setGetQualificationsloading,
-  ] = React.useState(false);
+    workerGrantedQualifications,
+    setWorkerGrantedQualifications,
+  ] = React.useState<WorkerGrantedQualificationsType>({});
+  const [qualifications, setQualifications] = React.useState<
+    QualificationType[]
+  >(null);
+  const [loading, setLoading] = React.useState(false);
   const [_, setCreateQualificationLoading] = React.useState(false);
 
   const onChangeAssign = (value: boolean) => {
@@ -53,6 +57,17 @@ function ModalForm(props: ModalFormProps) {
       prevFormData.newQualificationValue = "";
     } else {
       prevFormData.qualification = Number(value);
+
+      const prevGrantedQualification =
+        workerGrantedQualifications[Number(value)];
+      const prevGrantedQualificationValue = prevGrantedQualification?.value;
+      if (prevGrantedQualificationValue !== undefined) {
+        // Set to previous granted value for selected qualification
+        prevFormData.qualificationValue = prevGrantedQualificationValue;
+      } else {
+        // Set to default value
+        prevFormData.qualificationValue = QUALIFICATION_VALUE_MIN;
+      }
     }
 
     props.setData({ ...props.data, form: prevFormData });
@@ -131,17 +146,32 @@ function ModalForm(props: ModalFormProps) {
     requestQualifications();
   };
 
+  const onGetWorkerGrantedQualificationsSuccess = (
+    grantedQualifications: GrantedQualificationType[]
+  ) => {
+    const _workerGrantedQualifications = {};
+
+    grantedQualifications.forEach((gq: GrantedQualificationType) => {
+      _workerGrantedQualifications[gq.qualification_id] = gq;
+    });
+    setWorkerGrantedQualifications(_workerGrantedQualifications);
+  };
+
   const requestQualifications = () => {
     let params;
     if (props.data.type === ReviewType.REJECT) {
       params = { worker_id: props.workerId };
     }
 
-    getQualifications(
-      setQualifications,
-      setGetQualificationsloading,
-      onError,
-      params
+    getQualifications(setQualifications, setLoading, onError, params);
+  };
+
+  const requestWorkerGrantedQualifications = () => {
+    getWorkerGrantedQualifications(
+      props.workerId,
+      onGetWorkerGrantedQualificationsSuccess,
+      setLoading,
+      onError
     );
   };
 
@@ -156,12 +186,14 @@ function ModalForm(props: ModalFormProps) {
 
   // Effiects
   useEffect(() => {
+    requestWorkerGrantedQualifications();
+
     if (qualifications === null) {
       requestQualifications();
     }
   }, []);
 
-  if (getQualificationsloading) {
+  if (loading) {
     return;
   }
 
@@ -201,9 +233,20 @@ function ModalForm(props: ModalFormProps) {
                     <option value={"+"}>+ Add new qualification</option>
                     {qualifications &&
                       qualifications.map((q: QualificationType) => {
+                        const prevGrantedQualification =
+                          workerGrantedQualifications[q.id];
+                        const prevGrantedQualificationValue =
+                          prevGrantedQualification?.value;
+
+                        let nameSuffix = "";
+                        if (prevGrantedQualificationValue !== undefined) {
+                          nameSuffix = ` (granted value: ${prevGrantedQualificationValue})`;
+                        }
+                        const qualificationName = `${q.name}${nameSuffix}`;
+
                         return (
                           <option key={"qual" + q.id} value={q.id}>
-                            {q.name}
+                            {qualificationName}
                           </option>
                         );
                       })}
@@ -218,7 +261,10 @@ function ModalForm(props: ModalFormProps) {
                       onChangeAssignQualificationValue(e.target.value)
                     }
                   >
-                    {range(1, 10).map((i) => {
+                    {range(
+                      QUALIFICATION_VALUE_MIN,
+                      QUALIFICATION_VALUE_MAX
+                    ).map((i) => {
                       return <option key={"qualVal" + i}>{i}</option>;
                     })}
                   </Form.Select>

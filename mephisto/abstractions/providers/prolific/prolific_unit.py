@@ -230,7 +230,7 @@ class ProlificUnit(Unit):
             task_run_id = self.get_task_run().db_id
             datastore_task_run = self.datastore.get_run(task_run_id)
             self.datastore.set_available_places_for_run(
-                run_id=task_run_id,
+                task_run_id=task_run_id,
                 actual_available_places=datastore_task_run["actual_available_places"] - 1,
                 listed_available_places=datastore_task_run["listed_available_places"] - 1,
             )
@@ -309,7 +309,7 @@ class ProlificUnit(Unit):
             actual_available_places += 1
 
         self.datastore.set_available_places_for_run(
-            run_id=task_run_id,
+            task_run_id=task_run_id,
             actual_available_places=actual_available_places,
             listed_available_places=listed_available_places,
         )
@@ -346,7 +346,7 @@ class ProlificUnit(Unit):
 
             listed_places_decrement = 1 if task_run.get_is_completed() else 0
             self.datastore.set_available_places_for_run(
-                run_id=task_run.db_id,
+                task_run_id=task_run.db_id,
                 actual_available_places=actual_available_places - 1,
                 listed_available_places=listed_available_places - listed_places_decrement,
             )
@@ -403,7 +403,7 @@ class ProlificUnit(Unit):
         )
         datastore.create_unit(
             unit_id=unit.db_id,
-            run_id=assignment.task_run_id,
+            task_run_id=assignment.task_run_id,
             prolific_study_id=task_run_details["prolific_study_id"],
         )
         logger.debug(f"{ProlificUnit.log_prefix}Unit was created in datastore successfully!")

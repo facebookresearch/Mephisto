@@ -18,7 +18,7 @@ def find_units(
     debug: bool = False,
 ) -> List[StringIDRow]:
     with db.table_access_condition:
-        conn = db._get_connection()
+        conn = db.get_connection()
 
         params = []
 

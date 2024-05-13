@@ -55,8 +55,8 @@ class UnitsDetailsView(MethodView):
             task_run: TaskRun = unit.get_task_run()
             has_task_source_review = bool(task_run.args.get("blueprint").get("task_source_review"))
 
-            inputs = unit_data.get("data", {}).get("inputs", {})
-            outputs = unit_data.get("data", {}).get("outputs", {})
+            inputs = unit_data.get("data", {}).get("inputs") or {}
+            outputs = unit_data.get("data", {}).get("outputs") or {}
 
             # In case if there is outdated code that returns `final_submission`
             # under `inputs` and `outputs` keys, we should use the value in side `final_submission`

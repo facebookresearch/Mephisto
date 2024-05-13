@@ -21,10 +21,10 @@ mephisto:
     preview_source: ${task_dir}/preview/mturk_preview.html
     link_task_source: false
     extra_source_dir: ${task_dir}/webapp/src/static
-    units_per_assignment: 1
+    units_per_assignment: 2
   log_level: "debug"
   task:
-    task_name: "Form Builder Sample"
+    task_name: "Sample Questionnaire"
     task_title: "Dynamic form-based Tasks for Mturk"
     task_description: "In this Task, we use dynamic FormComposer feature."
     task_reward: 0.05

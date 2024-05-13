@@ -1,14 +1,48 @@
-<!---
-  Copyright (c) Meta Platforms and its affiliates.
-  This source code is licensed under the MIT license found in the
-  LICENSE file in the root directory of this source tree.
--->
+---
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+sidebar_position: 4
+---
 
 # TaskReview app API
 
+If you wish to customize or improve the TaskReview app, it's helpful to know how its UI and server parts interact.
+
+## User flow
+
+Here is a typical user journey through TaskReview app:
+
+- UI gets list of available tasks from `GET /tasks`
+- User selects a task
+- UI gets list of available qualifications from `GET /qualifications`
+- UI pulls all unit-worker id pairs from  `GET /tasks/{id}/worker-units-ids`
+	  - *Due to the need to randomly shuffle units grouped by a worker (to mitigate reviewers bias, etc) we're implementing client-side, not server-side, pagination - client gets full list of all ids, creates a page of unit ids, and then pulls data for those specific units.*
+- UI initiates units review by worker:
+    - Group units by worker
+    - Sort workers by number of their units (fewest units go first)
+    - Pick them for review one-by-one
+- And then for each worker:
+    - UI pulls units by ids from `GET /units?unit_ids=[...]`
+    - UI sorts units by `creation_date` and pick them for review one-by-one
+        - For each reviewed unit:
+            - UI pulls unit details from `GET /units/details?unit_ids=[...]`
+            - UI pulls current stats from `GET /stats` (for entire task and for worker within the task)
+            - UI renders unit's review representation in an iframe
+            - User can choose to reject/accept unit, grant/revoke qualification, and block the worker
+- When all units are reviewed, UI redirects user to the "Tasks" page
+- User clicks "Download" button for a reviewed Task
+    - UI pulls Task data from `GET /tasks/<task_id>/<n_units>/export-results.json` endpoint
+
+
+## API endpoints
+
+These are the API specs enabling TaskReview app UI.
+
 ---
 
-`GET /api/tasks`
+### `GET /api/tasks`
 
 Get all available tasks (to select one for review)
 
@@ -29,7 +63,7 @@ Get all available tasks (to select one for review)
 
 ---
 
-`GET /api/tasks/{id}`
+### `GET /api/tasks/{id}`
 
 Get metadata for a task
 
@@ -44,19 +78,19 @@ Get metadata for a task
 
 ---
 
-`GET /api/tasks/{id}/export-results`
+### `GET /api/tasks/{id}/export-results`
 
-Compose a single file with reviewed task results
-
----
-
-`GET /api/tasks/{id}/{n_units}/export-results.json`
-
-Serve a single composed file with reviewed task results
+Compose on the server-side a single file with reviewed task results (empty API response).
 
 ---
 
-`GET /api/tasks/{id}/worker-units-ids`
+### `GET /api/tasks/{id}/{n_units}/export-results.json`
+
+Serve a single composed file with reviewed task results (API response is a file download).
+
+---
+
+### `GET /api/tasks/{id}/worker-units-ids`
 
 Get full, unpaginated list of unit IDs within a task (for subsequent client-side grouping by worker_id and `GET /task-units` pagination)
 
@@ -74,7 +108,7 @@ Get full, unpaginated list of unit IDs within a task (for subsequent client-side
 
 ---
 
-`GET /api/qualifications`
+### `GET /api/qualifications`
 
 Get all available qualifications (to select "approve" and "reject" qualifications)
 
@@ -92,7 +126,7 @@ Get all available qualifications (to select "approve" and "reject" qualification
 
 ---
 
-`POST /api/qualifications`
+### `POST /api/qualifications`
 
 Create a new qualification
 
@@ -104,7 +138,7 @@ Create a new qualification
 
 ---
 
-`GET /api/qualifications/{id}/workers?{task_id=}`
+### `GET /api/qualifications/{id}/workers?{task_id=}`
 
 Get list of all bearers of a qualification.
 
@@ -115,7 +149,7 @@ Get list of all bearers of a qualification.
             "worker_id": <int>,
             "value": <int>,
             "unit_review_id": <int>,  // latest grant of this qualification
-            "granted_at": <int>,   // maps to `unit_review.created_at` column
+            "granted_at": <int>,   // maps to `unit_review.creation_date` column
         },
         ...  // more qualified workers
     ]
@@ -124,7 +158,7 @@ Get list of all bearers of a qualification.
 
 ---
 
-`POST /api/qualifications/{id}/workers/{id}/grant`
+### `POST /api/qualifications/{id}/workers/{id}/grant`
 
 Grant qualification to a worker
 
@@ -137,7 +171,7 @@ Grant qualification to a worker
 
 ---
 
-`POST /api/qualifications/{id}/workers/{id}/revoke`
+### `POST /api/qualifications/{id}/workers/{id}/revoke`
 
 Revoke qualification from a worker
 
@@ -149,7 +183,7 @@ Revoke qualification from a worker
 
 ---
 
-`GET /api/units?{task_id=}{unit_ids=}`
+### `GET /api/units?{task_id=}{unit_ids=}`
 
 Get workers' results (filtered by task_id and/or unit_ids, etc) - without full details of input/output. At least one filtering parameter must be specified
 
@@ -181,7 +215,7 @@ _NOTE: this edpoint is not currently used in TaskReview app_
 }
 ```
 
-`GET /api/units/details?{unit_ids=}`
+### `GET /api/units/details?{unit_ids=}`
 
 Get full input for specified workers results (`units_ids` parameter is mandatory)
 
@@ -203,7 +237,7 @@ Get full input for specified workers results (`units_ids` parameter is mandatory
 
 ---
 
-`POST /api/units/approve`
+### `POST /api/units/approve`
 
 Approve worker's result
 
@@ -217,7 +251,7 @@ Approve worker's result
 
 ---
 
-`POST /api/units/reject`
+### `POST /api/units/reject`
 
 Reject worker's result
 
@@ -230,7 +264,7 @@ Reject worker's result
 
 ---
 
-`POST /api/units/soft-reject`
+### `POST /api/units/soft-reject`
 
 Soft-reject worker's result
 
@@ -243,7 +277,7 @@ Soft-reject worker's result
 
 ---
 
-`POST /api/workers/{id}/block`
+### `POST /api/workers/{id}/block`
 
 Permanently block a worker
 
@@ -256,7 +290,27 @@ Permanently block a worker
 
 ---
 
-`GET /api/stats?{task_id=}{worker_id=}{since=}{limit=}`
+### `GET /api/workers/{id}/qualifications`
+
+Get list of all granted qualifications for a worker
+
+```
+{
+    "granted_qualifications": [
+        {
+            "worker_id": <int>,
+            "qualification_id": <int>,
+            "value": <int>,
+            "granted_at": <int>,  // maps to `unit_review.creation_date` column
+        }
+    ],
+    ...  // more granted qualifications
+}
+```
+
+---
+
+### `GET /api/stats?{task_id=}{worker_id=}{since=}{limit=}`
 
 Get stats of (recent) approvals. Either `task_id` or `worker_id` (or both) must be present.
 
@@ -274,7 +328,7 @@ Get stats of (recent) approvals. Either `task_id` or `worker_id` (or both) must 
 
 ---
 
-`GET /api/units/{unit_id}/static/{filename}`
+### `GET /api/units/{unit_id}/static/{filename}`
 
 Return static file from `data` directory for specific unit.
 
@@ -284,7 +338,7 @@ Response: file.
 
 ### Error response
 
-Exception are returned via API in this format:
+Exception are returned by the API in this format:
 
 ```
 {
