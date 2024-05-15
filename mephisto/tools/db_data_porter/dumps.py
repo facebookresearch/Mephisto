@@ -53,7 +53,7 @@ def prepare_partial_dump_data(
     task_names: Optional[List[str]] = None,
     task_ids: Optional[List[str]] = None,
     task_run_ids: Optional[List[str]] = None,
-    task_runs_labels: Optional[List[str]] = None,
+    task_run_labels: Optional[List[str]] = None,
     since_datetime: Optional[datetime] = None,
 ) -> dict:
     dump_data_to_export = {}
@@ -101,15 +101,15 @@ def prepare_partial_dump_data(
 
             # Get TaskRun IDs by Task IDs
             task_run_ids = db_utils.get_task_run_ids_by_task_ids(db, task_ids)
-        elif task_runs_labels:
+        elif task_run_labels:
             # Validate on correct values of passed TaskRun labels
             db_labels = db_utils.get_list_of_available_labels(db)
-            not_found_values = [t for t in task_runs_labels if t not in db_labels]
+            not_found_values = [t for t in task_run_labels if t not in db_labels]
             if not_found_values:
                 logger.error(
                     _make_options_error_message(
                         "TaskRun labels",
-                        task_runs_labels,
+                        task_run_labels,
                         not_found_values,
                         db_labels,
                     )
@@ -117,7 +117,7 @@ def prepare_partial_dump_data(
                 exit()
 
             # Get TaskRun IDs
-            task_run_ids = db_utils.get_task_run_ids_by_labels(db, task_runs_labels)
+            task_run_ids = db_utils.get_task_run_ids_by_labels(db, task_run_labels)
         elif since_datetime:
             # Get TaskRun IDs
             task_run_ids = db_utils.select_task_run_ids_since_date(db, since_datetime)

@@ -614,7 +614,7 @@ class TestDBDataPorter(unittest.TestCase):
         files_count_before = len([fn for fn in os.listdir(self.export_dir)])
 
         # Create dump
-        export_results = self.porter.export_dump(task_runs_labels=[test_label])
+        export_results = self.porter.export_dump(task_run_labels=[test_label])
 
         files_count_after = len([fn for fn in os.listdir(self.export_dir)])
 
