@@ -6,6 +6,7 @@
 
 import os
 import shutil
+from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from types import MethodType
@@ -261,10 +262,22 @@ def delete_exported_data(
 
         task_run_data_dirs = [TaskRun.get(db, i).get_run_dir() for i in task_run_ids]
 
+        mephisto_db_dump_to_delete = deepcopy(dump_data_to_export[MEPHISTO_DUMP_KEY])
+
+        # Replace substitutions back to delete entries from DB
+        if pk_substitutions:
+            for table_name, pk_pairs in pk_substitutions[MEPHISTO_DUMP_KEY].items():
+                pk_field_name = db_utils.get_table_pk_field_name(db, table_name)
+                new_old_pk_pairs = {v: k for k, v in pk_pairs.items()}
+                for db_dump_row in mephisto_db_dump_to_delete[table_name]:
+                    pk_value = db_dump_row[pk_field_name]
+                    if pk_value in new_old_pk_pairs:
+                        db_dump_row[pk_field_name] = new_old_pk_pairs[pk_value]
+
         # Clean DB
         db_utils.delete_exported_data_without_fk_constraints(
             db,
-            dump_data_to_export[MEPHISTO_DUMP_KEY],
+            mephisto_db_dump_to_delete,
             names_of_tables_to_cleanup,
         )
 

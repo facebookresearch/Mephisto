@@ -11,6 +11,7 @@ import unittest
 from datetime import timedelta
 from typing import ClassVar
 from typing import Type
+from unittest.mock import patch
 
 import pytest
 
@@ -18,6 +19,7 @@ from mephisto.abstractions.database import MephistoDB
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.task_run import TaskRun
 from mephisto.tools.db_data_porter.dumps import _make_options_error_message
+from mephisto.tools.db_data_porter.dumps import delete_exported_data
 from mephisto.tools.db_data_porter.dumps import prepare_full_dump_data
 from mephisto.tools.db_data_porter.dumps import prepare_partial_dump_data
 from mephisto.utils import db as db_utils
@@ -50,7 +52,7 @@ class TestDumps(unittest.TestCase):
     def test__make_options_error_message_without_available_values(self, *args):
         title = "Test title"
         values = ["Value 1", "Value 2"]
-        not_found_values = ["Not found value 1", 'Not found value 2']
+        not_found_values = ["Not found value 1", "Not found value 2"]
         available_values = None
         result = _make_options_error_message(
             title=title,
@@ -75,7 +77,7 @@ class TestDumps(unittest.TestCase):
     def test__make_options_error_message_with_available_values(self, *args):
         title = "Test title"
         values = ["Value 1", "Value 2"]
-        not_found_values = ["Not found value 1", 'Not found value 2']
+        not_found_values = ["Not found value 1", "Not found value 2"]
         available_values = ["Available value 1", "Available value 2"]
         result = _make_options_error_message(
             title=title,
@@ -172,12 +174,14 @@ class TestDumps(unittest.TestCase):
         self.assertEqual(len(result["mephisto"]["granted_qualifications"]), 1)
         self.assertEqual(result["mephisto"]["granted_qualifications"][0]["worker_id"], worker_id)
         self.assertEqual(
-            result["mephisto"]["granted_qualifications"][0]["qualification_id"], qualification_id,
+            result["mephisto"]["granted_qualifications"][0]["qualification_id"],
+            qualification_id,
         )
 
         self.assertEqual(len(result["mephisto"]["qualifications"]), 1)
         self.assertEqual(
-            result["mephisto"]["qualifications"][0]["qualification_id"], qualification_id,
+            result["mephisto"]["qualifications"][0]["qualification_id"],
+            qualification_id,
         )
 
     def test_prepare_partial_dump_data_task_names_task_with_no_relations(self, *args):
@@ -318,12 +322,14 @@ class TestDumps(unittest.TestCase):
         self.assertEqual(len(result["mephisto"]["granted_qualifications"]), 1)
         self.assertEqual(result["mephisto"]["granted_qualifications"][0]["worker_id"], worker_id)
         self.assertEqual(
-            result["mephisto"]["granted_qualifications"][0]["qualification_id"], qualification_id,
+            result["mephisto"]["granted_qualifications"][0]["qualification_id"],
+            qualification_id,
         )
 
         self.assertEqual(len(result["mephisto"]["qualifications"]), 1)
         self.assertEqual(
-            result["mephisto"]["qualifications"][0]["qualification_id"], qualification_id,
+            result["mephisto"]["qualifications"][0]["qualification_id"],
+            qualification_id,
         )
 
     def test_prepare_partial_dump_data_task_ids_task_with_no_relations(self, *args):
@@ -464,12 +470,14 @@ class TestDumps(unittest.TestCase):
         self.assertEqual(len(result["mephisto"]["granted_qualifications"]), 1)
         self.assertEqual(result["mephisto"]["granted_qualifications"][0]["worker_id"], worker_id)
         self.assertEqual(
-            result["mephisto"]["granted_qualifications"][0]["qualification_id"], qualification_id,
+            result["mephisto"]["granted_qualifications"][0]["qualification_id"],
+            qualification_id,
         )
 
         self.assertEqual(len(result["mephisto"]["qualifications"]), 1)
         self.assertEqual(
-            result["mephisto"]["qualifications"][0]["qualification_id"], qualification_id,
+            result["mephisto"]["qualifications"][0]["qualification_id"],
+            qualification_id,
         )
 
     def test_prepare_partial_dump_data_task_run_ids_task_with_no_relations(self, *args):
@@ -623,12 +631,14 @@ class TestDumps(unittest.TestCase):
         self.assertEqual(len(result["mephisto"]["granted_qualifications"]), 1)
         self.assertEqual(result["mephisto"]["granted_qualifications"][0]["worker_id"], worker_id)
         self.assertEqual(
-            result["mephisto"]["granted_qualifications"][0]["qualification_id"], qualification_id,
+            result["mephisto"]["granted_qualifications"][0]["qualification_id"],
+            qualification_id,
         )
 
         self.assertEqual(len(result["mephisto"]["qualifications"]), 1)
         self.assertEqual(
-            result["mephisto"]["qualifications"][0]["qualification_id"], qualification_id,
+            result["mephisto"]["qualifications"][0]["qualification_id"],
+            qualification_id,
         )
 
     def test_prepare_partial_dump_data_since_datetime(self, *args):
@@ -706,12 +716,14 @@ class TestDumps(unittest.TestCase):
         self.assertEqual(len(result["mephisto"]["granted_qualifications"]), 1)
         self.assertEqual(result["mephisto"]["granted_qualifications"][0]["worker_id"], worker_id)
         self.assertEqual(
-            result["mephisto"]["granted_qualifications"][0]["qualification_id"], qualification_id,
+            result["mephisto"]["granted_qualifications"][0]["qualification_id"],
+            qualification_id,
         )
 
         self.assertEqual(len(result["mephisto"]["qualifications"]), 1)
         self.assertEqual(
-            result["mephisto"]["qualifications"][0]["qualification_id"], qualification_id,
+            result["mephisto"]["qualifications"][0]["qualification_id"],
+            qualification_id,
         )
 
     def test_prepare_full_dump_data(self, *args):
@@ -758,15 +770,14 @@ class TestDumps(unittest.TestCase):
         self.assertEqual(len(task_runs), 2)
         self.assertEqual(
             sorted([task_runs[0]["task_id"], task_runs[1]["task_id"]]),
-            sorted([task_1_id, task_2_id])
+            sorted([task_1_id, task_2_id]),
         )
         self.assertEqual(
             sorted([task_runs[0]["task_run_id"], task_runs[1]["task_run_id"]]),
-            sorted([task_run_1_id, task_run_2_id])
+            sorted([task_run_1_id, task_run_2_id]),
         )
         self.assertEqual(
-            {task_runs[0]["requester_id"], task_runs[1]["requester_id"]},
-            {requester_id}
+            {task_runs[0]["requester_id"], task_runs[1]["requester_id"]}, {requester_id}
         )
 
         self.assertEqual(len(result["mephisto"]["assignments"]), 1)
@@ -786,12 +797,11 @@ class TestDumps(unittest.TestCase):
         tasks = result["mephisto"]["tasks"]
         self.assertEqual(len(tasks), 2)
         self.assertEqual(
-            sorted([tasks[0]["task_id"], tasks[1]["task_id"]]),
-            sorted([task_1_id, task_2_id])
+            sorted([tasks[0]["task_id"], tasks[1]["task_id"]]), sorted([task_1_id, task_2_id])
         )
         self.assertEqual(
             sorted([tasks[0]["task_name"], tasks[1]["task_name"]]),
-            sorted([task_name_1, task_name_2])
+            sorted([task_name_1, task_name_2]),
         )
 
         self.assertEqual(len(result["mephisto"]["requesters"]), 1)
@@ -803,10 +813,270 @@ class TestDumps(unittest.TestCase):
         self.assertEqual(len(result["mephisto"]["granted_qualifications"]), 1)
         self.assertEqual(result["mephisto"]["granted_qualifications"][0]["worker_id"], worker_id)
         self.assertEqual(
-            result["mephisto"]["granted_qualifications"][0]["qualification_id"], qualification_id,
+            result["mephisto"]["granted_qualifications"][0]["qualification_id"],
+            qualification_id,
         )
 
         self.assertEqual(len(result["mephisto"]["qualifications"]), 1)
         self.assertEqual(
-            result["mephisto"]["qualifications"][0]["qualification_id"], qualification_id,
+            result["mephisto"]["qualifications"][0]["qualification_id"],
+            qualification_id,
         )
+
+    @patch("mephisto.tools.db_data_porter.dumps.get_data_dir")
+    def test_delete_exported_data_full(self, mock_get_data_dir, *args):
+        mock_get_data_dir.return_value = self.data_dir
+
+        partial = False
+        pk_substitutions = {}
+
+        task_name_1 = "task_name_1"
+        task_name_2 = "task_name_2"
+
+        # Create entries in Mephisto DB
+        _, requester_id = get_test_requester(self.db)
+        _, task_1_id = get_test_task(self.db, task_name=task_name_1)
+        _, task_2_id = get_test_task(self.db, task_name=task_name_2)
+        task_run_1_id = get_test_task_run(self.db, task_id=task_1_id, requester_id=requester_id)
+        task_run_2_id = get_test_task_run(self.db, task_id=task_2_id, requester_id=requester_id)
+        _, worker_id = get_test_worker(self.db)
+        unit_id = make_completed_unit(self.db)
+        qualification_id = get_test_qualification(self.db, "qual_1")
+        grant_test_qualification(self.db, worker_id=worker_id, qualification_id=qualification_id)
+
+        task_run_1 = TaskRun.get(self.db, task_run_1_id)
+        task_run_2 = TaskRun.get(self.db, task_run_2_id)
+        # Create TaskRun dirs
+        task_run_1.get_run_dir()
+        task_run_2.get_run_dir()
+
+        provider_datastores = db_utils.get_providers_datastores(self.db)
+
+        full_dump = prepare_full_dump_data(db=self.db, provider_datastores=provider_datastores)
+
+        table_names = db_utils.get_list_of_tables_to_export(self.db)
+
+        self.assertIn("data", os.listdir(self.data_dir))
+        self.assertTrue(os.path.exists(task_run_1.get_run_dir()))
+        self.assertTrue(os.path.exists(task_run_2.get_run_dir()))
+        for table_name in table_names:
+            rows = db_utils.select_all_table_rows(self.db, table_name)
+            if table_name in ["imported_data", "onboarding_agents", "projects", "unit_review"]:
+                self.assertEqual(len(rows), 0)
+            else:
+                self.assertGreater(len(rows), 0)
+
+        delete_exported_data(
+            db=self.db,
+            pk_substitutions=pk_substitutions,
+            dump_data_to_export=full_dump,
+            partial=partial,
+        )
+
+        self.assertFalse(os.path.exists(task_run_1.get_run_dir()))
+        self.assertFalse(os.path.exists(task_run_2.get_run_dir()))
+        for table_name in table_names:
+            rows = db_utils.select_all_table_rows(self.db, table_name)
+            self.assertEqual(len(rows), 0)
+
+    @patch("mephisto.tools.db_data_porter.dumps.get_data_dir")
+    def test_delete_exported_data_partial(self, mock_get_data_dir, *args):
+        mock_get_data_dir.return_value = self.data_dir
+
+        partial = True
+        delete_tasks = False
+        pk_substitutions = {}
+
+        task_name_1 = "task_name_1"
+        task_name_2 = "task_name_2"
+
+        # Create entries in Mephisto DB
+        _, requester_id = get_test_requester(self.db)
+        _, task_1_id = get_test_task(self.db, task_name=task_name_1)
+        _, task_2_id = get_test_task(self.db, task_name=task_name_2)
+        task_run_1_id = get_test_task_run(self.db, task_id=task_1_id, requester_id=requester_id)
+        task_run_2_id = get_test_task_run(self.db, task_id=task_2_id, requester_id=requester_id)
+        _, worker_id = get_test_worker(self.db)
+        unit_id = make_completed_unit(self.db)
+        qualification_id = get_test_qualification(self.db, "qual_1")
+        grant_test_qualification(self.db, worker_id=worker_id, qualification_id=qualification_id)
+
+        task_run_1 = TaskRun.get(self.db, task_run_1_id)
+        task_run_2 = TaskRun.get(self.db, task_run_2_id)
+        # Create TaskRun dirs
+        task_run_1.get_run_dir()
+        task_run_2.get_run_dir()
+
+        partial_dump = prepare_partial_dump_data(db=self.db, task_run_ids=[task_run_2_id])
+
+        table_names = db_utils.get_list_of_tables_to_export(self.db)
+
+        self.assertIn("data", os.listdir(self.data_dir))
+        self.assertTrue(os.path.exists(task_run_1.get_run_dir()))
+        self.assertTrue(os.path.exists(task_run_2.get_run_dir()))
+        for table_name in table_names:
+            rows = db_utils.select_all_table_rows(self.db, table_name)
+            if table_name in ["imported_data", "onboarding_agents", "projects", "unit_review"]:
+                self.assertEqual(len(rows), 0)
+            else:
+                self.assertGreater(len(rows), 0)
+
+        delete_exported_data(
+            db=self.db,
+            pk_substitutions=pk_substitutions,
+            dump_data_to_export=partial_dump,
+            partial=partial,
+            delete_tasks=delete_tasks,
+        )
+
+        self.assertTrue(os.path.exists(task_run_1.get_run_dir()))
+        self.assertFalse(os.path.exists(task_run_2.get_run_dir()))
+        for table_name in table_names:
+            rows = db_utils.select_all_table_rows(self.db, table_name)
+            if table_name in ["requesters", "workers", "qualifications", "granted_qualifications"]:
+                self.assertGreater(len(rows), 0)
+            elif table_name == "tasks":
+                self.assertEqual(len(rows), 2)  # Both Tasks were saved
+            elif table_name == "task_runs":
+                self.assertEqual(len(rows), 1)
+            else:
+                self.assertEqual(len(rows), 0)
+
+    @patch("mephisto.tools.db_data_porter.dumps.get_data_dir")
+    def test_delete_exported_data_delete_tasks(self, mock_get_data_dir, *args):
+        mock_get_data_dir.return_value = self.data_dir
+
+        partial = True
+        delete_tasks = True
+        pk_substitutions = {}
+
+        task_name_1 = "task_name_1"
+        task_name_2 = "task_name_2"
+
+        # Create entries in Mephisto DB
+        _, requester_id = get_test_requester(self.db)
+        _, task_1_id = get_test_task(self.db, task_name=task_name_1)
+        _, task_2_id = get_test_task(self.db, task_name=task_name_2)
+        task_run_1_id = get_test_task_run(self.db, task_id=task_1_id, requester_id=requester_id)
+        task_run_2_id = get_test_task_run(self.db, task_id=task_2_id, requester_id=requester_id)
+        _, worker_id = get_test_worker(self.db)
+        unit_id = make_completed_unit(self.db)
+        qualification_id = get_test_qualification(self.db, "qual_1")
+        grant_test_qualification(self.db, worker_id=worker_id, qualification_id=qualification_id)
+
+        task_run_1 = TaskRun.get(self.db, task_run_1_id)
+        task_run_2 = TaskRun.get(self.db, task_run_2_id)
+        # Create TaskRun dirs
+        task_run_1.get_run_dir()
+        task_run_2.get_run_dir()
+
+        partial_dump = prepare_partial_dump_data(db=self.db, task_run_ids=[task_run_2_id])
+
+        table_names = db_utils.get_list_of_tables_to_export(self.db)
+
+        self.assertIn("data", os.listdir(self.data_dir))
+        self.assertTrue(os.path.exists(task_run_1.get_run_dir()))
+        self.assertTrue(os.path.exists(task_run_2.get_run_dir()))
+        for table_name in table_names:
+            rows = db_utils.select_all_table_rows(self.db, table_name)
+            if table_name in ["imported_data", "onboarding_agents", "projects", "unit_review"]:
+                self.assertEqual(len(rows), 0)
+            else:
+                self.assertGreater(len(rows), 0)
+
+        delete_exported_data(
+            db=self.db,
+            pk_substitutions=pk_substitutions,
+            dump_data_to_export=partial_dump,
+            partial=partial,
+            delete_tasks=delete_tasks,
+        )
+
+        self.assertTrue(os.path.exists(task_run_1.get_run_dir()))
+        self.assertFalse(os.path.exists(task_run_2.get_run_dir()))
+        for table_name in table_names:
+            rows = db_utils.select_all_table_rows(self.db, table_name)
+            if table_name in ["requesters", "workers", "qualifications", "granted_qualifications"]:
+                self.assertGreater(len(rows), 0)
+            elif table_name == "tasks":
+                self.assertEqual(len(rows), 1)  # One related Task to the TaskRun was deleted
+            elif table_name == "task_runs":
+                self.assertEqual(len(rows), 1)
+            else:
+                self.assertEqual(len(rows), 0)
+
+    @patch("mephisto.tools.db_data_porter.dumps.get_data_dir")
+    def test_delete_exported_data_pk_substitutions(self, mock_get_data_dir, *args):
+        mock_get_data_dir.return_value = self.data_dir
+
+        partial = True
+        delete_tasks = False
+        pk_substitutions = {
+            "mephisto": {
+                "task_runs": {},
+            }
+        }
+
+        task_run_1_id_substitution = "1"
+        task_run_2_id_substitution = "2"
+
+        task_name_1 = "task_name_1"
+        task_name_2 = "task_name_2"
+
+        # Create entries in Mephisto DB
+        _, requester_id = get_test_requester(self.db)
+        _, task_1_id = get_test_task(self.db, task_name=task_name_1)
+        _, task_2_id = get_test_task(self.db, task_name=task_name_2)
+        task_run_1_id = get_test_task_run(self.db, task_id=task_1_id, requester_id=requester_id)
+        task_run_2_id = get_test_task_run(self.db, task_id=task_2_id, requester_id=requester_id)
+        _, worker_id = get_test_worker(self.db)
+        unit_id = make_completed_unit(self.db)
+        qualification_id = get_test_qualification(self.db, "qual_1")
+        grant_test_qualification(self.db, worker_id=worker_id, qualification_id=qualification_id)
+
+        pk_substitutions["mephisto"]["task_runs"][task_run_1_id] = task_run_1_id_substitution
+        pk_substitutions["mephisto"]["task_runs"][task_run_2_id] = task_run_2_id_substitution
+
+        task_run_1 = TaskRun.get(self.db, task_run_1_id)
+        task_run_2 = TaskRun.get(self.db, task_run_2_id)
+        # Create TaskRun dirs
+        task_run_1.get_run_dir()
+        task_run_2.get_run_dir()
+
+        partial_dump = prepare_partial_dump_data(db=self.db, task_run_ids=[task_run_2_id])
+        for task_run in partial_dump["mephisto"]["task_runs"]:
+            task_run_id = task_run["task_run_id"]
+            task_run["task_run_id"] = pk_substitutions["mephisto"]["task_runs"][task_run_id]
+
+        table_names = db_utils.get_list_of_tables_to_export(self.db)
+
+        self.assertIn("data", os.listdir(self.data_dir))
+        self.assertTrue(os.path.exists(task_run_1.get_run_dir()))
+        self.assertTrue(os.path.exists(task_run_2.get_run_dir()))
+        for table_name in table_names:
+            rows = db_utils.select_all_table_rows(self.db, table_name)
+            if table_name in ["imported_data", "onboarding_agents", "projects", "unit_review"]:
+                self.assertEqual(len(rows), 0)
+            else:
+                self.assertGreater(len(rows), 0)
+
+        delete_exported_data(
+            db=self.db,
+            pk_substitutions=pk_substitutions,
+            dump_data_to_export=partial_dump,
+            partial=partial,
+            delete_tasks=delete_tasks,
+        )
+
+        self.assertTrue(os.path.exists(task_run_1.get_run_dir()))
+        self.assertFalse(os.path.exists(task_run_2.get_run_dir()))
+        for table_name in table_names:
+            rows = db_utils.select_all_table_rows(self.db, table_name)
+            if table_name in ["requesters", "workers", "qualifications", "granted_qualifications"]:
+                self.assertGreater(len(rows), 0)
+            elif table_name == "tasks":
+                self.assertEqual(len(rows), 2)  # Both Tasks were saved
+            elif table_name == "task_runs":
+                self.assertEqual(len(rows), 1)
+            else:
+                self.assertEqual(len(rows), 0)
