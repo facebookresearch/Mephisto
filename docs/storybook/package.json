@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@mdx-js/react": "^2.1.3",
-    "@storybook/addon-actions": "^6.5.10",
+    "@storybook/addon-actions": "^8.0.10",
     "@storybook/addon-docs": "^6.5.10",
     "@storybook/addon-essentials": "^6.5.10",
     "@storybook/addon-links": "^8.0.10",
