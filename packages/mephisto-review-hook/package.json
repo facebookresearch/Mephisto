@@ -24,7 +24,7 @@
     "css-loader": "^3.5.1",
     "eslint": "^8.11.0",
     "eslint-config-react-app": "^7.0.0",
-    "eslint-plugin-flowtype": "4.x",
+    "eslint-plugin-flowtype": "8.x",
     "eslint-plugin-import": "2.x",
     "eslint-plugin-jsx-a11y": "6.x",
     "eslint-plugin-react": "7.x",

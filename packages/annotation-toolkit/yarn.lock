@@ -2011,13 +2011,7 @@ eslint-module-utils@^2.7.2:
     debug "^3.2.7"
     find-up "^2.1.0"
 
-eslint-plugin-flowtype@4.x:
-  version "4.7.0"
-  resolved "https://registry.npmjs.org/eslint-plugin-flowtype/-/eslint-plugin-flowtype-4.7.0.tgz"
-  dependencies:
-    lodash "^4.17.15"
-
-eslint-plugin-flowtype@^8.0.3:
+eslint-plugin-flowtype@8.x, eslint-plugin-flowtype@^8.0.3:
   version "8.0.3"
   resolved "https://registry.npmjs.org/eslint-plugin-flowtype/-/eslint-plugin-flowtype-8.0.3.tgz"
   dependencies:
@@ -2775,7 +2769,7 @@ lodash.unset@^4.5.2:
   version "4.5.2"
   resolved "https://registry.npmjs.org/lodash.unset/-/lodash.unset-4.5.2.tgz"
 
-lodash@^4.17.15, lodash@^4.17.21:
+lodash@^4.17.21:
   version "4.17.21"
   resolved "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
 
