@@ -136,6 +136,7 @@ class TestDBDataPorter(unittest.TestCase):
             self.assertEqual(files_count_after, 1)
             self.assertEqual(backup_filenames[0], f"{FILE_TIMESTAMP}_mephisto_backup.zip")
 
+    @patch("mephisto.tools.db_data_porter.db_data_porter.DBDataPorter._get_backup_dir")
     @patch("mephisto.tools.db_data_porter.backups.get_data_dir")
     @patch("mephisto.tools.db_data_porter.db_data_porter.get_data_dir")
     @patch("mephisto.tools.db_data_porter.db_data_porter.DBDataPorter._ask_user_if_they_are_sure")
@@ -144,11 +145,13 @@ class TestDBDataPorter(unittest.TestCase):
         mock__ask_user_if_they_are_sure,
         mock_get_data_dir,
         mock_backups_get_data_dir,
+        mock__get_backup_dir,
         *args,
     ):
         mock__ask_user_if_they_are_sure.return_value = True
         mock_get_data_dir.return_value = self.restore_dir
         mock_backups_get_data_dir.return_value = self.data_dir
+        mock__get_backup_dir.return_value = self.backup_dir
 
         files_count_before = len([fn for fn in os.listdir(self.restore_dir)])
         backup_file_path = self.porter.create_backup()
@@ -652,6 +655,7 @@ class TestDBDataPorter(unittest.TestCase):
                     1,
                 )
 
+    @patch("mephisto.tools.db_data_porter.db_data_porter.DBDataPorter._get_backup_dir")
     @patch("mephisto.tools.db_data_porter.backups.get_data_dir")
     @patch("mephisto.tools.db_data_porter.db_data_porter.DBDataPorter._make_export_timestamp")
     @patch("mephisto.tools.db_data_porter.export_dump.get_data_dir")
@@ -664,6 +668,7 @@ class TestDBDataPorter(unittest.TestCase):
         mock_get_data_dir,
         mock__make_export_timestamp,
         mock_backups_get_data_dir,
+        mock__get_backup_dir,
         *args,
     ):
         mock__ask_user_if_they_are_sure.return_value = True
@@ -671,6 +676,7 @@ class TestDBDataPorter(unittest.TestCase):
         mock_get_data_dir.return_value = self.data_dir
         mock__make_export_timestamp.return_value = FILE_TIMESTAMP
         mock_backups_get_data_dir.return_value = self.data_dir
+        mock__get_backup_dir.return_value = self.backup_dir
 
         task_name_1 = "task_name_1"
         task_name_2 = "task_name_2"
@@ -893,6 +899,7 @@ class TestDBDataPorter(unittest.TestCase):
                 self.assertTrue(third_line.startswith(spaces(2 * indentation) + '"'))
                 self.assertTrue(third_line.endswith("\n"))
 
+    @patch("mephisto.tools.db_data_porter.db_data_porter.DBDataPorter._get_backup_dir")
     @patch("mephisto.tools.db_data_porter.backups.get_data_dir")
     @patch("mephisto.tools.db_data_porter.db_data_porter.DBDataPorter._make_export_timestamp")
     @patch("mephisto.tools.db_data_porter.export_dump.get_data_dir")
@@ -905,6 +912,7 @@ class TestDBDataPorter(unittest.TestCase):
         mock_get_data_dir,
         mock__make_export_timestamp,
         mock_backups_get_data_dir,
+        mock__get_backup_dir,
         *args,
     ):
         mock__ask_user_if_they_are_sure.return_value = True
@@ -912,6 +920,7 @@ class TestDBDataPorter(unittest.TestCase):
         mock_get_data_dir.return_value = self.data_dir
         mock__make_export_timestamp.return_value = FILE_TIMESTAMP
         mock_backups_get_data_dir.return_value = self.data_dir
+        mock__get_backup_dir.return_value = self.backup_dir
 
         # Make a dump
         dump_data = self._prepare_dump_for_importing()
@@ -1000,6 +1009,7 @@ class TestDBDataPorter(unittest.TestCase):
         mock__ask_user_if_they_are_sure.assert_not_called()
         mock_get_data_dir.assert_not_called()
 
+    @patch("mephisto.tools.db_data_porter.db_data_porter.DBDataPorter._get_backup_dir")
     @patch("mephisto.tools.db_data_porter.backups.get_data_dir")
     @patch("mephisto.tools.db_data_porter.db_data_porter.DBDataPorter._make_export_timestamp")
     @patch("mephisto.tools.db_data_porter.export_dump.get_data_dir")
@@ -1012,6 +1022,7 @@ class TestDBDataPorter(unittest.TestCase):
         mock_get_data_dir,
         mock__make_export_timestamp,
         mock_backups_get_data_dir,
+        mock__get_backup_dir,
         *args,
     ):
         mock__ask_user_if_they_are_sure.return_value = True
@@ -1019,6 +1030,7 @@ class TestDBDataPorter(unittest.TestCase):
         mock_get_data_dir.return_value = self.data_dir
         mock__make_export_timestamp.return_value = FILE_TIMESTAMP
         mock_backups_get_data_dir.return_value = self.data_dir
+        mock__get_backup_dir.return_value = self.backup_dir
 
         labels = ["test_label_1", "test_label_2"]
 
@@ -1046,6 +1058,7 @@ class TestDBDataPorter(unittest.TestCase):
         available_labels = db_utils.get_list_of_available_labels(self.db)
         self.assertEqual(sorted(available_labels), sorted(labels))
 
+    @patch("mephisto.tools.db_data_porter.db_data_porter.DBDataPorter._get_backup_dir")
     @patch("mephisto.tools.db_data_porter.backups.get_data_dir")
     @patch("mephisto.tools.db_data_porter.db_data_porter.DBDataPorter._make_export_timestamp")
     @patch("mephisto.tools.db_data_porter.export_dump.get_data_dir")
@@ -1058,6 +1071,7 @@ class TestDBDataPorter(unittest.TestCase):
         mock_get_data_dir,
         mock__make_export_timestamp,
         mock_backups_get_data_dir,
+        mock__get_backup_dir,
         *args,
     ):
         mock__ask_user_if_they_are_sure.return_value = True
@@ -1065,6 +1079,7 @@ class TestDBDataPorter(unittest.TestCase):
         mock_get_data_dir.return_value = self.data_dir
         mock__make_export_timestamp.return_value = FILE_TIMESTAMP
         mock_backups_get_data_dir.return_value = self.data_dir
+        mock__get_backup_dir.return_value = self.backup_dir
 
         labels = ["test_label"]
 
@@ -1103,6 +1118,7 @@ class TestDBDataPorter(unittest.TestCase):
         task_run_ids = db_utils.get_task_run_ids_by_labels(self.db, [prev_imported_data_label])
         self.assertEqual(task_run_ids, [task_run_id])
 
+    @patch("mephisto.tools.db_data_porter.db_data_porter.DBDataPorter._get_backup_dir")
     @patch("mephisto.tools.db_data_porter.backups.get_data_dir")
     @patch("mephisto.tools.db_data_porter.db_data_porter.DBDataPorter._make_export_timestamp")
     @patch("mephisto.tools.db_data_porter.export_dump.get_data_dir")
@@ -1115,6 +1131,7 @@ class TestDBDataPorter(unittest.TestCase):
         mock_get_data_dir,
         mock__make_export_timestamp,
         mock_backups_get_data_dir,
+        mock__get_backup_dir,
         *args,
     ):
         mock__ask_user_if_they_are_sure.return_value = True
@@ -1122,6 +1139,7 @@ class TestDBDataPorter(unittest.TestCase):
         mock_get_data_dir.return_value = self.data_dir
         mock__make_export_timestamp.return_value = FILE_TIMESTAMP
         mock_backups_get_data_dir.return_value = self.data_dir
+        mock__get_backup_dir.return_value = self.backup_dir
 
         # Make a dump
         dump_data = self._prepare_dump_for_importing()
