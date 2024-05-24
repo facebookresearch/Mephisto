@@ -122,7 +122,9 @@ def get_test_assignment(db: MephistoDB, task_run: Optional[TaskRun] = None) -> s
 
 
 def get_test_unit(
-    db: MephistoDB, unit_index: int = 0, assignment: Optional[Assignment] = None,
+    db: MephistoDB,
+    unit_index: int = 0,
+    assignment: Optional[Assignment] = None,
 ) -> str:
     # Check creation and retrieval of a unit
     if not assignment:
@@ -143,7 +145,9 @@ def get_test_unit(
 
 
 def get_test_agent(
-    db: MephistoDB, unit_id: Optional[str] = None, worker_id: Optional[str] = None,
+    db: MephistoDB,
+    unit_id: Optional[str] = None,
+    worker_id: Optional[str] = None,
 ) -> str:
     # Check creation and retrieval of an agent
     if not worker_id:

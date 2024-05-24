@@ -36,7 +36,8 @@ def validate_dump_data(db: "MephistoDB", dump_data: dict) -> Optional[List[str]]
         )
 
     # 3. Check dumps of DBs
-    for db_name, db_dump_data in db_dumps.items():
+    _db_dumps = [(n, d) for n, d in db_dumps.items() if n not in incorrect_db_names]
+    for db_name, db_dump_data in _db_dumps:
         # Get ot create DB/Datastore to request for available tables
         if db_name == MEPHISTO_DUMP_KEY:
             db_or_datastore = db
@@ -47,6 +48,9 @@ def validate_dump_data(db: "MephistoDB", dump_data: dict) -> Optional[List[str]]
         available_table_names = db_utils.get_list_of_db_table_names(db_or_datastore)
 
         # Check tables
+        if not isinstance(db_dump_data, dict):
+            continue
+
         for table_name, table_data in db_dump_data.items():
             # Table name must be string
             if not isinstance(table_name, str):
@@ -83,9 +87,9 @@ def validate_dump_data(db: "MephistoDB", dump_data: dict) -> Optional[List[str]]
                 )
                 if incorrect_field_names:
                     errors.append(
-                        f"Table `{table_name}`, row {i}: "
-                        f"values of these fields must be strings: "
-                        f"{', '.join(incorrect_field_names)}."
+                        f"Table `{table_name}`, row {i+1}: "
+                        f"names of these fields must be strings: "
+                        f"{', '.join([str(i) for i in incorrect_field_names])}."
                     )
 
     return errors

@@ -109,7 +109,9 @@ class TestExportDump(unittest.TestCase):
 
     @patch("mephisto.tools.db_data_porter.export_dump._rename_single_dir_with_new_pk")
     def test__rename_dirs_with_new_pks_no_substitutions(
-        self, mock__rename_single_dir_with_new_pk, *args,
+        self,
+        mock__rename_single_dir_with_new_pk,
+        *args,
     ):
         result = _rename_dirs_with_new_pks(task_run_dirs=[], pk_substitutions={})
 
@@ -212,7 +214,10 @@ class TestExportDump(unittest.TestCase):
     @patch("mephisto.tools.db_data_porter.export_dump._rename_dirs_with_new_pks")
     @patch("mephisto.tools.db_data_porter.export_dump.make_tmp_export_dir")
     def test__export_data_dir_for_task_runs_no_task_runs(
-        self, mock_make_tmp_export_dir, mock__rename_dirs_with_new_pks, *args,
+        self,
+        mock_make_tmp_export_dir,
+        mock__rename_dirs_with_new_pks,
+        *args,
     ):
         tmp_export_dir = os.path.join(self.data_dir, "tmp")
         input_dir_path = os.path.join(self.data_dir, "data")
@@ -234,7 +239,9 @@ class TestExportDump(unittest.TestCase):
 
     @patch("mephisto.tools.db_data_porter.export_dump.make_tmp_export_dir")
     def test__export_data_dir_for_task_runs_with_pk_substitutions(
-        self, mock_make_tmp_export_dir, *args,
+        self,
+        mock_make_tmp_export_dir,
+        *args,
     ):
         pk_substitutions = {
             "mephisto": {
@@ -250,7 +257,7 @@ class TestExportDump(unittest.TestCase):
         tmp_export_dir = os.path.join(self.data_dir, "tmp")
         input_dir_path = os.path.join(self.data_dir, "data")
         archive_file_path_without_ext = os.path.join(self.data_dir, "test_archive")
-        archive_file_path = f'{archive_file_path_without_ext}.zip'
+        archive_file_path = f"{archive_file_path_without_ext}.zip"
 
         os.makedirs(tmp_export_dir, exist_ok=True)
 
@@ -298,12 +305,14 @@ class TestExportDump(unittest.TestCase):
 
     @patch("mephisto.tools.db_data_porter.export_dump.make_tmp_export_dir")
     def test__export_data_dir_for_task_runs_without_pk_substitutions(
-        self, mock_make_tmp_export_dir, *args,
+        self,
+        mock_make_tmp_export_dir,
+        *args,
     ):
         tmp_export_dir = os.path.join(self.data_dir, "tmp")
         input_dir_path = os.path.join(self.data_dir, "data")
         archive_file_path_without_ext = os.path.join(self.data_dir, "test_archive")
-        archive_file_path = f'{archive_file_path_without_ext}.zip'
+        archive_file_path = f"{archive_file_path_without_ext}.zip"
 
         os.makedirs(tmp_export_dir, exist_ok=True)
 
@@ -426,18 +435,24 @@ class TestExportDump(unittest.TestCase):
             archive_runs_dir = Path(task_run_1_dir_before).relative_to(data_dir).parent
             archive_dirs = archive.namelist()
 
-            archive_agent_1_dir = str(
-                archive_runs_dir /
-                task_run_1_id_substitution /
-                assignment_1_id_substitution /
-                agent_1_id_substitution
-            ) + "/"
-            archive_agent_2_dir = str(
-                archive_runs_dir /
-                task_run_2_id_substitution /
-                assignment_2_id_substitution /
-                agent_2_id_substitution
-            ) + "/"
+            archive_agent_1_dir = (
+                str(
+                    archive_runs_dir
+                    / task_run_1_id_substitution
+                    / assignment_1_id_substitution
+                    / agent_1_id_substitution
+                )
+                + "/"
+            )
+            archive_agent_2_dir = (
+                str(
+                    archive_runs_dir
+                    / task_run_2_id_substitution
+                    / assignment_2_id_substitution
+                    / agent_2_id_substitution
+                )
+                + "/"
+            )
 
             self.assertIn(archive_agent_1_dir, archive_dirs)
             self.assertIn(archive_agent_2_dir, archive_dirs)
@@ -498,42 +513,41 @@ class TestExportDump(unittest.TestCase):
         self.assertTrue(os.path.exists(archive_file_path))
         self.assertEqual(os.listdir(unarchive_data_dir), [])
 
-        with (
-            patch("mephisto.tools.db_data_porter.export_dump.get_data_dir") as mock_get_data_dir,
-            patch(
+        with patch("mephisto.tools.db_data_porter.export_dump.get_data_dir") as mock_get_data_dir:
+            with patch(
                 "mephisto.tools.db_data_porter.export_dump.get_mephisto_tmp_dir"
-            ) as mock_get_mephisto_tmp_dir,
-        ):
-            tmp_dir = os.path.join(self.data_dir, "tmp")
-            mock_get_mephisto_tmp_dir.return_value = tmp_dir
-            mock_get_data_dir.return_value = unarchive_data_dir
+            ) as mock_get_mephisto_tmp_dir:
 
-            relative_runs_dir = Path(task_run_1_dir_before).relative_to(self.data_dir).parent
+                tmp_dir = os.path.join(self.data_dir, "tmp")
+                mock_get_mephisto_tmp_dir.return_value = tmp_dir
+                mock_get_data_dir.return_value = unarchive_data_dir
 
-            archive_agent_1_dir = os.path.join(
-                unarchive_data_dir,
-                relative_runs_dir,
-                task_run_1_id,
-                assignment_1_id,
-                agent_1_id,
-            )
-            archive_agent_2_dir = os.path.join(
-                unarchive_data_dir,
-                relative_runs_dir,
-                task_run_2_id,
-                assignment_2_id,
-                agent_2_id,
-            )
+                relative_runs_dir = Path(task_run_1_dir_before).relative_to(self.data_dir).parent
 
-            self.assertFalse(os.path.exists(archive_agent_1_dir))
-            self.assertFalse(os.path.exists(archive_agent_2_dir))
-            self.assertFalse(os.path.exists(os.path.join(tmp_dir, "unarchive")))
+                archive_agent_1_dir = os.path.join(
+                    unarchive_data_dir,
+                    relative_runs_dir,
+                    task_run_1_id,
+                    assignment_1_id,
+                    agent_1_id,
+                )
+                archive_agent_2_dir = os.path.join(
+                    unarchive_data_dir,
+                    relative_runs_dir,
+                    task_run_2_id,
+                    assignment_2_id,
+                    agent_2_id,
+                )
 
-            unarchive_data_files(dump_file_path=archive_file_path)
+                self.assertFalse(os.path.exists(archive_agent_1_dir))
+                self.assertFalse(os.path.exists(archive_agent_2_dir))
+                self.assertFalse(os.path.exists(os.path.join(tmp_dir, "unarchive")))
 
-            self.assertTrue(os.path.exists(archive_agent_1_dir))
-            self.assertTrue(os.path.exists(archive_agent_2_dir))
-            self.assertFalse(os.path.exists(os.path.join(tmp_dir, "unarchive")))
+                unarchive_data_files(dump_file_path=archive_file_path)
+
+                self.assertTrue(os.path.exists(archive_agent_1_dir))
+                self.assertTrue(os.path.exists(archive_agent_2_dir))
+                self.assertFalse(os.path.exists(os.path.join(tmp_dir, "unarchive")))
 
     def test_get_export_options_for_metadata(self, *args):
         click_context = MockClickContext()
