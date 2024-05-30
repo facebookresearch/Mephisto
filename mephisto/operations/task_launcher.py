@@ -139,8 +139,10 @@ class TaskLauncher:
             self.assignments_thread.start()
 
     def generate_units(self):
-        """units generator which checks that only 'max_num_concurrent_units' running at the same time,
-        i.e. in the LAUNCHED or ASSIGNED states"""
+        """
+        units generator which checks that only 'max_num_concurrent_units' running at the same time,
+        i.e. in the LAUNCHED or ASSIGNED states
+        """
         while self.keep_launching_units:
             units_id_to_remove = []
             for db_id, unit in self.launched_units.items():
@@ -175,7 +177,10 @@ class TaskLauncher:
                 break
 
     def _launch_limited_units(self, url: str) -> None:
-        """use units' generator to launch limited number of units according to (max_num_concurrent_units)"""
+        """
+        use units' generator to launch limited number of units according to
+        (max_num_concurrent_units)
+        """
         # Continue launching if we haven't pulled the plug, so long as there are currently
         # units to launch, or more may come in the future.
         while not self.finished_generators and (
@@ -260,28 +265,43 @@ class TaskLauncher:
 
     def EXP_resume_assignments(self) -> None:
         """
-        Experimental function to go through an resume expired (or incomplete) tasks from a specific
+        Experimental function to go through a resume expired (or incomplete) tasks from a specific
         task run that may have been left incomplete.
         """
+        # TODO: Remove debug loggers after testing this feature
+        logger.debug(f"EXP Resuming assignments")
         assignments = self.task_run.get_assignments()
+        logger.debug(f"EXP Found assignments {assignments}")
         for assignment in assignments:
             self.assignments.append(assignment)
+
             for unit in assignment.get_units():
                 unit_status = unit.get_status()
                 if unit_status in [AssignmentState.LAUNCHED, AssignmentState.ASSIGNED]:
                     raise AssertionError(
-                        f"Cannot launch job with units in status {unit_status}. Be sure this task run is properly cleaned up before relaunching"
+                        f"Cannot launch job with units in status {unit_status}. "
+                        f"Be sure this task run is properly cleaned up before relaunching"
                     )
+
                 if unit.get_status() in [
                     AssignmentState.EXPIRED,
                     AssignmentState.REJECTED,
                     AssignmentState.SOFT_REJECTED,
                 ]:
-                    if unit.get_assigned_agent() != None:
+                    assigned_agent = unit.get_assigned_agent()
+                    if assigned_agent is not None:
                         # Dissociate the rejected agent
                         unit.clear_assigned_agent()
                     # Update these units to created, then prepare to launch them
                     unit.set_db_status(AssignmentState.CREATED)
                     self.units.append(unit)
-        assert len(self.units) > 0, "Cannot relaunch a job with no incomplete units!!"
-        return
+
+                    with self.unlaunched_units_access_condition:
+                        self.unlaunched_units[unit.db_id] = unit
+
+        assert len(self.units) > 0, "Cannot relaunch a job with no incomplete units!"
+
+        logger.debug(f"EXP Resuming assignments finished successfuly")
+        self.keep_launching_units = True
+
+        return None

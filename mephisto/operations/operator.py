@@ -115,14 +115,16 @@ class Operator:
                 requesters = [get_mock_requester(self.db)]
             else:
                 raise EntryDoesNotExistException(f"No requester found with name {requester_name}")
+
         requester = requesters[0]
-        requester_id = requester.db_id
         provider_type = requester.provider_type
+
         assert provider_type == run_config.provider._provider_type, (
             f"Found requester for name {requester_name} is not "
             f"of the specified type {run_config.provider._provider_type}, "
             f"but is instead {provider_type}."
         )
+
         return requester, provider_type
 
     def _create_live_task_run(
@@ -320,13 +322,16 @@ class Operator:
                 await asyncio.sleep(0.01)  # Low pri, allow to be interrupted
                 patience = tracked_run.task_run.get_task_args().no_submission_patience
                 if patience < time.time() - tracked_run.client_io.last_submission_time:
-                    logger.warn(
+                    logger.warning(
                         f"It has been greater than the set no_submission_patience of {patience} "
-                        f"for {tracked_run.task_run} since the last submission, shutting this run down."
+                        f"for {tracked_run.task_run} since the last submission, "
+                        f"shutting this run down."
                     )
                     tracked_run.force_shutdown = True
+
+                task_run = tracked_run.task_run
+
                 if not tracked_run.force_shutdown:
-                    task_run = tracked_run.task_run
                     task_run.update_completion_progress(task_launcher=tracked_run.task_launcher)
                     if not task_run.get_is_completed():
                         continue
@@ -342,7 +347,9 @@ class Operator:
                 tracked_run.task_launcher.expire_units()
                 tracked_run.architect.shutdown()
                 del self._task_runs_tracked[task_run.db_id]
+
             await asyncio.sleep(RUN_STATUS_POLL_TIME)
+
             if self._using_prometheus and not self.is_shutdown:
                 launch_prometheus_server()
 
@@ -402,6 +409,7 @@ class Operator:
         if self.is_shutdown:
             logger.info("Already shut down, ignoring repeated call")
             return
+
         logger.info("operator shutting down")
         self.is_shutdown = True
         runs_to_check = list(self._task_runs_tracked.items())
@@ -413,7 +421,7 @@ class Operator:
                 logger.info(f"Skipping waiting for launcher threads to join on task run {run_id}.")
 
             def cant_cancel_expirations(sig, frame):
-                logger.warn(
+                logger.warning(
                     "Ignoring ^C during unit expirations. ^| if you NEED to exit and you will "
                     "have to clean up units that hadn't been expired afterwards."
                 )
@@ -421,6 +429,8 @@ class Operator:
             old_handler = signal.signal(signal.SIGINT, cant_cancel_expirations)
             tracked_run.task_launcher.expire_units()
             signal.signal(signal.SIGINT, old_handler)
+
+        remaining_runs = []
         try:
             remaining_runs = self._task_runs_tracked.values()
 
@@ -448,7 +458,8 @@ class Operator:
             )
             for tracked_run in remaining_runs:
                 logger.warning(
-                    f"Cleaning up run {tracked_run.task_run.db_id}. {format_loud('Ctrl-C once per step')} to skip that step."
+                    f"Cleaning up run {tracked_run.task_run.db_id}. "
+                    f"{format_loud('Ctrl-C once per step')} to skip that step."
                 )
                 try:
                     logger.warning(f"Shutting down active Units in-flight.")
@@ -499,7 +510,19 @@ class Operator:
         failure, rather than throwing. Generally for use in scripts.
         """
         assert not self.is_shutdown, "Cannot run a config on a shutdown operator. Create a new one."
+
         try:
+            EXP_resume_incomplete_run = run_config.task.EXP_resume_incomplete_run
+            logger.debug(
+                f"EXP TaskRun argument `EXP_resume_incomplete_run` = {EXP_resume_incomplete_run}"
+            )
+            if EXP_resume_incomplete_run:
+                incomplete_task_run = self.EXP_find_previous_task_run(run_config=run_config)
+                return self.EXP_launch_from_incomplete_run(
+                    task_run=incomplete_task_run,
+                    shared_state=shared_state,
+                )
+
             return self.launch_task_run_or_die(run_config=run_config, shared_state=shared_state)
         except (KeyboardInterrupt, Exception) as e:
             logger.error("Ran into error while launching run: ", exc_info=True)
@@ -586,25 +609,76 @@ class Operator:
         finally:
             self.shutdown()
 
+    def EXP_find_previous_task_run(self, run_config: DictConfig) -> Optional[TaskRun]:
+        """
+        Find previous TaskRun to try to complete incomplete Units
+        (using argument `EXP_resume_incomplete_run`)
+        """
+        # TODO: Remove debug loggers after testing this feature
+        logger.debug("EXP Find incomplete TaskRun")
+
+        blueprint_type = run_config.blueprint._blueprint_type
+
+        # 1. Find an existing task
+        task_name = run_config.task.get("task_name", None)
+        if task_name is None:
+            task_name = blueprint_type
+            logger.warning(
+                f"Task is using the default blueprint name {task_name} as a name, "
+                "as no task_name is provided"
+            )
+
+        logger.debug(f'EXP Config Task name "{task_name}"')
+
+        tasks = self.db.find_tasks(task_name=task_name)
+        if len(tasks) == 0:
+            logger.info(
+                f'Could not find Task "{task_name}", nothing to resume. '
+                f"Disable `EXP_resume_incomplete_run` argument to start a new TaskRun."
+            )
+            self.shutdown()
+            return None
+
+        task_id = tasks[0].db_id
+        logger.debug(f'EXP Found Task with id "{task_id}"')
+
+        # 2. Find incomplete TaskRun
+        incomplete_task_runs = self.db.find_task_runs(task_id=task_id)
+        if len(incomplete_task_runs) == 0:
+            logger.info(
+                f'Could not find TaskRuns for Task "{task_name}", nothing to resume. '
+                f"Disable `EXP_resume_incomplete_run` argument to start a new TaskRun."
+            )
+            self.shutdown()
+            return None
+
+        last_incomplete_task_run = incomplete_task_runs[-1]
+
+        logger.debug(f'EXP Found TaskRun with id "{last_incomplete_task_run.db_id}"')
+
+        return last_incomplete_task_run
+
     def EXP_launch_from_incomplete_run(
-        self, task_run_id: str, shared_state: Optional[SharedTaskState] = None
+        self,
+        task_run: TaskRun,
+        shared_state: Optional[SharedTaskState] = None,
     ) -> str:
-        """
-        Attempt to resume a task run with incomplete assignments/units
-        """
-        task_run = TaskRun.get(db, task_run_id)
+        """Attempt to resume a TaskRun with incomplete assignments/units"""
+        # TODO: Remove debug loggers after testing this feature
+        logger.debug(f'EXP Launching imcomplete TaskRun "{task_run}"')
         run_config = task_run.args
 
-        set_mephisto_log_level(level=run_config.get("log_level", "info"))
+        EXP_logger_level = "debug"  # Change to "info" after testing this feature
 
-        requester, provider_type = self._get_requester_and_provider_from_config(
-            run_config
-        )
+        set_mephisto_log_level(level=run_config.get("log_level", EXP_logger_level))
+
+        requester, provider_type = self._get_requester_and_provider_from_config(run_config)
 
         # Next get the abstraction classes, and run validation
         # before anything is actually created in the database
         blueprint_type = run_config.blueprint._blueprint_type
         architect_type = run_config.architect._architect_type
+
         BlueprintClass = get_blueprint_from_type(blueprint_type)
         ArchitectClass = get_architect_from_type(architect_type)
         CrowdProviderClass = get_crowd_provider_from_type(provider_type)
@@ -627,6 +701,8 @@ class Operator:
             CrowdProviderClass,
         )
 
+        logger.debug(f'EXP Live Run created "{live_run}"')
+
         try:
             # If anything fails after here, we have to cleanup the architect
             # Setup and deploy the server
@@ -640,14 +716,19 @@ class Operator:
 
             # Register the task with the provider
             live_run.provider.setup_resources_for_task_run(
-                task_run, run_config, shared_state, task_url
+                task_run,
+                run_config,
+                shared_state,
+                task_url,
             )
 
             live_run.client_io.launch_channels()
         except (KeyboardInterrupt, Exception) as e:
             logger.error(
-                "Encountered error while launching run, shutting down", exc_info=True
+                "Encountered error while launching run, shutting down",
+                exc_info=True,
             )
+
             try:
                 live_run.architect.shutdown()
             except (KeyboardInterrupt, Exception) as architect_exception:
@@ -655,12 +736,17 @@ class Operator:
                     f"Could not shut down architect: {architect_exception}",
                     exc_info=True,
                 )
+
             raise e
 
+        logger.debug(f"EXP Resuming assignments")
         live_run.task_launcher.EXP_resume_assignments()
+        logger.debug(f"EXP Launching units")
         live_run.task_launcher.launch_units(url=task_url)
 
         self._task_runs_tracked[task_run.db_id] = live_run
+        task_run.EXP_resurrect_if_has_incomplete_assignments()
         task_run.update_completion_progress(status=False)
+        logger.debug(f"EXP Launching TaskRun finished successfuly")
 
         return task_run.db_id
