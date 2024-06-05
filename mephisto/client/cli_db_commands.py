@@ -173,7 +173,7 @@ def export(ctx: click.Context, **options: dict):
         task_ids=export_tasks_by_ids,
         task_run_ids=export_task_runs_by_ids,
         task_runs_since_date=export_task_runs_since_date,
-        task_runs_labels=export_labels,
+        task_run_labels=export_labels,
         delete_exported_data=delete_exported_data,
         randomize_legacy_ids=randomize_legacy_ids,
         metadata_export_options=get_export_options_for_metadata(ctx, options),

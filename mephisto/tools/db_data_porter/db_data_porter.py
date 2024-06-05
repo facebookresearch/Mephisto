@@ -98,11 +98,11 @@ class DBDataPorter:
         task_names: Optional[List[str]] = None,
         task_ids: Optional[List[str]] = None,
         task_run_ids: Optional[List[str]] = None,
-        task_runs_labels: Optional[List[str]] = None,
+        task_run_labels: Optional[List[str]] = None,
         since_datetime: Optional[datetime] = None,
         randomize_legacy_ids: Optional[bool] = False,
     ) -> dict:
-        partial = bool(task_names or task_ids or task_run_ids or task_runs_labels or since_datetime)
+        partial = bool(task_names or task_ids or task_run_ids or task_run_labels or since_datetime)
         if not partial:
             dump_data = dumps.prepare_full_dump_data(self.db, self.provider_datastores)
         else:
@@ -111,7 +111,7 @@ class DBDataPorter:
                 task_names=task_names,
                 task_ids=task_ids,
                 task_run_ids=task_run_ids,
-                task_runs_labels=task_runs_labels,
+                task_run_labels=task_run_labels,
                 since_datetime=since_datetime,
             )
 
@@ -178,7 +178,7 @@ class DBDataPorter:
         task_ids: Optional[List[str]] = None,
         task_run_ids: Optional[List[str]] = None,
         task_runs_since_date: Optional[str] = None,
-        task_runs_labels: Optional[List[str]] = None,
+        task_run_labels: Optional[List[str]] = None,
         delete_exported_data: bool = False,
         randomize_legacy_ids: bool = False,
         metadata_export_options: dict = None,
@@ -212,7 +212,7 @@ class DBDataPorter:
             task_names=task_names,
             task_ids=task_ids,
             task_run_ids=task_run_ids,
-            task_runs_labels=task_runs_labels,
+            task_run_labels=task_run_labels,
             since_datetime=since_datetime,
             randomize_legacy_ids=randomize_legacy_ids,
         )

@@ -190,12 +190,12 @@ def randomize_ids(
 
 def get_old_pk_from_substitutions(
     pk: str,
-    substitutions: dict,
+    pk_substitutions: dict,
     table_name: str,
 ) -> str:
     # After we created a dump file, we already can have new randomized PKs.
     # But we still have old ones in Mephisto DB.
     # Find old PKs in reversed key-value pair
-    pk_subs = substitutions.get(MEPHISTO_DUMP_KEY, {}).get(table_name, {})
-    pk_subs_reversed = dict((v, k) for k, v in pk_subs.items())
-    return pk_subs_reversed.get(pk)
+    pk_subs = pk_substitutions.get(MEPHISTO_DUMP_KEY, {}).get(table_name, {})
+    pk_substitutions_reversed = dict((v, k) for k, v in pk_subs.items())
+    return pk_substitutions_reversed.get(pk)

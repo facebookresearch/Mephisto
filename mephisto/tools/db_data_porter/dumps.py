@@ -6,6 +6,7 @@
 
 import os
 import shutil
+from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from types import MethodType
@@ -53,7 +54,7 @@ def prepare_partial_dump_data(
     task_names: Optional[List[str]] = None,
     task_ids: Optional[List[str]] = None,
     task_run_ids: Optional[List[str]] = None,
-    task_runs_labels: Optional[List[str]] = None,
+    task_run_labels: Optional[List[str]] = None,
     since_datetime: Optional[datetime] = None,
 ) -> dict:
     dump_data_to_export = {}
@@ -101,15 +102,15 @@ def prepare_partial_dump_data(
 
             # Get TaskRun IDs by Task IDs
             task_run_ids = db_utils.get_task_run_ids_by_task_ids(db, task_ids)
-        elif task_runs_labels:
+        elif task_run_labels:
             # Validate on correct values of passed TaskRun labels
             db_labels = db_utils.get_list_of_available_labels(db)
-            not_found_values = [t for t in task_runs_labels if t not in db_labels]
+            not_found_values = [t for t in task_run_labels if t not in db_labels]
             if not_found_values:
                 logger.error(
                     _make_options_error_message(
                         "TaskRun labels",
-                        task_runs_labels,
+                        task_run_labels,
                         not_found_values,
                         db_labels,
                     )
@@ -117,7 +118,7 @@ def prepare_partial_dump_data(
                 exit()
 
             # Get TaskRun IDs
-            task_run_ids = db_utils.get_task_run_ids_by_labels(db, task_runs_labels)
+            task_run_ids = db_utils.get_task_run_ids_by_labels(db, task_run_labels)
         elif since_datetime:
             # Get TaskRun IDs
             task_run_ids = db_utils.select_task_run_ids_since_date(db, since_datetime)
@@ -261,10 +262,22 @@ def delete_exported_data(
 
         task_run_data_dirs = [TaskRun.get(db, i).get_run_dir() for i in task_run_ids]
 
+        mephisto_db_dump_to_delete = deepcopy(dump_data_to_export[MEPHISTO_DUMP_KEY])
+
+        # Replace substitutions back to delete entries from DB
+        if pk_substitutions:
+            for table_name, pk_pairs in pk_substitutions[MEPHISTO_DUMP_KEY].items():
+                pk_field_name = db_utils.get_table_pk_field_name(db, table_name)
+                new_old_pk_pairs = {v: k for k, v in pk_pairs.items()}
+                for db_dump_row in mephisto_db_dump_to_delete[table_name]:
+                    pk_value = db_dump_row[pk_field_name]
+                    if pk_value in new_old_pk_pairs:
+                        db_dump_row[pk_field_name] = new_old_pk_pairs[pk_value]
+
         # Clean DB
         db_utils.delete_exported_data_without_fk_constraints(
             db,
-            dump_data_to_export[MEPHISTO_DUMP_KEY],
+            mephisto_db_dump_to_delete,
             names_of_tables_to_cleanup,
         )
 

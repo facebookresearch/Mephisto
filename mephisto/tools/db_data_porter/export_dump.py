@@ -36,17 +36,18 @@ def make_tmp_export_dir() -> str:
     return tmp_export_dir
 
 
-def _rename_dirs_with_new_pks(task_run_dirs: List[str], pk_substitutions: dict):
-    def rename_dir_with_new_pk(dir_path: str, substitutions: dict) -> str:
-        dump_id = substitutions.get(os.path.basename(dir_path))
-        renamed_dir_path = os.path.join(os.path.dirname(dir_path), dump_id)
-        os.rename(dir_path, renamed_dir_path)
-        return renamed_dir_path
+def _rename_single_dir_with_new_pk(dir_path: str, substitutions: dict) -> str:
+    dump_id = substitutions.get(os.path.basename(dir_path))
+    renamed_dir_path = os.path.join(os.path.dirname(dir_path), dump_id)
+    os.rename(dir_path, renamed_dir_path)
+    return renamed_dir_path
 
+
+def _rename_dirs_with_new_pks(task_run_dirs: List[str], pk_substitutions: dict) -> bool:
     task_runs_subs = pk_substitutions.get(MEPHISTO_DUMP_KEY, {}).get(TASK_RUNS_TABLE_NAME, {})
     if not task_runs_subs:
         # Nothing to rename
-        return
+        return False
 
     assignment_subs = pk_substitutions.get(MEPHISTO_DUMP_KEY, {}).get(ASSIGNMENTS_TABLE_NAME, {})
     agent_subs = pk_substitutions.get(MEPHISTO_DUMP_KEY, {}).get(AGENTS_TABLE_NAME, {})
@@ -54,7 +55,7 @@ def _rename_dirs_with_new_pks(task_run_dirs: List[str], pk_substitutions: dict):
     task_run_dirs = [d for d in task_run_dirs if os.path.basename(d) in task_runs_subs.keys()]
     for task_run_dir in task_run_dirs:
         # Rename TaskRun dir
-        renamed_task_run_dir = rename_dir_with_new_pk(task_run_dir, task_runs_subs)
+        renamed_task_run_dir = _rename_single_dir_with_new_pk(task_run_dir, task_runs_subs)
 
         # Rename Assignments dirs
         assignments_dirs = [
@@ -63,7 +64,7 @@ def _rename_dirs_with_new_pks(task_run_dirs: List[str], pk_substitutions: dict):
             if d in assignment_subs.keys()
         ]
         for assignment_dir in assignments_dirs:
-            renamed_assignment_dir = rename_dir_with_new_pk(assignment_dir, assignment_subs)
+            renamed_assignment_dir = _rename_single_dir_with_new_pk(assignment_dir, assignment_subs)
 
             # Rename Agents dirs
             agents_dirs = [
@@ -72,7 +73,9 @@ def _rename_dirs_with_new_pks(task_run_dirs: List[str], pk_substitutions: dict):
                 if d in agent_subs.keys()
             ]
             for agent_dir in agents_dirs:
-                rename_dir_with_new_pk(agent_dir, agent_subs)
+                _rename_single_dir_with_new_pk(agent_dir, agent_subs)
+
+    return True
 
 
 def _export_data_dir_for_task_runs(
@@ -102,7 +105,8 @@ def _export_data_dir_for_task_runs(
             os.makedirs(tmp_task_run_dir, exist_ok=True)
             copy_tree(task_run_data_dir, tmp_task_run_dir, verbose=0)
 
-        _rename_dirs_with_new_pks(tmp_task_run_dirs, pk_substitutions)
+        if pk_substitutions:
+            _rename_dirs_with_new_pks(tmp_task_run_dirs, pk_substitutions)
 
         # Create archive in export dir
         shutil.make_archive(
@@ -220,7 +224,7 @@ def get_export_options_for_metadata(ctx: click.Context, options: dict) -> Dict[s
 
     for param in ctx.command.params:
         option_name = "/".join(param.opts)  # Concatenated option name variants (short/full)
-        values = options[p.name]
+        values = options[param.name]
         export_options_for_metadata[option_name] = values
 
     return export_options_for_metadata
