@@ -13,8 +13,15 @@ from mephisto.abstractions.providers.prolific.provider_type import (
 
 BACKUP_OUTPUT_DIR = "outputs/backup"
 EXPORT_OUTPUT_DIR = "outputs/export"
+
 MEPHISTO_DUMP_KEY = "mephisto"
+
 METADATA_DUMP_KEY = "dump_metadata"
+METADATA_MIGRATIONS_KEY = "migrations"
+METADATA_EXPORT_OPTIONS_KEY = "export_options"
+METADATA_TIMESTAMP_KEY = "timestamp"
+METADATA_PK_SUBSTITUTIONS_KEY = "pk_substitutions"
+
 AVAILABLE_PROVIDER_TYPES = [
     MEPHISTO_DUMP_KEY,
     MOCK_PROVIDER_TYPE,
@@ -216,3 +223,9 @@ IMPORTED_DATA_TABLE_NAMES = [
 LOCAL_DB_LABEL = "_"
 
 DEFAULT_ARCHIVE_FORMAT = "zip"
+
+TABLE_NAMES_RELATED_TO_QUALIFICATIONS = [
+    "granted_qualifications",
+    "qualifications",
+    "workers",
+]

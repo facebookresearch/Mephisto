@@ -12,22 +12,46 @@ from mephisto.generators.form_composer.config_validation.utils import make_error
 from mephisto.tools.db_data_porter.constants import AVAILABLE_PROVIDER_TYPES
 from mephisto.tools.db_data_porter.constants import MEPHISTO_DUMP_KEY
 from mephisto.tools.db_data_porter.constants import METADATA_DUMP_KEY
+from mephisto.tools.db_data_porter.constants import METADATA_EXPORT_OPTIONS_KEY
 from mephisto.utils import db as db_utils
 
 
-def validate_dump_data(db: "MephistoDB", dump_data: dict) -> Optional[List[str]]:
+def validate_dump_data(
+    db: "MephistoDB",
+    dump_data: dict,
+    qualification_only: Optional[bool] = False,
+) -> Optional[List[str]]:
     errors = []
+
+    # 1. Validate metadata
+    metadata = dump_data.get(METADATA_DUMP_KEY, {})
+    if not metadata:
+        errors.append(f"Dump file has to contain metadata under `{METADATA_DUMP_KEY}` key.")
+        return errors
+
+    metadata_qualification_only = metadata.get(METADATA_EXPORT_OPTIONS_KEY, {}).get(
+        "-qo/--qualification-only"
+    )
+    if qualification_only and not metadata_qualification_only:
+        errors.append(
+            f"You cannot use `--qualification-only` option to import a regular dump file."
+        )
+        return errors
+
+    if not qualification_only and metadata_qualification_only:
+        errors.append(f"You cannot use regular import with a qualification-only dump file.")
+        return errors
 
     db_dumps = {k: v for k, v in dump_data.items() if k != METADATA_DUMP_KEY}
 
-    # 1. Check provider names
+    # 2. Check provider names
     incorrect_db_names = list(filter(lambda i: i not in AVAILABLE_PROVIDER_TYPES, db_dumps.keys()))
     if incorrect_db_names:
         errors.append(
             f"Dump file cannot contain these database names: {', '.join(incorrect_db_names)}."
         )
 
-    # 2. Check if dump file contains JSON-object
+    # 3. Check if dump file contains JSON-object
     db_values_are_not_dicts = list(filter(lambda i: not isinstance(i, dict), dump_data.values()))
     if db_values_are_not_dicts:
         errors.append(
@@ -35,7 +59,7 @@ def validate_dump_data(db: "MephistoDB", dump_data: dict) -> Optional[List[str]]
             f"that are not JSON-objects."
         )
 
-    # 3. Check dumps of DBs
+    # 4. Check dumps of DBs
     _db_dumps = [(n, d) for n, d in db_dumps.items() if n not in incorrect_db_names]
     for db_name, db_dump_data in _db_dumps:
         # Get ot create DB/Datastore to request for available tables

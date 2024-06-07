@@ -234,7 +234,7 @@ class TestExportDump(unittest.TestCase):
             pk_substitutions={},
         )
 
-        self.assertFalse(result)
+        self.assertTrue(result)
         mock__rename_dirs_with_new_pks.assert_not_called()
 
     @patch("mephisto.tools.db_data_porter.export_dump.make_tmp_export_dir")

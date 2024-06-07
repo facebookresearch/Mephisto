@@ -18,6 +18,7 @@ from mephisto.abstractions.database import MephistoDB
 from mephisto.data_model.task_run import TaskRun
 from mephisto.tools.db_data_porter.constants import DATASTORE_EXPORT_METHOD_NAME
 from mephisto.tools.db_data_porter.constants import MEPHISTO_DUMP_KEY
+from mephisto.tools.db_data_porter.constants import TABLE_NAMES_RELATED_TO_QUALIFICATIONS
 from mephisto.tools.db_data_porter.constants import TASK_RUNS_TABLE_NAME
 from mephisto.tools.db_data_porter.randomize_ids import get_old_pk_from_substitutions
 from mephisto.utils import db as db_utils
@@ -205,6 +206,72 @@ def prepare_full_dump_data(db: "MephistoDB", provider_datastores: Dict[str, "Mep
     # Providers' DBs
     for provider_type, provider_datastore in provider_datastores.items():
         dump_data_to_export[provider_type] = db_utils.db_or_datastore_to_dict(provider_datastore)
+
+    return dump_data_to_export
+
+
+def prepare_qualification_related_dump_data(
+    db: "MephistoDB",
+    qualification_names: Optional[List[str]] = None,
+) -> dict:
+    table_names = TABLE_NAMES_RELATED_TO_QUALIFICATIONS
+    dump_data_to_export = {}
+
+    if not qualification_names:
+        dump_data_to_export[MEPHISTO_DUMP_KEY] = db_utils.db_tables_to_dict(db, table_names)
+    else:
+        dump_data = {}
+
+        # Find and serialize `qualifications`
+        qualification_rows = db_utils.select_rows_by_list_of_field_values(
+            db,
+            "qualifications",
+            ["qualification_name"],
+            [qualification_names],
+        )
+
+        # Validate passed `qualification_names`
+        not_existing_qualification_names = set(qualification_names) - set(
+            [q["qualification_name"] for q in qualification_rows]
+        )
+        if not_existing_qualification_names:
+            logger.error(
+                f"[yellow]"
+                f"You passed non-existing qualification names: "
+                f"{', '.join(not_existing_qualification_names)}"
+                f"[/yellow]"
+            )
+            exit()
+
+        dump_data["qualifications"] = db_utils.serialize_data_for_table(qualification_rows)
+
+        # Find and serialize `granted_qualifications`
+        qualification_ids = list(
+            set(filter(bool, [i["qualification_id"] for i in dump_data["qualifications"]]))
+        )
+        granted_qualification_rows = db_utils.select_rows_by_list_of_field_values(
+            db,
+            "granted_qualifications",
+            ["qualification_id"],
+            [qualification_ids],
+        )
+        dump_data["granted_qualifications"] = db_utils.serialize_data_for_table(
+            granted_qualification_rows
+        )
+
+        # Find and serialize `workers`
+        worker_ids = list(
+            set(filter(bool, [i["worker_id"] for i in dump_data["granted_qualifications"]]))
+        )
+        worker_rows = db_utils.select_rows_by_list_of_field_values(
+            db,
+            "workers",
+            ["worker_id"],
+            [worker_ids],
+        )
+        dump_data["workers"] = db_utils.serialize_data_for_table(worker_rows)
+
+        dump_data_to_export[MEPHISTO_DUMP_KEY] = dump_data
 
     return dump_data_to_export
 
