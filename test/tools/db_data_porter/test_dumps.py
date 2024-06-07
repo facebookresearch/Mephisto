@@ -4,8 +4,10 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import io
 import os
 import shutil
+import sys
 import tempfile
 import unittest
 from datetime import timedelta
@@ -18,10 +20,13 @@ import pytest
 from mephisto.abstractions.database import MephistoDB
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.task_run import TaskRun
+from mephisto.tools.db_data_porter.constants import MEPHISTO_DUMP_KEY
+from mephisto.tools.db_data_porter.constants import TABLE_NAMES_RELATED_TO_QUALIFICATIONS
 from mephisto.tools.db_data_porter.dumps import _make_options_error_message
 from mephisto.tools.db_data_porter.dumps import delete_exported_data
 from mephisto.tools.db_data_porter.dumps import prepare_full_dump_data
 from mephisto.tools.db_data_porter.dumps import prepare_partial_dump_data
+from mephisto.tools.db_data_porter.dumps import prepare_qualification_related_dump_data
 from mephisto.utils import db as db_utils
 from mephisto.utils.testing import get_test_qualification
 from mephisto.utils.testing import get_test_requester
@@ -1080,3 +1085,80 @@ class TestDumps(unittest.TestCase):
                 self.assertEqual(len(rows), 1)
             else:
                 self.assertEqual(len(rows), 0)
+
+    def test_prepare_qualification_related_dump_data_without_qualification_names(self):
+        _, worker_id = get_test_worker(self.db)
+        qualification_id = get_test_qualification(self.db, "qual_1")
+        grant_test_qualification(self.db, worker_id=worker_id, qualification_id=qualification_id)
+
+        result = prepare_qualification_related_dump_data(self.db, qualification_names=None)
+
+        self.assertIn(MEPHISTO_DUMP_KEY, result)
+        self.assertEqual(
+            len(result[MEPHISTO_DUMP_KEY].keys()), len(TABLE_NAMES_RELATED_TO_QUALIFICATIONS)
+        )
+        for _, table_value in result[MEPHISTO_DUMP_KEY].items():
+            self.assertEqual(len(table_value), 1)
+
+    def test_prepare_qualification_related_dump_data_with_qualification_names(self):
+        qualification_1_name = "qual_1"
+        qualification_2_name = "qual_2"
+
+        _, worker_1_id = get_test_worker(self.db, "worker_1")
+        _, worker_2_id = get_test_worker(self.db, "worker_2")
+        qualification_1_id = get_test_qualification(self.db, qualification_1_name)
+        qualification_2_id = get_test_qualification(self.db, qualification_2_name)
+        grant_test_qualification(
+            self.db, worker_id=worker_1_id, qualification_id=qualification_2_id
+        )
+        grant_test_qualification(
+            self.db, worker_id=worker_2_id, qualification_id=qualification_2_id
+        )
+
+        # By first qualification
+        result_1 = prepare_qualification_related_dump_data(
+            self.db, qualification_names=[qualification_1_name]
+        )
+
+        self.assertIn(MEPHISTO_DUMP_KEY, result_1)
+        self.assertEqual(
+            len(result_1[MEPHISTO_DUMP_KEY].keys()), len(TABLE_NAMES_RELATED_TO_QUALIFICATIONS)
+        )
+        self.assertEqual(len(result_1[MEPHISTO_DUMP_KEY]["workers"]), 0)
+        self.assertEqual(len(result_1[MEPHISTO_DUMP_KEY]["qualifications"]), 1)
+        self.assertEqual(len(result_1[MEPHISTO_DUMP_KEY]["granted_qualifications"]), 0)
+
+        # By second qualification
+        result_2 = prepare_qualification_related_dump_data(
+            self.db, qualification_names=[qualification_2_name]
+        )
+
+        self.assertIn(MEPHISTO_DUMP_KEY, result_2)
+        self.assertEqual(
+            len(result_2[MEPHISTO_DUMP_KEY].keys()), len(TABLE_NAMES_RELATED_TO_QUALIFICATIONS)
+        )
+        self.assertEqual(len(result_2[MEPHISTO_DUMP_KEY]["workers"]), 2)
+        self.assertEqual(len(result_2[MEPHISTO_DUMP_KEY]["qualifications"]), 1)
+        self.assertEqual(len(result_2[MEPHISTO_DUMP_KEY]["granted_qualifications"]), 2)
+
+    def test_prepare_qualification_related_dump_data_non_existing_qualification_names(self):
+        qualification_name = "qual_1"
+        non_existing_qualification_name = "non_existing_qual"
+
+        _, worker_id = get_test_worker(self.db)
+        qualification_id = get_test_qualification(self.db, qualification_name)
+        grant_test_qualification(self.db, worker_id=worker_id, qualification_id=qualification_id)
+
+        with self.assertRaises(SystemExit) as cm:
+            captured_print_output = io.StringIO()
+            sys.stdout = captured_print_output
+            prepare_qualification_related_dump_data(
+                self.db, qualification_names=[qualification_name, non_existing_qualification_name]
+            )
+            sys.stdout = sys.__stdout__
+
+        self.assertEqual(cm.exception.code, None)
+        self.assertIn(
+            "You passed non-existing qualification names", captured_print_output.getvalue()
+        )
+        self.assertIn(non_existing_qualification_name, captured_print_output.getvalue())

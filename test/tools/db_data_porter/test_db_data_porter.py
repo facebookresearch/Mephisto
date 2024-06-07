@@ -25,6 +25,12 @@ from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.task_run import TaskRun
 from mephisto.tools.db_data_porter import DBDataPorter
 from mephisto.tools.db_data_porter.constants import EXAMPLE_CONFLICT_RESOLVER
+from mephisto.tools.db_data_porter.constants import MEPHISTO_DUMP_KEY
+from mephisto.tools.db_data_porter.constants import METADATA_DUMP_KEY
+from mephisto.tools.db_data_porter.constants import METADATA_EXPORT_OPTIONS_KEY
+from mephisto.tools.db_data_porter.constants import METADATA_MIGRATIONS_KEY
+from mephisto.tools.db_data_porter.constants import METADATA_PK_SUBSTITUTIONS_KEY
+from mephisto.tools.db_data_porter.constants import METADATA_TIMESTAMP_KEY
 from mephisto.utils import db as db_utils
 from mephisto.utils.testing import get_test_qualification
 from mephisto.utils.testing import get_test_requester
@@ -258,20 +264,27 @@ class TestDBDataPorter(unittest.TestCase):
                 dump_file_data = json.loads(f.read())
 
                 # Test main keys
-                self.assertIn("dump_metadata", dump_file_data)
-                self.assertIn("mephisto", dump_file_data)
+                self.assertIn(METADATA_DUMP_KEY, dump_file_data)
+                self.assertIn(MEPHISTO_DUMP_KEY, dump_file_data)
 
                 # Test `dump_metadata`
-                self.assertEqual(dump_file_data["dump_metadata"]["export_options"], None)
                 self.assertEqual(
-                    dump_file_data["dump_metadata"]["migrations"],
-                    {"mephisto": "20240418_data_porter_feature"},
+                    dump_file_data[METADATA_DUMP_KEY][METADATA_EXPORT_OPTIONS_KEY],
+                    {},
                 )
-                self.assertEqual(dump_file_data["dump_metadata"]["pk_substitutions"], {})
-                self.assertEqual(dump_file_data["dump_metadata"]["timestamp"], FILE_TIMESTAMP)
+                self.assertEqual(
+                    dump_file_data[METADATA_DUMP_KEY][METADATA_MIGRATIONS_KEY],
+                    {MEPHISTO_DUMP_KEY: "20240418_data_porter_feature"},
+                )
+                self.assertEqual(
+                    dump_file_data[METADATA_DUMP_KEY][METADATA_PK_SUBSTITUTIONS_KEY], {}
+                )
+                self.assertEqual(
+                    dump_file_data[METADATA_DUMP_KEY][METADATA_TIMESTAMP_KEY], FILE_TIMESTAMP
+                )
 
                 # Test `mephisto`
-                mephisto_dump = dump_file_data["mephisto"]
+                mephisto_dump = dump_file_data[MEPHISTO_DUMP_KEY]
 
                 tables_without_task_run_id = [
                     "workers",
@@ -345,7 +358,7 @@ class TestDBDataPorter(unittest.TestCase):
 
             with archive.open(json_dump_file_name) as f:
                 dump_file_data = json.loads(f.read())
-                mephisto_dump = dump_file_data["mephisto"]
+                mephisto_dump = dump_file_data[MEPHISTO_DUMP_KEY]
 
                 self.assertEqual(len(mephisto_dump["tasks"]), 1)
                 self.assertEqual(len(db_utils.select_all_table_rows(self.db, "tasks")), 2)
@@ -417,7 +430,7 @@ class TestDBDataPorter(unittest.TestCase):
 
             with archive.open(json_dump_file_name) as f:
                 dump_file_data = json.loads(f.read())
-                mephisto_dump = dump_file_data["mephisto"]
+                mephisto_dump = dump_file_data[MEPHISTO_DUMP_KEY]
 
                 self.assertEqual(len(mephisto_dump["tasks"]), 1)
                 self.assertEqual(len(db_utils.select_all_table_rows(self.db, "tasks")), 2)
@@ -489,7 +502,7 @@ class TestDBDataPorter(unittest.TestCase):
 
             with archive.open(json_dump_file_name) as f:
                 dump_file_data = json.loads(f.read())
-                mephisto_dump = dump_file_data["mephisto"]
+                mephisto_dump = dump_file_data[MEPHISTO_DUMP_KEY]
 
                 self.assertEqual(len(mephisto_dump["tasks"]), 1)
                 self.assertEqual(len(db_utils.select_all_table_rows(self.db, "tasks")), 2)
@@ -561,7 +574,7 @@ class TestDBDataPorter(unittest.TestCase):
 
             with archive.open(json_dump_file_name) as f:
                 dump_file_data = json.loads(f.read())
-                mephisto_dump = dump_file_data["mephisto"]
+                mephisto_dump = dump_file_data[MEPHISTO_DUMP_KEY]
 
                 self.assertEqual(len(mephisto_dump["tasks"]), 1)
                 self.assertEqual(len(db_utils.select_all_table_rows(self.db, "tasks")), 2)
@@ -635,7 +648,7 @@ class TestDBDataPorter(unittest.TestCase):
 
             with archive.open(json_dump_file_name) as f:
                 dump_file_data = json.loads(f.read())
-                mephisto_dump = dump_file_data["mephisto"]
+                mephisto_dump = dump_file_data[MEPHISTO_DUMP_KEY]
 
                 self.assertEqual(len(mephisto_dump["tasks"]), 1)
                 self.assertEqual(len(db_utils.select_all_table_rows(self.db, "tasks")), 2)
@@ -725,7 +738,7 @@ class TestDBDataPorter(unittest.TestCase):
 
             with archive.open(json_dump_file_name) as f:
                 dump_file_data = json.loads(f.read())
-                mephisto_dump = dump_file_data["mephisto"]
+                mephisto_dump = dump_file_data[MEPHISTO_DUMP_KEY]
 
                 # Tables where we deleted entries
                 task_run_rows_after = db_utils.select_all_table_rows(self.db, "task_runs")
@@ -820,10 +833,10 @@ class TestDBDataPorter(unittest.TestCase):
 
             with archive.open(json_dump_file_name) as f:
                 dump_file_data = json.loads(f.read())
-                mephisto_dump = dump_file_data["mephisto"]
-                pk_substitutions = dump_file_data["dump_metadata"]["pk_substitutions"]["mephisto"][
-                    "task_runs"
-                ]
+                mephisto_dump = dump_file_data[MEPHISTO_DUMP_KEY]
+                pk_substitutions = dump_file_data[METADATA_DUMP_KEY][METADATA_PK_SUBSTITUTIONS_KEY][
+                    MEPHISTO_DUMP_KEY
+                ]["task_runs"]
                 task_runs_dump = sorted(
                     mephisto_dump["task_runs"],
                     key=lambda k: k["creation_date"],
@@ -942,7 +955,7 @@ class TestDBDataPorter(unittest.TestCase):
 
         # Test imported data in database
         mock__ask_user_if_they_are_sure.assert_called_once()
-        self.assertEqual(results["imported_task_runs_number"], 1)
+        self.assertEqual(results["task_runs_number"], 1)
         table_names = db_utils.get_list_of_tables_to_export(self.db)
         for table_name in table_names:
             rows = db_utils.select_all_table_rows(self.db, table_name)
@@ -1052,7 +1065,7 @@ class TestDBDataPorter(unittest.TestCase):
 
         # Test imported data in database
         mock__ask_user_if_they_are_sure.assert_called_once()
-        self.assertEqual(results["imported_task_runs_number"], 1)
+        self.assertEqual(results["task_runs_number"], 1)
 
         # Test labels
         available_labels = db_utils.get_list_of_available_labels(self.db)
@@ -1104,7 +1117,7 @@ class TestDBDataPorter(unittest.TestCase):
 
         # Test imported data in database
         mock__ask_user_if_they_are_sure.assert_called_once()
-        self.assertEqual(results["imported_task_runs_number"], 1)
+        self.assertEqual(results["task_runs_number"], 1)
 
         # Test labels
         available_labels = db_utils.get_list_of_available_labels(self.db)
@@ -1164,7 +1177,7 @@ class TestDBDataPorter(unittest.TestCase):
 
         # Test imported data in database
         mock__ask_user_if_they_are_sure.assert_called_once()
-        self.assertEqual(results["imported_task_runs_number"], 1)
+        self.assertEqual(results["task_runs_number"], 1)
 
         # Test tasks were merged
         task_rows = db_utils.select_all_table_rows(self.db, "tasks")

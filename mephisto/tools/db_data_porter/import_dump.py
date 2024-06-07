@@ -112,7 +112,11 @@ def import_single_db(
         # They must be imported before other tables
         tables_with_special_unique_field = TABLES_UNIQUE_LOOKUP_FIELDS.get(provider_type)
         for table_name, unique_field_names in tables_with_special_unique_field.items():
-            dump_table_rows = dump_data[table_name]
+            dump_table_rows = dump_data.get(table_name)
+            if not dump_table_rows:
+                # It can be partial dump without these tables, even empty lists
+                continue
+
             table_pk_field_name = db_utils.get_table_pk_field_name(db, table_name)
             is_table_with_special_unique_field = unique_field_names is not None
 

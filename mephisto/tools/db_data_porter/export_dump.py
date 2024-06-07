@@ -89,8 +89,6 @@ def _export_data_dir_for_task_runs(
     tmp_export_dir = make_tmp_export_dir()
 
     task_run_data_dirs = [i.get_run_dir() for i in task_runs]
-    if not task_run_data_dirs:
-        return False
 
     try:
         tmp_task_run_dirs = []
@@ -137,17 +135,22 @@ def archive_and_copy_data_files(
     if verbosity:
         logger.debug(f"Archiving data files started ...")
 
+    mephisto_dump_data = dump_data.get(MEPHISTO_DUMP_KEY, {})
+    task_runs_dump_data = mephisto_dump_data.get(TASK_RUNS_TABLE_NAME, [])
+
     # Get TaskRuns for PKs in dump
     task_runs: List[TaskRun] = []
     task_runs_ids: List[str] = []
-    for dump_task_run in dump_data[MEPHISTO_DUMP_KEY][TASK_RUNS_TABLE_NAME]:
-        task_runs_pk_field_name = db_utils.get_table_pk_field_name(db, TASK_RUNS_TABLE_NAME)
-        dump_pk = dump_task_run[task_runs_pk_field_name]
-        db_pk = get_old_pk_from_substitutions(dump_pk, pk_substitutions, TASK_RUNS_TABLE_NAME)
-        db_pk = db_pk or dump_pk
-        task_run: TaskRun = TaskRun.get(db, db_pk)
-        task_runs.append(task_run)
-        task_runs_ids.append(db_pk)
+
+    if task_runs_dump_data:
+        for dump_task_run in task_runs_dump_data:
+            task_runs_pk_field_name = db_utils.get_table_pk_field_name(db, TASK_RUNS_TABLE_NAME)
+            dump_pk = dump_task_run[task_runs_pk_field_name]
+            db_pk = get_old_pk_from_substitutions(dump_pk, pk_substitutions, TASK_RUNS_TABLE_NAME)
+            db_pk = db_pk or dump_pk
+            task_run: TaskRun = TaskRun.get(db, db_pk)
+            task_runs.append(task_run)
+            task_runs_ids.append(db_pk)
 
     if verbosity:
         logger.debug(f"Archiving data files for TaskRuns: {', '.join(task_runs_ids)}")
@@ -200,7 +203,11 @@ def unarchive_data_files(
         if verbosity:
             logger.debug("Copying TaskRuns files into {mephisto_data_runs_path} ...")
 
-        copy_tree(tmp_unarchive_task_runs_dir, mephisto_data_runs_path, verbose=0)
+        if os.path.exists(tmp_unarchive_task_runs_dir):
+            copy_tree(tmp_unarchive_task_runs_dir, mephisto_data_runs_path, verbose=0)
+        else:
+            if verbosity:
+                logger.debug("No files for TaskRuns in archive found, nothing to copy")
 
         if verbosity:
             logger.debug("Copying TaskRuns files finished")

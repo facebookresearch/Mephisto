@@ -29,6 +29,10 @@ from mephisto.tools.db_data_porter.constants import EXPORT_OUTPUT_DIR
 from mephisto.tools.db_data_porter.constants import IMPORTED_DATA_TABLE_NAME
 from mephisto.tools.db_data_porter.constants import MEPHISTO_DUMP_KEY
 from mephisto.tools.db_data_porter.constants import METADATA_DUMP_KEY
+from mephisto.tools.db_data_porter.constants import METADATA_EXPORT_OPTIONS_KEY
+from mephisto.tools.db_data_porter.constants import METADATA_MIGRATIONS_KEY
+from mephisto.tools.db_data_porter.constants import METADATA_PK_SUBSTITUTIONS_KEY
+from mephisto.tools.db_data_porter.constants import METADATA_TIMESTAMP_KEY
 from mephisto.tools.db_data_porter.constants import MIGRATIONS_TABLE_NAME
 from mephisto.tools.db_data_porter.randomize_ids import randomize_ids
 from mephisto.tools.db_data_porter.validation import validate_dump_data
@@ -101,19 +105,37 @@ class DBDataPorter:
         task_run_labels: Optional[List[str]] = None,
         since_datetime: Optional[datetime] = None,
         randomize_legacy_ids: Optional[bool] = False,
+        qualification_only: Optional[bool] = False,
+        qualification_names: Optional[List[str]] = None,
     ) -> dict:
-        partial = bool(task_names or task_ids or task_run_ids or task_run_labels or since_datetime)
+        partial = any(
+            [
+                task_names,
+                task_ids,
+                task_run_ids,
+                task_run_labels,
+                since_datetime,
+                qualification_only,
+            ]
+        )
+
         if not partial:
             dump_data = dumps.prepare_full_dump_data(self.db, self.provider_datastores)
         else:
-            dump_data = dumps.prepare_partial_dump_data(
-                self.db,
-                task_names=task_names,
-                task_ids=task_ids,
-                task_run_ids=task_run_ids,
-                task_run_labels=task_run_labels,
-                since_datetime=since_datetime,
-            )
+            if not qualification_only:
+                dump_data = dumps.prepare_partial_dump_data(
+                    self.db,
+                    task_names=task_names,
+                    task_ids=task_ids,
+                    task_run_ids=task_run_ids,
+                    task_run_labels=task_run_labels,
+                    since_datetime=since_datetime,
+                )
+            else:
+                dump_data = dumps.prepare_qualification_related_dump_data(
+                    self.db,
+                    qualification_names=qualification_names,
+                )
 
         if randomize_legacy_ids:
             randomize_ids_results = randomize_ids(self.db, dump_data, legacy_only=True)
@@ -179,9 +201,11 @@ class DBDataPorter:
         task_run_ids: Optional[List[str]] = None,
         task_runs_since_date: Optional[str] = None,
         task_run_labels: Optional[List[str]] = None,
-        delete_exported_data: bool = False,
-        randomize_legacy_ids: bool = False,
-        metadata_export_options: dict = None,
+        delete_exported_data: Optional[bool] = False,
+        randomize_legacy_ids: Optional[bool] = False,
+        qualification_only: Optional[bool] = False,
+        qualification_names: Optional[List[str]] = None,
+        metadata_export_options: Optional[dict] = None,
         verbosity: int = 0,
     ) -> dict:
         # 1. Protect from accidental launches
@@ -215,6 +239,8 @@ class DBDataPorter:
             task_run_labels=task_run_labels,
             since_datetime=since_datetime,
             randomize_legacy_ids=randomize_legacy_ids,
+            qualification_only=qualification_only,
+            qualification_names=qualification_names,
         )
 
         # 3. Prepare export dirs and get dump file path.
@@ -228,18 +254,10 @@ class DBDataPorter:
 
         # 4. Prepare metadata
         metadata = {
-            "migrations": self._get_latest_migrations(),
-            "export_options": metadata_export_options,
-            # "export_options": {
-            #     "--export-indent": json_indent,
-            #     "--export-tasks-by-names": task_names,
-            #     "--export-tasks-by-ids": task_ids,
-            #     "--export-task-runs-by-ids": task_run_ids,
-            #     "--export-task-runs-since-date": task_runs_since_date,
-            #     "--verbosity": verbosity,
-            # },
-            "timestamp": dump_timestamp,
-            "pk_substitutions": self._pk_substitutions,
+            METADATA_MIGRATIONS_KEY: self._get_latest_migrations(),
+            METADATA_EXPORT_OPTIONS_KEY: metadata_export_options or {},
+            METADATA_TIMESTAMP_KEY: dump_timestamp,
+            METADATA_PK_SUBSTITUTIONS_KEY: self._pk_substitutions,
         }
         dump_data_to_export[METADATA_DUMP_KEY] = metadata
 
@@ -305,8 +323,11 @@ class DBDataPorter:
         conflict_resolver_name: Optional[str] = DEFAULT_CONFLICT_RESOLVER,
         labels: Optional[List[str]] = None,
         keep_import_metadata: Optional[bool] = None,
+        qualification_only: Optional[bool] = False,
         verbosity: int = 0,
     ):
+        results = {}
+
         # 1. Check dump file path
         if not dump_archive_file_name_or_path:
             error_message = "Option `-f/--file` is required."
@@ -350,7 +371,11 @@ class DBDataPorter:
                     exit()
 
         # 3. Validate dump
-        dump_data_errors = validate_dump_data(self.db, dump_file_data)
+        dump_data_errors = validate_dump_data(
+            db=self.db,
+            dump_data=dump_file_data,
+            qualification_only=qualification_only,
+        )
         if dump_data_errors:
             error_message = make_error_message(
                 "Your dump file has incorrect format",
@@ -382,7 +407,7 @@ class DBDataPorter:
         # 7. Write dump data into local DBs
         logger.info(f"Started importing from dump file {dump_archive_file_name_or_path} ...")
 
-        imported_task_runs_number = 0
+        results["task_runs_number"] = 0
 
         for db_or_datastore_name, db_or_datastore_data in dump_file_data.items():
             # Pop `imported_data` from dump content, to merge it into local `imported_data`
@@ -396,7 +421,13 @@ class DBDataPorter:
                     IMPORTED_DATA_TABLE_NAME,
                     [],
                 )
-                imported_task_runs_number = len(db_or_datastore_data.get("task_runs", []))
+
+                # Update results for printing results in the end
+                if qualification_only:
+                    for table_name, table_data in db_or_datastore_data.items():
+                        results[f"{table_name}_number"] = len(table_data)
+                else:
+                    results["task_runs_number"] = len(db_or_datastore_data.get("task_runs", []))
             else:
                 # Provider's datastore.
                 # NOTE: It is being created if it does not exist (yes, here, magically)
@@ -474,9 +505,7 @@ class DBDataPorter:
                     f"Finished importing into `{db_or_datastore_name}` database successfully!"
                 )
 
-        return {
-            "imported_task_runs_number": imported_task_runs_number,
-        }
+        return results
 
     def create_backup(self, verbosity: int = 0) -> str:
         backup_dir = self._get_backup_dir()
