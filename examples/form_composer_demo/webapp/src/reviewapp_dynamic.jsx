@@ -8,9 +8,9 @@
 
 import React from "react";
 import ReactDOM from "react-dom";
-import { FormComposerBaseFrontend } from "./components/core_components.jsx";
+import { FormComposerBaseFrontend } from "./components/core_components_dynamic.jsx";
 
-function ReviewApp() {
+function Reviewapp_dynamic() {
   const appRef = React.useRef(null);
   const [reviewData, setReviewData] = React.useState(null);
 
@@ -59,4 +59,4 @@ function ReviewApp() {
   );
 }
 
-ReactDOM.render(<ReviewApp />, document.getElementById("app"));
+ReactDOM.render(<Reviewapp_dynamic />, document.getElementById("app"));

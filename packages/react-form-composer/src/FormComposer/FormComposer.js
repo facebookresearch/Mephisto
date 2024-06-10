@@ -43,6 +43,8 @@ function FormComposer({
   customValidators,
   customTriggers,
 }) {
+  const formComposerConfig = data;
+
   // State to hide submit button
   const [onSubmitLoading, setOnSubmitLoading] = React.useState(false);
 
@@ -69,13 +71,16 @@ function FormComposer({
       } // Return value as is, ignoring whole formatting
     : formatStringWithProcedureTokens;
 
-  let formTitle = formatStringWithTokens(data.title, setRenderingErrors);
-  let formInstruction = formatStringWithTokens(
-    data.instruction,
+  let formTitle = formatStringWithTokens(
+    formComposerConfig.title,
     setRenderingErrors
   );
-  let formSections = data.sections;
-  let formSubmitButton = data.submit_button;
+  let formInstruction = formatStringWithTokens(
+    formComposerConfig.instruction,
+    setRenderingErrors
+  );
+  let formSections = formComposerConfig.sections;
+  let formSubmitButton = formComposerConfig.submit_button;
 
   function updateFormData(fieldName, value, e) {
     if (e) {
@@ -213,8 +218,8 @@ function FormComposer({
 
   return (
     <form
-      className={`form-composer ${formState.classes || ""}`}
-      id={formState.id}
+      className={`form-composer ${formComposerConfig.classes || ""}`}
+      id={formComposerConfig.id}
       method={"POST"}
       noValidate={true}
       onSubmit={onSubmitForm}

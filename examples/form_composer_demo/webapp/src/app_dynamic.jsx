@@ -9,7 +9,7 @@ import ReactDOM from "react-dom";
 import {
   FormComposerBaseFrontend,
   LoadingScreen,
-} from "./components/core_components.jsx";
+} from "./components/core_components_dynamic.jsx";
 import { useMephistoTask, ErrorBoundary } from "mephisto-task-multipart";
 
 /* ================= Application Components ================= */

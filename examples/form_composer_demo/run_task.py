@@ -51,7 +51,7 @@ def _build_custom_bundles(cfg: DictConfig) -> None:
         cfg.task_dir,
         force_rebuild=cfg.mephisto.task.force_rebuild,
         webapp_name="webapp",
-        build_command="build:review",
+        build_command="build:simple:review",
     )
 
     # Build Task UI for the application
@@ -59,6 +59,7 @@ def _build_custom_bundles(cfg: DictConfig) -> None:
         cfg.task_dir,
         force_rebuild=cfg.mephisto.task.force_rebuild,
         post_install_script=cfg.mephisto.task.post_install_script,
+        build_command="dev:simple",
     )
 
 

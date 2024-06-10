@@ -6,5 +6,6 @@
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-select/dist/css/bootstrap-select.min.css";
-import "./reviewapp.jsx";
+import "./app_dynamic.jsx";
 import "./css/style.css";
+// Add your additional imports with styles here
