@@ -5,7 +5,7 @@
  */
 
 declare type TaskType = {
-  id: number;
+  id: string;
   name: string;
   is_reviewed: boolean;
   unit_count: number;

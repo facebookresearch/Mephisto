@@ -27,7 +27,7 @@ function TasksPage(props: PropsType) {
   const [taskIdExportResults, setTaskIdExportResults] = React.useState(null);
   const [loadingExportResults, setLoadingExportResults] = React.useState(false);
 
-  const onTaskRowClick = (id: number) => {
+  const onTaskRowClick = (id: string) => {
     localStorage.setItem(STORAGE_TASK_ID_KEY, String(id));
 
     // Create a pseudo new link and click it to open a task in new tab (not window)
@@ -43,7 +43,7 @@ function TasksPage(props: PropsType) {
     }
   };
 
-  const requestTaskResults = (taskId: number, nUnits: number) => {
+  const requestTaskResults = (taskId: string, nUnits: number) => {
     setTaskIdExportResults(taskId);
 
     const onSuccessExportResults = (data) => {

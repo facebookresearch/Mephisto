@@ -409,7 +409,6 @@ def review_app(
             logger.info(f"[blue]JS requirements are already installed.[/blue]")
         else:
             logger.info(f"[blue]Installing JS requirements started.[/blue]")
-            subprocess.call(["ls"], cwd=client_path)
             app_started = subprocess.call(["npm", "install"], cwd=client_path)
             if app_started != 0:
                 raise Exception(

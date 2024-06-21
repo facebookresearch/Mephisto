@@ -30,7 +30,7 @@ export function getTasks(
 }
 
 export function getTask(
-  id: number,
+  id: string,
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
@@ -51,7 +51,7 @@ export function getTask(
 }
 
 export function getTaskWorkerUnitsIds(
-  id: number,
+  id: string,
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
@@ -73,7 +73,7 @@ export function getTaskWorkerUnitsIds(
 }
 
 export function exportTaskResults(
-  id: number,
+  id: string,
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,

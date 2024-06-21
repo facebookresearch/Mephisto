@@ -9,11 +9,11 @@ import generateURL from "./generateURL";
 import makeRequest from "./makeRequest";
 
 export function postWorkerBlock(
-  id: number,
+  id: string,
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
-  data: { [key: string]: string | number | number[] },
+  data: { [key: string]: string | number | string[] },
   abortController?: AbortController
 ) {
   const url = generateURL(urls.server.workersBlock, [id], null);
@@ -31,7 +31,7 @@ export function postWorkerBlock(
 }
 
 export function getWorkerGrantedQualifications(
-  id: number,
+  id: string,
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,

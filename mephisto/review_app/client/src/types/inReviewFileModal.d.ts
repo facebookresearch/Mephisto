@@ -9,5 +9,5 @@ type InReviewFileModalDataType = {
   filename?: string;
   title?: string;
   unitDataFolder?: string;
-  unitId?: number;
+  unitId?: string;
 };

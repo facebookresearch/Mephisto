@@ -86,15 +86,15 @@ function TaskPage(props: PropsType) {
     defaultStats
   );
   const [workerUnits, setWorkerUnits] = React.useState<
-    Array<[number, number[]]>
+    Array<[string, string[]]>
   >(null);
-  const [unitsOnReview, setUnitsOnReview] = React.useState<[number, number[]]>(
+  const [unitsOnReview, setUnitsOnReview] = React.useState<[string, string[]]>(
     null
   );
   const [currentWorkerOnReview, setCurrentWorkerOnReview] = React.useState<
-    number
+    string
   >(null);
-  const [currentUnitOnReview, setCurrentUnitOnReview] = React.useState<number>(
+  const [currentUnitOnReview, setCurrentUnitOnReview] = React.useState<string>(
     null
   );
   const [unitDetails, setUnitDetails] = React.useState<UnitDetailsType[]>(null);
@@ -175,7 +175,7 @@ function TaskPage(props: PropsType) {
 
       let sortedValue = [];
       for (let i in workerUnitsMap) {
-        sortedValue.push([Number(i), workerUnitsMap[i]]);
+        sortedValue.push([i, workerUnitsMap[i]]);
       }
 
       // Sort workers by number of their units (the fewest number of units goes first)
@@ -251,7 +251,7 @@ function TaskPage(props: PropsType) {
     setCurrentUnitOnReview(firstUnit);
   };
 
-  const onReviewSuccess = (_modalData: ModalDataType, unitIds: number[]) => {
+  const onReviewSuccess = (_modalData: ModalDataType, unitIds: string[]) => {
     if (_modalData.type === ReviewType.APPROVE) {
       // Grant Qualification
       if (
@@ -326,7 +326,7 @@ function TaskPage(props: PropsType) {
     setNextUnit();
   };
 
-  const getUnitsIdsByApplyToNext = (applyToNext: boolean): number[] => {
+  const getUnitsIdsByApplyToNext = (applyToNext: boolean): string[] => {
     let unitIds = [currentUnitOnReview];
 
     if (applyToNext) {
@@ -348,7 +348,7 @@ function TaskPage(props: PropsType) {
         onError,
         {
           bonus: modalData.form.checkboxGiveBonus
-            ? Number(modalData.form.bonus)
+            ? modalData.form.bonus
             : null,
           review_note: modalData.form.checkboxReviewNote
             ? modalData.form.reviewNote
@@ -417,12 +417,12 @@ function TaskPage(props: PropsType) {
     setFinishedTask(false);
 
     if (task === null) {
-      getTask(Number(params.id), setTask, setLoading, onError, null);
+      getTask(params.id, setTask, setLoading, onError, null);
     }
 
     if (units === null) {
       getTaskWorkerUnitsIds(
-        Number(params.id),
+        params.id,
         onGetTaskWorkerUnitsIdsSuccess,
         setLoading,
         onError
