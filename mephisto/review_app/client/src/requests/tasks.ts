@@ -92,3 +92,24 @@ export function exportTaskResults(
     abortController
   );
 }
+
+export function getTaskStats(
+  id: string,
+  setDataAction: SetRequestDataActionType,
+  setLoadingAction: SetRequestLoadingActionType,
+  setErrorsAction: SetRequestErrorsActionType,
+  abortController?: AbortController
+) {
+  const url = generateURL(urls.server.taskStatsResults, [id], null);
+
+  makeRequest(
+    "GET",
+    url,
+    null,
+    (data) => setDataAction(data),
+    setLoadingAction,
+    setErrorsAction,
+    "getTaskStats error:",
+    abortController
+  );
+}

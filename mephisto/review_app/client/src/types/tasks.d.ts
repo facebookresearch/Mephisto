@@ -19,3 +19,10 @@ declare type TaskStatsType = {
   rejected_count: number;
   soft_rejected_count: number;
 };
+
+declare type TaskRusultStatsType = {
+  stats: { [key: string]: { [key: string]: number } };
+  task_id: string;
+  task_name: string;
+  workers_count: number;
+};

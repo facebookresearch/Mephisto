@@ -28,7 +28,7 @@ mephisto:
     task_title: "Dynamic form-based Tasks for Prolifik"
     task_description: "In this Task, we use dynamic FormComposer feature."
     task_reward: 70
-    task_tags: "test,simple,form"
+    task_tags: "test,simple,form,form-composer"
     force_rebuild: true
     max_num_concurrent_units: 1
   provider:

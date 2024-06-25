@@ -310,7 +310,7 @@ Get list of all granted qualifications for a worker
 
 ---
 
-### `GET /api/stats?{task_id=}{worker_id=}{since=}{limit=}`
+### `GET /api/review-stats?{task_id=}{worker_id=}{since=}{limit=}`
 
 Get stats of (recent) approvals. Either `task_id` or `worker_id` (or both) must be present.
 

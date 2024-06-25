@@ -8,6 +8,7 @@ import * as moment from "moment/moment";
 import * as React from "react";
 import { useEffect } from "react";
 import { Spinner, Table } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import { exportTaskResults, getTasks } from "requests/tasks";
 import urls from "urls";
 import TasksHeader from "./TasksHeader/TasksHeader";
@@ -99,6 +100,9 @@ function TasksPage(props: PropsType) {
             <th className={"title date"}>
               <b>Date</b>
             </th>
+            <th className={"title stats"}>
+              <b>Stats</b>
+            </th>
             <th className={"title export"}>
               <b>Export results</b>
             </th>
@@ -129,6 +133,11 @@ function TasksPage(props: PropsType) {
                   </td>
                   <td className={"units"}>{task.unit_count}</td>
                   <td className={"date"}>{date}</td>
+                  <td className={"stats"}>
+                    <Link to={urls.client.taskStats(task.id)} target={"_blank"}>
+                      Show
+                    </Link>
+                  </td>
                   <td className={"export"}>
                     {task.is_reviewed &&
                       !(
