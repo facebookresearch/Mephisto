@@ -63,3 +63,9 @@ _Note that a custom view of Task results is included (at the bottom) only if you
 ![Submission reject dialog](./screenshots/submission_reject_dialog.png)
 <br/>
 <br/>
+
+### Task statistics
+
+![Task statistics](./screenshots/task_stats.png)
+<br/>
+<br/>

@@ -46,13 +46,20 @@
 }
 
 .task-stats .content .stats .field-stats {
-  padding-bottom: 40px;
+  padding-bottom: 20px;
 }
 
 .task-stats .content .stats .field-stats .histogram-name {
   font-size: 32px;
   padding-left: 20px;
   padding-bottom: 20px;
+}
+
+.task-stats .content .stats .field-stats .histogram-no-responses {
+  padding-left: 20px;
+  font-size: 19px;
+  color: #888888;
+  font-style: italic;
 }
 
 .task-stats .loading {

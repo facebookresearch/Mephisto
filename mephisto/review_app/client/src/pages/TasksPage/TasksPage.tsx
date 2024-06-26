@@ -134,9 +134,14 @@ function TasksPage(props: PropsType) {
                   <td className={"units"}>{task.unit_count}</td>
                   <td className={"date"}>{date}</td>
                   <td className={"stats"}>
-                    <Link to={urls.client.taskStats(task.id)} target={"_blank"}>
-                      Show
-                    </Link>
+                    {task.has_stats && (
+                      <Link
+                        to={urls.client.taskStats(task.id)}
+                        target={"_blank"}
+                      >
+                        Show
+                      </Link>
+                    )}
                   </td>
                   <td className={"export"}>
                     {task.is_reviewed &&

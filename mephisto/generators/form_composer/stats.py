@@ -94,3 +94,17 @@ def collect_task_stats(task: Task) -> dict:
         "task_name": task.task_name,
         "workers_count": len(set(([u.worker_id for u in units]))),
     }
+
+
+def check_task_has_fields_for_stats(task: Task) -> bool:
+    data_browser = DataBrowser(db=task.db)
+
+    units: List[Unit] = task.db.find_units(task_id=task.db_id)
+    for unit in units:
+        unit_data = _get_unit_data(data_browser, unit)
+        unit_inputs = unit_data["unit_inputs"]
+        unit_fields_for_histogram = _get_unit_fields_for_histogram(unit_inputs)
+        if unit_fields_for_histogram:
+            return True
+
+    return False

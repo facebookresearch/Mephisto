@@ -14,6 +14,8 @@ import TasksHeader from "../TasksPage/TasksHeader/TasksHeader";
 import { Histogram } from "./Histogram";
 import "./TaskStatsPage.css";
 
+const HISTOGRAM_WIDTH = 700;
+
 type ParamsType = {
   id: string;
 };
@@ -98,13 +100,15 @@ function TaskStatsPage(props: PropsType) {
             {hasStats ? (
               <div className={"stats"}>
                 {Object.entries(taskStats.stats).map(
-                  ([histogramName, data]) => {
-                    if (!Object.values(data).filter(Boolean).length) {
-                      return;
-                    }
+                  ([histogramName, data], index: number) => {
+                    // No users answered this question
+                    const allValuesZero = !Object.values(data).filter(Boolean)
+                      .length;
 
-                    const width = Object.values(data).length > 10 ? 1400 : 700;
-                    const height = 300;
+                    const width =
+                      Object.values(data).length > 10
+                        ? HISTOGRAM_WIDTH * 2
+                        : HISTOGRAM_WIDTH;
 
                     const histogramData: HistogramData[] = Object.entries(
                       data
@@ -122,18 +126,24 @@ function TaskStatsPage(props: PropsType) {
                       >
                         <div className={"histogram-name"}>{histogramName}</div>
 
-                        <Histogram
-                          data={histogramData}
-                          width={width}
-                          height={height}
-                        />
+                        {!allValuesZero ? (
+                          <Histogram
+                            className={`histogram-${index}`}
+                            data={histogramData}
+                            width={width}
+                          />
+                        ) : (
+                          <div className={"histogram-no-responses"}>
+                            No responses were provided for this question.
+                          </div>
+                        )}
                       </div>
                     );
                   }
                 )}
               </div>
             ) : (
-              <div>This task has no statistics yet.</div>
+              <div>This task has no available statistics yet.</div>
             )}
           </>
         )}
