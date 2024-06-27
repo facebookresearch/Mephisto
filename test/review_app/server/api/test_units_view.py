@@ -53,9 +53,9 @@ class TestUnitsView(BaseTestApiViewCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(result["units"]), 1)
 
-        self.assertEqual(first_response_unit["id"], int(unit_id))
+        self.assertEqual(first_response_unit["id"], unit_id)
         self.assertEqual(first_response_unit["worker_id"], unit.worker_id)
-        self.assertEqual(first_response_unit["task_id"], int(unit.task_id))
+        self.assertEqual(first_response_unit["task_id"], unit.task_id)
         self.assertEqual(first_response_unit["status"], unit.db_status)
 
         self.assertTrue("pay_amount" in first_response_unit)
@@ -97,7 +97,7 @@ class TestUnitsView(BaseTestApiViewCase):
         first_response_unit = result["units"][0]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(result["units"]), 1)
-        self.assertEqual(first_response_unit["id"], int(unit_1_id))
+        self.assertEqual(first_response_unit["id"], unit_1_id)
 
     def test_two_units_with_unit_ids_success(self, *args, **kwargs):
         # Create 2 COMPLETED units
@@ -127,8 +127,8 @@ class TestUnitsView(BaseTestApiViewCase):
         second_response_unit = result["units"][1]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(result["units"]), 2)
-        self.assertEqual(first_response_unit["id"], int(unit_1_id))
-        self.assertEqual(second_response_unit["id"], int(unit_2_id))
+        self.assertEqual(first_response_unit["id"], unit_1_id)
+        self.assertEqual(second_response_unit["id"], unit_2_id)
 
 
 if __name__ == "__main__":

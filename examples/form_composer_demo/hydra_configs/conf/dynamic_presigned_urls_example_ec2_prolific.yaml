@@ -27,7 +27,7 @@ mephisto:
     task_title: "Dynamic form-based Tasks with expiring URLs for Prolifik"
     task_description: "In this Task, we use dynamic FormComposer feature with presigned S3 URLs."
     task_reward: 70
-    task_tags: "test,simple,form"
+    task_tags: "test,simple,form,form-composer"
     force_rebuild: true
     max_num_concurrent_units: 1
   provider:

@@ -23,7 +23,7 @@ type ReviewModalProps = {
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
   onSubmit: Function;
   setErrors: Function;
-  workerId: number | null;
+  workerId: string | null;
 };
 
 function ReviewModal(props: ReviewModalProps) {

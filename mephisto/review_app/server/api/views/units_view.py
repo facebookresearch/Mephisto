@@ -73,9 +73,9 @@ class UnitsView(MethodView):
 
             units.append(
                 {
-                    "id": int(unit.db_id),
-                    "worker_id": int(unit.worker_id) if unit.worker_id else None,
-                    "task_id": int(unit.task_id) if unit.task_id else None,
+                    "id": unit.db_id,
+                    "worker_id": unit.worker_id or None,
+                    "task_id": unit.task_id or None,
                     "pay_amount": unit.pay_amount,
                     "status": unit.db_status,
                     "creation_date": unit.creation_date.isoformat(),

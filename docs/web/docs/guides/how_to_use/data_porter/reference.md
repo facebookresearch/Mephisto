@@ -31,6 +31,7 @@ mephisto db export --export-task-runs-since-date 2024-01-01
 mephisto db export --export-task-runs-since-date 2023-01-01T00:00:00
 mephisto db export --labels first_dump --labels second_dump
 mephisto db export --export-tasks-by-ids 1 --delete-exported-data --randomize-legacy-ids --export-indent 4
+mephisto db export --qualification-only
 ```
 
 Options (all optional):
@@ -43,11 +44,14 @@ Options (all optional):
 - `-del/--delete-exported-data` - after exporting data, delete it from local DB
 - `-r/--randomize-legacy-ids` - replace legacy autoincremented ids with
         new pseudo-random ids to avoid conflicts during data merging
+- `-qo/--qualification-only` - export only data related to worker qualifications (by default it's disabled)
+- `-qn/--qualification-names` - is specified with `--qualification-only` option, only qualifications with these names will be exported
 - `-i/--export-indent` - make dump easy to read via formatting JSON with indentations (Default 2)
 - `-v/--verbosity` - write more informative messages about progress (Default 0. Values: 0, 1)
 
 Note that the following options cannot be used together:
-`--export-tasks-by-names`, `--export-tasks-by-ids`,  `--export-task-runs-by-ids`, `--export-task-runs-since-date`, `--labels`.
+- `--export-tasks-by-names`, `--export-tasks-by-ids`,  `--export-task-runs-by-ids`, `--export-task-runs-since-date`, `--labels`
+- `-qo/--qualification-only` and `--delete-exported-data`, `--export-tasks-by-names`, `--export-tasks-by-ids`,  `--export-task-runs-by-ids`, `--export-task-runs-since-date`, `--labels`, `--randomize-legacy-ids`
 
 
 ## Import
@@ -62,6 +66,7 @@ mephisto db import --file 2024_01_01_00_00_01_mephisto_dump.json --verbosity
 mephisto db import --file 2024_01_01_00_00_01_mephisto_dump.json --labels my_first_dump
 mephisto db import --file 2024_01_01_00_00_01_mephisto_dump.json --conflict-resolver MyCustomMergeConflictResolver
 mephisto db import --file 2024_01_01_00_00_01_mephisto_dump.json --keep-import-metadata
+mephisto db import --file 2024_01_01_00_00_01_mephisto_dump.json --qualification-only
 ```
 
 Options:
@@ -72,11 +77,15 @@ Options:
 - `-l/--labels` - one or more short strings serving as a reference for the ported data (stored in `imported_data` table),
     so later you can export the imported data with `--labels` export option
 - `-k/--keep-import-metadata` - write data from `imported_data` table of the dump (by default it's not imported)
+- `-qo/--qualification-only` - import only data related to worker qualifications (by default it's disabled)
 - `-v/--verbosity` - level of logging (default: 0; values: 0, 1)
 
 Note that before every import we create a full snapshot copy of your local data, by
 archiving content of your `data` directory. If any data gets corrupte during the import,
 you can always return to the original state by replacing your `data` folder with the snaphot.
+
+Note that the following options cannot be used together:
+- `-qo/--qualification-only` and `--labels`, `--keep-import-metadata`
 
 ## Backup
 

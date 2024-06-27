@@ -6,6 +6,7 @@
 
 import os
 import shutil
+from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from types import MethodType
@@ -17,6 +18,7 @@ from mephisto.abstractions.database import MephistoDB
 from mephisto.data_model.task_run import TaskRun
 from mephisto.tools.db_data_porter.constants import DATASTORE_EXPORT_METHOD_NAME
 from mephisto.tools.db_data_porter.constants import MEPHISTO_DUMP_KEY
+from mephisto.tools.db_data_porter.constants import TABLE_NAMES_RELATED_TO_QUALIFICATIONS
 from mephisto.tools.db_data_porter.constants import TASK_RUNS_TABLE_NAME
 from mephisto.tools.db_data_porter.randomize_ids import get_old_pk_from_substitutions
 from mephisto.utils import db as db_utils
@@ -53,7 +55,7 @@ def prepare_partial_dump_data(
     task_names: Optional[List[str]] = None,
     task_ids: Optional[List[str]] = None,
     task_run_ids: Optional[List[str]] = None,
-    task_runs_labels: Optional[List[str]] = None,
+    task_run_labels: Optional[List[str]] = None,
     since_datetime: Optional[datetime] = None,
 ) -> dict:
     dump_data_to_export = {}
@@ -101,15 +103,15 @@ def prepare_partial_dump_data(
 
             # Get TaskRun IDs by Task IDs
             task_run_ids = db_utils.get_task_run_ids_by_task_ids(db, task_ids)
-        elif task_runs_labels:
+        elif task_run_labels:
             # Validate on correct values of passed TaskRun labels
             db_labels = db_utils.get_list_of_available_labels(db)
-            not_found_values = [t for t in task_runs_labels if t not in db_labels]
+            not_found_values = [t for t in task_run_labels if t not in db_labels]
             if not_found_values:
                 logger.error(
                     _make_options_error_message(
                         "TaskRun labels",
-                        task_runs_labels,
+                        task_run_labels,
                         not_found_values,
                         db_labels,
                     )
@@ -117,7 +119,7 @@ def prepare_partial_dump_data(
                 exit()
 
             # Get TaskRun IDs
-            task_run_ids = db_utils.get_task_run_ids_by_labels(db, task_runs_labels)
+            task_run_ids = db_utils.get_task_run_ids_by_labels(db, task_run_labels)
         elif since_datetime:
             # Get TaskRun IDs
             task_run_ids = db_utils.select_task_run_ids_since_date(db, since_datetime)
@@ -208,6 +210,72 @@ def prepare_full_dump_data(db: "MephistoDB", provider_datastores: Dict[str, "Mep
     return dump_data_to_export
 
 
+def prepare_qualification_related_dump_data(
+    db: "MephistoDB",
+    qualification_names: Optional[List[str]] = None,
+) -> dict:
+    table_names = TABLE_NAMES_RELATED_TO_QUALIFICATIONS
+    dump_data_to_export = {}
+
+    if not qualification_names:
+        dump_data_to_export[MEPHISTO_DUMP_KEY] = db_utils.db_tables_to_dict(db, table_names)
+    else:
+        dump_data = {}
+
+        # Find and serialize `qualifications`
+        qualification_rows = db_utils.select_rows_by_list_of_field_values(
+            db,
+            "qualifications",
+            ["qualification_name"],
+            [qualification_names],
+        )
+
+        # Validate passed `qualification_names`
+        not_existing_qualification_names = set(qualification_names) - set(
+            [q["qualification_name"] for q in qualification_rows]
+        )
+        if not_existing_qualification_names:
+            logger.error(
+                f"[yellow]"
+                f"You passed non-existing qualification names: "
+                f"{', '.join(not_existing_qualification_names)}"
+                f"[/yellow]"
+            )
+            exit()
+
+        dump_data["qualifications"] = db_utils.serialize_data_for_table(qualification_rows)
+
+        # Find and serialize `granted_qualifications`
+        qualification_ids = list(
+            set(filter(bool, [i["qualification_id"] for i in dump_data["qualifications"]]))
+        )
+        granted_qualification_rows = db_utils.select_rows_by_list_of_field_values(
+            db,
+            "granted_qualifications",
+            ["qualification_id"],
+            [qualification_ids],
+        )
+        dump_data["granted_qualifications"] = db_utils.serialize_data_for_table(
+            granted_qualification_rows
+        )
+
+        # Find and serialize `workers`
+        worker_ids = list(
+            set(filter(bool, [i["worker_id"] for i in dump_data["granted_qualifications"]]))
+        )
+        worker_rows = db_utils.select_rows_by_list_of_field_values(
+            db,
+            "workers",
+            ["worker_id"],
+            [worker_ids],
+        )
+        dump_data["workers"] = db_utils.serialize_data_for_table(worker_rows)
+
+        dump_data_to_export[MEPHISTO_DUMP_KEY] = dump_data
+
+    return dump_data_to_export
+
+
 def delete_exported_data(
     db: "MephistoDB",
     dump_data_to_export: dict,
@@ -261,10 +329,22 @@ def delete_exported_data(
 
         task_run_data_dirs = [TaskRun.get(db, i).get_run_dir() for i in task_run_ids]
 
+        mephisto_db_dump_to_delete = deepcopy(dump_data_to_export[MEPHISTO_DUMP_KEY])
+
+        # Replace substitutions back to delete entries from DB
+        if pk_substitutions:
+            for table_name, pk_pairs in pk_substitutions[MEPHISTO_DUMP_KEY].items():
+                pk_field_name = db_utils.get_table_pk_field_name(db, table_name)
+                new_old_pk_pairs = {v: k for k, v in pk_pairs.items()}
+                for db_dump_row in mephisto_db_dump_to_delete[table_name]:
+                    pk_value = db_dump_row[pk_field_name]
+                    if pk_value in new_old_pk_pairs:
+                        db_dump_row[pk_field_name] = new_old_pk_pairs[pk_value]
+
         # Clean DB
         db_utils.delete_exported_data_without_fk_constraints(
             db,
-            dump_data_to_export[MEPHISTO_DUMP_KEY],
+            mephisto_db_dump_to_delete,
             names_of_tables_to_cleanup,
         )
 

@@ -94,6 +94,7 @@ def get_test_task_run(
     db: MephistoDB,
     task_id: Optional[str] = None,
     requester_id: Optional[str] = None,
+    init_params: Optional[str] = None,
 ) -> str:
     """Helper to create a task run for tests"""
     if not task_id:
@@ -102,7 +103,9 @@ def get_test_task_run(
     if not requester_id:
         _, requester_id = get_test_requester(db)
 
-    init_params = OmegaConf.to_yaml(OmegaConf.structured(MOCK_CONFIG))
+    if not init_params:
+        init_params = OmegaConf.to_yaml(OmegaConf.structured(MOCK_CONFIG))
+
     return db.new_task_run(task_id, requester_id, json.dumps(init_params), "mock", "mock")
 
 
@@ -121,7 +124,11 @@ def get_test_assignment(db: MephistoDB, task_run: Optional[TaskRun] = None) -> s
     )
 
 
-def get_test_unit(db: MephistoDB, unit_index=0, assignment: Optional[Assignment] = None) -> str:
+def get_test_unit(
+    db: MephistoDB,
+    unit_index: int = 0,
+    assignment: Optional[Assignment] = None,
+) -> str:
     # Check creation and retrieval of a unit
     if not assignment:
         assignment_id = get_test_assignment(db)
@@ -140,14 +147,20 @@ def get_test_unit(db: MephistoDB, unit_index=0, assignment: Optional[Assignment]
     )
 
 
-def get_test_agent(db: MephistoDB, unit_id=None) -> str:
-    # Check creation and retrieval of a agent
-    worker_name, worker_id = get_test_worker(db)
+def get_test_agent(
+    db: MephistoDB,
+    unit_id: Optional[str] = None,
+    worker_id: Optional[str] = None,
+) -> str:
+    # Check creation and retrieval of an agent
+    if not worker_id:
+        worker_name, worker_id = get_test_worker(db)
+
     if unit_id is None:
         unit_id = get_test_unit(db)
-    provider_type = "mock"
-    task_type = "mock"
+
     unit = Unit.get(db, unit_id)
+
     return db.new_agent(
         worker_id,
         unit.db_id,

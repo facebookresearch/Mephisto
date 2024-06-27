@@ -143,7 +143,7 @@ def _find_units_for_worker(
         return results
 
 
-class StatsView(MethodView):
+class ReviewStatsView(MethodView):
     def get(self) -> dict:
         """Get stats of recent approvals for the worker or task"""
 

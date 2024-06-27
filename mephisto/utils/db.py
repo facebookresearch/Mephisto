@@ -420,15 +420,21 @@ def get_providers_datastores(db: "MephistoDB") -> Dict[str, "MephistoDB"]:
     return provider_datastores
 
 
-def db_or_datastore_to_dict(db: "MephistoDB") -> dict:
-    """Convert all kind of DBs to dict"""
+def db_tables_to_dict(db: "MephistoDB", table_names: List[str]) -> dict:
+    """Convert from tables to dict by their names"""
     dump_data = {}
-    table_names = get_list_of_tables_to_export(db)
     for table_name in table_names:
         table_rows = select_all_table_rows(db, table_name)
         table_data = serialize_data_for_table(table_rows)
         dump_data[table_name] = table_data
 
+    return dump_data
+
+
+def db_or_datastore_to_dict(db: "MephistoDB") -> dict:
+    """Convert all kind of DBs to dict"""
+    table_names = get_list_of_tables_to_export(db)
+    dump_data = db_tables_to_dict(db, table_names)
     return dump_data
 
 

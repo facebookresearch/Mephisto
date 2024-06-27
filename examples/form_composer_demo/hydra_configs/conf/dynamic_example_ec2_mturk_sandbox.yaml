@@ -28,7 +28,7 @@ mephisto:
     task_title: "Dynamic form-based Tasks for Mturk"
     task_description: "In this Task, we use dynamic FormComposer feature."
     task_reward: 0.05
-    task_tags: "dynamic,form,testing"
+    task_tags: "dynamic,form,testing,form-composer"
     assignment_duration_in_seconds: 3600
     force_rebuild: true
     max_num_concurrent_units: 1

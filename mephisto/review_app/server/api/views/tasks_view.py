@@ -9,9 +9,12 @@ from typing import List
 from dateutil.parser import parse
 from flask import current_app as app
 from flask.views import MethodView
+from omegaconf import DictConfig
 
 from mephisto.abstractions.databases.local_database import StringIDRow
 from mephisto.data_model.constants.assignment_state import AssignmentState
+from mephisto.data_model.task import Task
+from mephisto.data_model.task_run import TaskRun
 from mephisto.review_app.server.db_queries import find_units
 
 
@@ -39,6 +42,24 @@ def find_completed_units(task_id: int) -> List[StringIDRow]:
     )
 
 
+def _check_task_has_stats(task_id: str) -> bool:
+    task: Task = Task.get(db=app.db, db_id=task_id)
+    task_runs: List[TaskRun] = task.get_runs()
+
+    if not task_runs:
+        return False
+
+    last_task_run: TaskRun = task_runs[-1]
+    last_task_run_config: DictConfig = last_task_run.get_task_args()
+
+    if "form-composer" in last_task_run_config.task_tags:
+        from mephisto.generators.form_composer.stats import check_task_has_fields_for_stats
+
+        return check_task_has_fields_for_stats(task)
+
+    return False
+
+
 class TasksView(MethodView):
     def get(self) -> dict:
         """Get all available tasks (to select one for review)"""
@@ -55,14 +76,16 @@ class TasksView(MethodView):
             is_reviewed = unit_count > 0 and all(
                 [u["status"] != AssignmentState.COMPLETED for u in db_units]
             )
+            has_stats = _check_task_has_stats(task_id=t["task_id"])
 
             tasks.append(
                 {
-                    "id": t["task_id"],
-                    "name": t["task_name"],
-                    "is_reviewed": is_reviewed,
-                    "unit_count": unit_count,
                     "created_at": parse(t["creation_date"]).isoformat(),
+                    "has_stats": has_stats,
+                    "id": t["task_id"],
+                    "is_reviewed": is_reviewed,
+                    "name": t["task_name"],
+                    "unit_count": unit_count,
                 }
             )
 

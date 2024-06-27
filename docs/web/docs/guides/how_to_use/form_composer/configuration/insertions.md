@@ -12,6 +12,7 @@ FormComposer allows using custom code insertions in these scenarios:
 - Specify lengthy content of an attribute (e.g. "instruction") in a separate HTML file
 - Define custom validators for form fileds in a JS file
 - Define custom triggers for form fileds, sections and submit button in a JS file
+- Define custom styles for the FormComposer UI in a CSS file
 
 The inserted code must reside in separate files (called "insertion files") located in `insertions` subdirectory of your form config directory.
 - _Remember that you can change default config directory path using `--directory` option of `form_composer_config` command_
@@ -230,3 +231,16 @@ During development of your form config, you can use a few available helper funct
   ```js
   const valueIsValid = validateFieldValue(formFields.languageRadioSelector, {"en": true, "fr": false}, true);
   ```
+
+#### CSS styles insertions
+
+To customize UI appearance, and separate CSS styles from your HTML insertions,
+you can create multiple CSS files in the `insertions` directory.
+The only naming requirement is that their filenames should end with `.css` extension.
+These CSS files will be automatically included in FormComposer UI via webpack build.
+
+You can use CSS insertions to customize not only your HTML insertions pieces,
+but also the standard Bootstrap form components themselves. There's two ways to do so:
+
+- override existing styles (use CSS selectors for existing classes, names, ids, etc)
+- add your own styles, and link them to ids and classes of form components (via their `id` and `classes` config attributes - see [Config files reference](/docs/guides/how_to_use/form_composer/configuration/config_files/))

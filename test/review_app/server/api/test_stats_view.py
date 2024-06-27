@@ -31,7 +31,7 @@ class TestStatsView(BaseTestApiViewCase):
         self.db.update_unit_review(unit_id, qualification_id, worker_id)
 
         with self.app_context:
-            url = url_for("stats") + f"?task_id={unit.task_id}"
+            url = url_for("review-stats") + f"?task_id={unit.task_id}"
             response = self.client.get(url)
             result = response.json
 

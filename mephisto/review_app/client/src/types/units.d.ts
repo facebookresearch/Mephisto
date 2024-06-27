@@ -5,9 +5,9 @@
  */
 
 declare type UnitType = {
-  id: number;
-  worker_id: number | null;
-  task_id: number | null;
+  id: string;
+  worker_id: string | null;
+  task_id: string | null;
   pay_amount: number;
   status: string;
   creation_date: string;
@@ -24,13 +24,13 @@ declare type UnitType = {
 };
 
 declare type WorkerUnitIdType = {
-  unit_id: number;
-  worker_id: number;
+  unit_id: string;
+  worker_id: string;
 };
 
 declare type UnitDetailsType = {
   has_task_source_review: boolean;
-  id: number;
+  id: string;
   inputs: object;
   outputs: object;
   prepared_inputs: object;

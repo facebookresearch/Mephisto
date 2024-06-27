@@ -7,8 +7,24 @@
 var path = require("path");
 var webpack = require("webpack");
 
+var dynamicAliases = {};
+var entry = "./src/review_simple.js";
+if (process.env.type !== "simple") {
+  dynamicAliases = {
+    // Required for custom validators
+    "custom-validators": path.resolve(
+      process.env.WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS
+    ),
+    // Required for custom triggers
+    "custom-triggers": path.resolve(
+      process.env.WEBAPP__FORM_COMPOSER__CUSTOM_TRIGGERS
+    ),
+  };
+  entry = "./src/review_dynamic.js";
+}
+
 module.exports = {
-  entry: "./src/review.js",
+  entry: entry,
   output: {
     path: __dirname,
     filename: "build/bundle.review.js",
@@ -21,14 +37,7 @@ module.exports = {
         __dirname,
         "../../../packages/react-form-composer"
       ),
-      // Required for custom validators
-      "custom-validators": path.resolve(
-        process.env.WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS
-      ),
-      // Required for custom triggers
-      "custom-triggers": path.resolve(
-        process.env.WEBAPP__FORM_COMPOSER__CUSTOM_TRIGGERS
-      ),
+      ...dynamicAliases,
     },
     fallback: {
       net: false,

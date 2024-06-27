@@ -77,7 +77,7 @@ class UnitsDetailsView(MethodView):
             units.append(
                 {
                     "has_task_source_review": has_task_source_review,
-                    "id": int(unit.db_id),
+                    "id": unit.db_id,
                     "inputs": inputs,  # instructions for worker
                     "outputs": outputs,  # response from worker
                     "prepared_inputs": prepared_inputs,  # prepared instructions from worker

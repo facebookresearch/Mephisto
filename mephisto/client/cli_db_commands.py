@@ -110,6 +110,22 @@ def db_cli():
         "to avoid conflicts during data merging"
     ),
 )
+@click.option(
+    "-qo",
+    "--qualification-only",
+    type=bool,
+    default=False,
+    is_flag=True,
+    help="export only data related to worker qualifications",
+)
+@click.option(
+    "-qn",
+    "--qualification-names",
+    type=str,
+    multiple=True,
+    default=None,
+    help="names of related to worker qualifications to export with `--qualification-only` option",
+)
 @click.option("-v", "--verbosity", type=int, default=VERBOSITY_DEFAULT_VALUE, help=VERBOSITY_HELP)
 def export(ctx: click.Context, **options: dict):
     """
@@ -128,9 +144,11 @@ def export(ctx: click.Context, **options: dict):
     export_tasks_by_ids: Optional[List[str]] = options.get("export_tasks_by_ids")
     export_task_runs_by_ids: Optional[List[str]] = options.get("export_task_runs_by_ids")
     export_task_runs_since_date: Optional[str] = options.get("export_task_runs_since_date")
-    export_labels: Optional[List[str]] = options.get("export_labels")
+    export_labels: Optional[List[str]] = options.get("labels")
     delete_exported_data: bool = options.get("delete_exported_data", False)
     randomize_legacy_ids: bool = options.get("randomize_legacy_ids", False)
+    qualification_only: bool = options.get("qualification_only", False)
+    qualification_names: Optional[List[str]] = options.get("qualification_names")
     verbosity: int = options.get("verbosity", VERBOSITY_DEFAULT_VALUE)
 
     porter = DBDataPorter()
@@ -167,15 +185,65 @@ def export(ctx: click.Context, **options: dict):
         )
         exit()
 
+    has_conflicting_qualification_only_options = (
+        len(
+            list(
+                filter(
+                    bool,
+                    [
+                        delete_exported_data,
+                        export_labels,
+                        export_task_runs_by_ids,
+                        export_task_runs_since_date,
+                        export_tasks_by_ids,
+                        export_tasks_by_names,
+                        qualification_only,
+                        randomize_legacy_ids,
+                    ],
+                )
+            )
+        )
+        > 1
+    )
+
+    if qualification_only and has_conflicting_qualification_only_options:
+        logger.warning(
+            "[yellow]"
+            "You cannot use following options together:"
+            "\n\t--qualification-only"
+            "\nand"
+            "\n\t--delete-exported-data"
+            "\n\t--export-task-runs-by-ids"
+            "\n\t--export-task-runs-since-date"
+            "\n\t--export-task-runs-since-date"
+            "\n\t--export-tasks-by-ids"
+            "\n\t--export-tasks-by-names"
+            "\n\t--labels"
+            "\n\t--randomize-legacy-ids"
+            "\nUse `--qualification-only` or other options to export data."
+            "[/yellow]"
+        )
+        exit()
+
+    if qualification_names and not qualification_only:
+        logger.warning(
+            "[yellow]"
+            "You cannot use option `--qualification-names` without `--qualification-only`."
+            "[/yellow]"
+        )
+        exit()
+
     export_results = porter.export_dump(
         json_indent=export_indent,
         task_names=export_tasks_by_names,
         task_ids=export_tasks_by_ids,
         task_run_ids=export_task_runs_by_ids,
         task_runs_since_date=export_task_runs_since_date,
-        task_runs_labels=export_labels,
+        task_run_labels=export_labels,
         delete_exported_data=delete_exported_data,
         randomize_legacy_ids=randomize_legacy_ids,
+        qualification_only=qualification_only,
+        qualification_names=qualification_names,
         metadata_export_options=get_export_options_for_metadata(ctx, options),
         verbosity=verbosity,
     )
@@ -236,6 +304,14 @@ def export(ctx: click.Context, **options: dict):
     is_flag=True,
     help="write data from `imported_data` table of the dump (by default it's not imported)",
 )
+@click.option(
+    "-qo",
+    "--qualification-only",
+    type=bool,
+    default=False,
+    is_flag=True,
+    help="import only data related to worker qualifications",
+)
 @click.option("-v", "--verbosity", type=int, default=VERBOSITY_DEFAULT_VALUE, help=VERBOSITY_HELP)
 def _import(ctx: click.Context, **options: dict):
     """
@@ -249,7 +325,37 @@ def _import(ctx: click.Context, **options: dict):
     labels: Optional[str] = options.get("labels")
     conflict_resolver: Optional[str] = options.get("conflict_resolver", DEFAULT_CONFLICT_RESOLVER)
     keep_import_metadata: Optional[bool] = options.get("keep_import_metadata", False)
+    qualification_only: bool = options.get("qualification_only", False)
     verbosity: int = options.get("verbosity", VERBOSITY_DEFAULT_VALUE)
+
+    has_conflicting_qualification_only_options = (
+        len(
+            list(
+                filter(
+                    bool,
+                    [
+                        keep_import_metadata,
+                        labels,
+                        qualification_only,
+                    ],
+                )
+            )
+        )
+        > 1
+    )
+
+    if qualification_only and has_conflicting_qualification_only_options:
+        logger.warning(
+            "[yellow]"
+            "You cannot use following options together:"
+            "\n\t--qualification-only"
+            "\nand"
+            "\n\t--labels"
+            "\n\t--keep-import-metadata"
+            "\nUse `--qualification-only` or other options to import data."
+            "[/yellow]"
+        )
+        exit()
 
     porter = DBDataPorter()
     results = porter.import_dump(
@@ -257,13 +363,24 @@ def _import(ctx: click.Context, **options: dict):
         conflict_resolver_name=conflict_resolver,
         labels=labels,
         keep_import_metadata=keep_import_metadata,
+        qualification_only=qualification_only,
         verbosity=verbosity,
     )
-    logger.info(
-        f"[green]"
-        f"Finished successfully. Imported {results['imported_task_runs_number']} TaskRuns"
-        f"[/green]"
-    )
+    if qualification_only:
+        logger.info(
+            f"[green]"
+            f"Finished successfully. Imported "
+            f"{results['workers_number']} Workers, "
+            f"{results['qualifications_number']} Qualifications, "
+            f"{results['granted_qualifications_number']} GrantedQualifications"
+            f"[/green]"
+        )
+    else:
+        logger.info(
+            f"[green]"
+            f"Finished successfully. Imported {results['task_runs_number']} TaskRuns"
+            f"[/green]"
+        )
 
 
 # --- BACKUP ---

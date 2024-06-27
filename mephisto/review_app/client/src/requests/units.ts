@@ -54,7 +54,7 @@ export function postUnitsApprove(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
-  data: { [key: string]: number[] | string | number | boolean },
+  data: { [key: string]: string[] | string | number | boolean },
   abortController?: AbortController
 ) {
   const url = generateURL(urls.server.unitsApprove, null, null);
@@ -75,7 +75,7 @@ export function postUnitsReject(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
-  data: { [key: string]: number[] | string | boolean },
+  data: { [key: string]: string[] | string | boolean },
   abortController?: AbortController
 ) {
   const url = generateURL(urls.server.unitsReject, null, null);
@@ -96,7 +96,7 @@ export function postUnitsSoftReject(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
-  data: { [key: string]: number[] | string | boolean },
+  data: { [key: string]: string[] | string | boolean },
   abortController?: AbortController
 ) {
   const url = generateURL(urls.server.unitsSoftReject, null, null);

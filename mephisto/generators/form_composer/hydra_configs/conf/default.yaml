@@ -21,4 +21,4 @@ mephisto:
     task_title: "Form-task"
     task_description: "Auto-generated form"
     task_reward: 0
-    task_tags: "simple,form,generated"
+    task_tags: "simple,form,generated,form-composer"
