@@ -7,8 +7,24 @@
 var path = require("path");
 var webpack = require("webpack");
 
+var dynamicAliases = {};
+var entry = "./src/main_simple.js";
+if (process.env.type !== "simple") {
+  dynamicAliases = {
+    // Required for custom validators
+    "custom-validators": path.resolve(
+      process.env.WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS
+    ),
+    // Required for custom triggers
+    "custom-triggers": path.resolve(
+      process.env.WEBAPP__FORM_COMPOSER__CUSTOM_TRIGGERS
+    ),
+  };
+  entry = "./src/main_dynamic.js";
+}
+
 module.exports = {
-  entry: "./src/main.js",
+  entry: entry,
   output: {
     path: __dirname,
     filename: "build/bundle.js",
@@ -25,14 +41,7 @@ module.exports = {
         __dirname,
         "../../../packages/react-form-composer"
       ),
-      // Required for custom validators
-      "custom-validators": path.resolve(
-        process.env.WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS
-      ),
-      // Required for custom triggers
-      "custom-triggers": path.resolve(
-        process.env.WEBAPP__FORM_COMPOSER__CUSTOM_TRIGGERS
-      ),
+      ...dynamicAliases,
     },
     fallback: {
       net: false,

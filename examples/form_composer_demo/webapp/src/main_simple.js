@@ -4,6 +4,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import "./app.jsx";
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-select/dist/css/bootstrap-select.min.css";
+import "./app_simple.jsx";
 import "./css/style.css";
 // Add your additional imports with styles here
