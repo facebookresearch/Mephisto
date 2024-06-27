@@ -52,7 +52,7 @@ class TestUnitsDetailsView(BaseTestApiViewCase):
         first_unit = result["units"][0]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(result["units"]), 1)
-        self.assertEqual(first_unit["id"], int(unit_id))
+        self.assertEqual(first_unit["id"], unit_id)
 
         unit_fields = [
             "has_task_source_review",

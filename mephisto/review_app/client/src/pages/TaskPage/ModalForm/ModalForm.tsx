@@ -58,8 +58,7 @@ function ModalForm(props: ModalFormProps) {
     } else {
       prevFormData.qualification = value;
 
-      const prevGrantedQualification =
-        workerGrantedQualifications[value];
+      const prevGrantedQualification = workerGrantedQualifications[value];
       const prevGrantedQualificationValue = prevGrantedQualification?.value;
       if (prevGrantedQualificationValue !== undefined) {
         // Set to previous granted value for selected qualification

@@ -55,6 +55,10 @@ def init_urls(app: Flask):
         view_func=api_views.TaskExportResultsJsonView.as_view("task_export_results_json"),
     )
     app.add_url_rule(
+        "/api/tasks/<int:task_id>/stats-results",
+        view_func=api_views.TaskStatsResultsView.as_view("task_stats_results"),
+    )
+    app.add_url_rule(
         "/api/units",
         view_func=api_views.UnitsView.as_view("units"),
     )
@@ -93,8 +97,8 @@ def init_urls(app: Flask):
         ),
     )
     app.add_url_rule(
-        "/api/stats",
-        view_func=api_views.StatsView.as_view("stats"),
+        "/api/review-stats",
+        view_func=api_views.ReviewStatsView.as_view("review-stats"),
     )
     app.add_url_rule(
         "/<path:path>",

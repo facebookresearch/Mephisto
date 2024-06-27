@@ -50,11 +50,12 @@ Get all available tasks (to select one for review)
 {
     "tasks": [
         {
+            "created_at": <timestamp>,
+            "has_stats": <bool>,
             "id": <int>,
-            "name": <str>,
             "is_reviewed": <bool>,
-            "unit_count": <int>,
-            "created_at": <timestamp>
+            "name": <str>,
+            "unit_count": <int>
         },
         ...  // more tasks
     ]
@@ -87,6 +88,27 @@ Compose on the server-side a single file with reviewed task results (empty API r
 ### `GET /api/tasks/{id}/{n_units}/export-results.json`
 
 Serve a single composed file with reviewed task results (API response is a file download).
+
+---
+
+### `GET /api/tasks/{id}/{n_units}/stats-results`
+
+Assemble stats with results for a Task.
+
+```
+{
+  "stats": {
+    <str>: {
+      <str>: <str> | <int>, 
+      ...
+    }, 
+    ...
+  }, 
+  "task_id": <str>, 
+  "task_name": <str>, 
+  "workers_count": <int>
+}
+```
 
 ---
 
@@ -310,7 +332,7 @@ Get list of all granted qualifications for a worker
 
 ---
 
-### `GET /api/stats?{task_id=}{worker_id=}{since=}{limit=}`
+### `GET /api/review-stats?{task_id=}{worker_id=}{since=}{limit=}`
 
 Get stats of (recent) approvals. Either `task_id` or `worker_id` (or both) must be present.
 

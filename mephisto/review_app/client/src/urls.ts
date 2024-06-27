@@ -10,6 +10,7 @@ const urls = {
   client: {
     home: "/",
     task: (id) => `/tasks/${id}`,
+    taskStats: (id) => `/tasks/${id}/stats`,
     tasks: "/tasks",
   },
   server: {
@@ -19,11 +20,12 @@ const urls = {
       API_URL + `/api/qualifications/${id}/workers/${workerId}/grant`,
     qualificationRevokeWorker: (id, workerId) =>
       API_URL + `/api/qualifications/${id}/workers/${workerId}/revoke`,
-    stats: API_URL + "/api/stats",
+    stats: API_URL + "/api/review-stats",
     task: (id) => API_URL + `/api/tasks/${id}`,
     taskExportResults: (id) => API_URL + `/api/tasks/${id}/export-results`,
     taskExportResultsJson: (id, nUnits) =>
       API_URL + `/api/tasks/${id}/${nUnits}/export-results.json`,
+    taskStatsResults: (id) => API_URL + `/api/tasks/${id}/stats-results`,
     tasks: API_URL + "/api/tasks",
     tasksWorkerUnitsIds: (id) => API_URL + `/api/tasks/${id}/worker-units-ids`,
     unitReviewHtml: (id) => API_URL + `/api/units/${id}/review.html`,

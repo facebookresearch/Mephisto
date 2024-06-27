@@ -39,6 +39,7 @@ class TestTasksView(BaseTestApiViewCase):
         self.assertTrue("created_at" in first_response_task)
         self.assertTrue("is_reviewed" in first_response_task)
         self.assertTrue("unit_count" in first_response_task)
+        self.assertTrue("has_stats" in first_response_task)
 
 
 if __name__ == "__main__":

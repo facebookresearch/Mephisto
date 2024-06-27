@@ -10,6 +10,7 @@ import Errors from "components/Errors/Errors";
 import HomePage from "pages/HomePage/HomePage";
 import TaskPage from "pages/TaskPage/TaskPage";
 import TasksPage from "pages/TasksPage/TasksPage";
+import TaskStatsPage from "pages/TaskStatsPage/TaskStatsPage";
 import * as React from "react";
 import { Route, Routes } from "react-router-dom";
 import urls from "urls";
@@ -28,6 +29,10 @@ function App() {
         <Route
           path={urls.client.task(":id")}
           element={<TaskPage setErrors={setErrors} />}
+        />
+        <Route
+          path={urls.client.taskStats(":id")}
+          element={<TaskStatsPage setErrors={setErrors} />}
         />
         <Route
           path={urls.client.tasks}
