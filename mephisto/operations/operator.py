@@ -512,13 +512,13 @@ class Operator:
         assert not self.is_shutdown, "Cannot run a config on a shutdown operator. Create a new one."
 
         try:
-            EXP_resume_incomplete_run = run_config.task.EXP_resume_incomplete_run
+            resume_incomplete_run = run_config.task.resume_incomplete_run
             logger.debug(
-                f"EXP TaskRun argument `EXP_resume_incomplete_run` = {EXP_resume_incomplete_run}"
+                f"TaskRun argument `resume_incomplete_run` = {resume_incomplete_run}"
             )
-            if EXP_resume_incomplete_run:
-                incomplete_task_run = self.EXP_find_previous_task_run(run_config=run_config)
-                return self.EXP_launch_from_incomplete_run(
+            if resume_incomplete_run:
+                incomplete_task_run = self.find_previous_task_run(run_config=run_config)
+                return self.launch_from_incomplete_run(
                     task_run=incomplete_task_run,
                     shared_state=shared_state,
                 )
@@ -609,13 +609,13 @@ class Operator:
         finally:
             self.shutdown()
 
-    def EXP_find_previous_task_run(self, run_config: DictConfig) -> Optional[TaskRun]:
+    def find_previous_task_run(self, run_config: DictConfig) -> Optional[TaskRun]:
         """
         Find previous TaskRun to try to complete incomplete Units
-        (using argument `EXP_resume_incomplete_run`)
+        (using argument `resume_incomplete_run`)
         """
         # TODO: Remove debug loggers after testing this feature
-        logger.debug("EXP Find incomplete TaskRun")
+        logger.debug("Find incomplete TaskRun")
 
         blueprint_type = run_config.blueprint._blueprint_type
 
@@ -634,7 +634,7 @@ class Operator:
         if len(tasks) == 0:
             logger.info(
                 f'Could not find Task "{task_name}", nothing to resume. '
-                f"Disable `EXP_resume_incomplete_run` argument to start a new TaskRun."
+                f"Disable `resume_incomplete_run` argument to start a new TaskRun."
             )
             self.shutdown()
             return None
@@ -647,7 +647,7 @@ class Operator:
         if len(incomplete_task_runs) == 0:
             logger.info(
                 f'Could not find TaskRuns for Task "{task_name}", nothing to resume. '
-                f"Disable `EXP_resume_incomplete_run` argument to start a new TaskRun."
+                f"Disable `resume_incomplete_run` argument to start a new TaskRun."
             )
             self.shutdown()
             return None
@@ -658,7 +658,7 @@ class Operator:
 
         return last_incomplete_task_run
 
-    def EXP_launch_from_incomplete_run(
+    def launch_from_incomplete_run(
         self,
         task_run: TaskRun,
         shared_state: Optional[SharedTaskState] = None,
@@ -668,9 +668,9 @@ class Operator:
         logger.debug(f'EXP Launching imcomplete TaskRun "{task_run}"')
         run_config = task_run.args
 
-        EXP_logger_level = "debug"  # Change to "info" after testing this feature
+        logger_level = "debug"  # Change to "info" after testing this feature
 
-        set_mephisto_log_level(level=run_config.get("log_level", EXP_logger_level))
+        set_mephisto_log_level(level=run_config.get("log_level", logger_level))
 
         requester, provider_type = self._get_requester_and_provider_from_config(run_config)
 
@@ -739,14 +739,14 @@ class Operator:
 
             raise e
 
-        logger.debug(f"EXP Resuming assignments")
-        live_run.task_launcher.EXP_resume_assignments()
-        logger.debug(f"EXP Launching units")
+        logger.debug(f"Resuming assignments")
+        live_run.task_launcher.resume_assignments()
+        logger.debug(f"Launching units")
         live_run.task_launcher.launch_units(url=task_url)
 
         self._task_runs_tracked[task_run.db_id] = live_run
-        task_run.EXP_resurrect_if_has_incomplete_assignments()
+        task_run.resurrect_if_has_incomplete_assignments()
         task_run.update_completion_progress(status=False)
-        logger.debug(f"EXP Launching TaskRun finished successfuly")
+        logger.debug(f"Launching TaskRun finished successfuly")
 
         return task_run.db_id

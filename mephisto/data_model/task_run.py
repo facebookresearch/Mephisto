@@ -153,7 +153,7 @@ class TaskRunArgs:
         },
     )
 
-    EXP_resume_incomplete_run: Optional[bool] = field(
+    resume_incomplete_run: Optional[bool] = field(
         default=False,
         metadata={
             "help": "Resume incomplete or interrupted TaskRun if it exists (EXPERIMENTAL)."
@@ -436,9 +436,9 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
                 self.db.update_task_run(self.db_id, is_completed=True)
                 self.__is_completed = True
 
-    def EXP_resurrect_if_has_incomplete_assignments(self) -> None:
+    def resurrect_if_has_incomplete_assignments(self) -> None:
         """
-        If TaskRun is already marked as completed, and we use `EXP_resume_incomplete_run` parameter
+        If TaskRun is already marked as completed, and we use `resume_incomplete_run` parameter
         to resume this TaskRun, it must become incomplete in DB again
         """
         assignments = self.get_has_assignments()

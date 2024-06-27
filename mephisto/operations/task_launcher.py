@@ -263,15 +263,15 @@ class TaskLauncher:
         if self.units_thread is not None:
             self.units_thread.join()
 
-    def EXP_resume_assignments(self) -> None:
+    def resume_assignments(self) -> None:
         """
         Experimental function to go through a resume expired (or incomplete) tasks from a specific
         task run that may have been left incomplete.
         """
         # TODO: Remove debug loggers after testing this feature
-        logger.debug(f"EXP Resuming assignments")
+        logger.debug(f"Resuming assignments")
         assignments = self.task_run.get_assignments()
-        logger.debug(f"EXP Found assignments {assignments}")
+        logger.debug(f"Found assignments {assignments}")
         for assignment in assignments:
             self.assignments.append(assignment)
 
@@ -301,7 +301,7 @@ class TaskLauncher:
 
         assert len(self.units) > 0, "Cannot relaunch a job with no incomplete units!"
 
-        logger.debug(f"EXP Resuming assignments finished successfuly")
+        logger.debug(f"Resuming assignments finished successfuly")
         self.keep_launching_units = True
 
         return None
