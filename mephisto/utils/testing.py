@@ -94,6 +94,7 @@ def get_test_task_run(
     db: MephistoDB,
     task_id: Optional[str] = None,
     requester_id: Optional[str] = None,
+    init_params: Optional[str] = None,
 ) -> str:
     """Helper to create a task run for tests"""
     if not task_id:
@@ -102,7 +103,9 @@ def get_test_task_run(
     if not requester_id:
         _, requester_id = get_test_requester(db)
 
-    init_params = OmegaConf.to_yaml(OmegaConf.structured(MOCK_CONFIG))
+    if not init_params:
+        init_params = OmegaConf.to_yaml(OmegaConf.structured(MOCK_CONFIG))
+
     return db.new_task_run(task_id, requester_id, json.dumps(init_params), "mock", "mock")
 
 
