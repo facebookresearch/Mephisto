@@ -14,7 +14,7 @@ import "./TaskHeader.css";
 interface TaskHeaderPropsType {
   loading: boolean;
   taskStats?: TaskStatsType;
-  workerId?: number;
+  workerId?: string;
   workerStats?: WorkerStatsType;
 }
 

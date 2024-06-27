@@ -30,7 +30,7 @@ export function getQualifications(
 }
 
 export function getQualificationWorkers(
-  id: number,
+  id: string,
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
@@ -77,8 +77,8 @@ export function postQualification(
 }
 
 export function postQualificationGrantWorker(
-  id: number,
-  workerId: number,
+  id: string,
+  workerId: string,
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
@@ -104,8 +104,8 @@ export function postQualificationGrantWorker(
 }
 
 export function postQualificationRevokeWorker(
-  id: number,
-  workerId: number,
+  id: string,
+  workerId: string,
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,

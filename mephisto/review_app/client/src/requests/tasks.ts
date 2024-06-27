@@ -30,7 +30,7 @@ export function getTasks(
 }
 
 export function getTask(
-  id: number,
+  id: string,
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
@@ -51,7 +51,7 @@ export function getTask(
 }
 
 export function getTaskWorkerUnitsIds(
-  id: number,
+  id: string,
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
@@ -73,7 +73,7 @@ export function getTaskWorkerUnitsIds(
 }
 
 export function exportTaskResults(
-  id: number,
+  id: string,
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
@@ -89,6 +89,27 @@ export function exportTaskResults(
     setLoadingAction,
     setErrorsAction,
     "exportTaskResults error:",
+    abortController
+  );
+}
+
+export function getTaskStats(
+  id: string,
+  setDataAction: SetRequestDataActionType,
+  setLoadingAction: SetRequestLoadingActionType,
+  setErrorsAction: SetRequestErrorsActionType,
+  abortController?: AbortController
+) {
+  const url = generateURL(urls.server.taskStatsResults, [id], null);
+
+  makeRequest(
+    "GET",
+    url,
+    null,
+    (data) => setDataAction(data),
+    setLoadingAction,
+    setErrorsAction,
+    "getTaskStats error:",
     abortController
   );
 }

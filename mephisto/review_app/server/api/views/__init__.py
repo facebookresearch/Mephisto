@@ -8,9 +8,10 @@ from .home_view import HomeView
 from .qualification_workers_view import QualificationWorkersView
 from .qualifications_view import QualificationsView
 from .qualify_worker_view import QualifyWorkerView
-from .stats_view import StatsView
+from .review_stats_view import ReviewStatsView
 from .task_export_results_json_view import TaskExportResultsJsonView
 from .task_export_results_view import TaskExportResultsView
+from .task_stats_results_view import TaskStatsResultsView
 from .task_view import TaskView
 from .tasks_view import TasksView
 from .tasks_worker_units_view import TaskUnitIdsView

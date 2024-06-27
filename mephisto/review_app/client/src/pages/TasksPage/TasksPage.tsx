@@ -8,6 +8,7 @@ import * as moment from "moment/moment";
 import * as React from "react";
 import { useEffect } from "react";
 import { Spinner, Table } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import { exportTaskResults, getTasks } from "requests/tasks";
 import urls from "urls";
 import TasksHeader from "./TasksHeader/TasksHeader";
@@ -27,7 +28,7 @@ function TasksPage(props: PropsType) {
   const [taskIdExportResults, setTaskIdExportResults] = React.useState(null);
   const [loadingExportResults, setLoadingExportResults] = React.useState(false);
 
-  const onTaskRowClick = (id: number) => {
+  const onTaskRowClick = (id: string) => {
     localStorage.setItem(STORAGE_TASK_ID_KEY, String(id));
 
     // Create a pseudo new link and click it to open a task in new tab (not window)
@@ -43,7 +44,7 @@ function TasksPage(props: PropsType) {
     }
   };
 
-  const requestTaskResults = (taskId: number, nUnits: number) => {
+  const requestTaskResults = (taskId: string, nUnits: number) => {
     setTaskIdExportResults(taskId);
 
     const onSuccessExportResults = (data) => {
@@ -99,6 +100,9 @@ function TasksPage(props: PropsType) {
             <th className={"title date"}>
               <b>Date</b>
             </th>
+            <th className={"title stats"}>
+              <b>Stats</b>
+            </th>
             <th className={"title export"}>
               <b>Export results</b>
             </th>
@@ -129,6 +133,16 @@ function TasksPage(props: PropsType) {
                   </td>
                   <td className={"units"}>{task.unit_count}</td>
                   <td className={"date"}>{date}</td>
+                  <td className={"stats"}>
+                    {task.has_stats && (
+                      <Link
+                        to={urls.client.taskStats(task.id)}
+                        target={"_blank"}
+                      >
+                        Show
+                      </Link>
+                    )}
+                  </td>
                   <td className={"export"}>
                     {task.is_reviewed &&
                       !(

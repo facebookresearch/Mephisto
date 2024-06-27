@@ -44,6 +44,11 @@ def _update_row_with_pks_from_resolvings_mappings(
     row: dict,
     resolvings_mapping: MappingResolvingsType,
 ) -> dict:
+    """
+    If comparing rows have conflicts,
+    it may happen that Primary Keys of one of them must be updated with new ones.
+    Here we pass row that was updated and dict with replacements after conflicts resolving.
+    """
     table_fks = db_utils.select_fk_mappings_for_single_table(db, table_name)
 
     # Update FK fields from resolving mappings if needed
@@ -107,7 +112,11 @@ def import_single_db(
         # They must be imported before other tables
         tables_with_special_unique_field = TABLES_UNIQUE_LOOKUP_FIELDS.get(provider_type)
         for table_name, unique_field_names in tables_with_special_unique_field.items():
-            dump_table_rows = dump_data[table_name]
+            dump_table_rows = dump_data.get(table_name)
+            if not dump_table_rows:
+                # It can be partial dump without these tables, even empty lists
+                continue
+
             table_pk_field_name = db_utils.get_table_pk_field_name(db, table_name)
             is_table_with_special_unique_field = unique_field_names is not None
 
@@ -228,11 +237,11 @@ def import_single_db(
                 # Update table lists of Imported data
                 if imported_data_needs_to_be_updated:
                     if imported_data_conflicted_row:
-                        _label = conflicted_labels
+                        _labels = conflicted_labels
                     else:
-                        _label = newly_imported_labels
+                        _labels = newly_imported_labels
 
-                    imported_data_for_table[_label].append(
+                    imported_data_for_table[_labels].append(
                         {
                             UNIQUE_FIELD_NAMES: unique_field_names or [table_pk_field_name],
                             UNIQUE_FIELD_VALUES: imported_data_row_unique_field_values,
@@ -279,13 +288,14 @@ def import_single_db(
         if not possible_issue:
             error_message_beginning = "Unexpected error happened: "
 
+        error_row = in_progress_dump_row or json.dumps(in_progress_dump_row, indent=2)
         errors.append(
             f"{error_message_beginning}{e}{error_message_ending}"
             f"{possible_issue}"
             f"\n"
             f"\n[bold]Provider:[/bold] {provider_type}."
             f"\n[bold]Table:[/bold] {in_progress_table_name}."
-            f"\n[bold]Row:[/bold]\n{json.dumps(in_progress_dump_row, indent=2)}."
+            f"\n[bold]Row:[/bold]\n{error_row}."
             f"\n"
         )
 

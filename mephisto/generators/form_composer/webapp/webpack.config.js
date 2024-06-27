@@ -42,13 +42,13 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx)$/,
+        test: /\.(js|jsx)$/i,
         loader: "babel-loader",
         exclude: /node_modules/,
         options: { presets: ["@babel/env"] },
       },
       {
-        test: /\.css$/,
+        test: /\.css$/i,
         use: ["style-loader", "css-loader"],
       },
     ],

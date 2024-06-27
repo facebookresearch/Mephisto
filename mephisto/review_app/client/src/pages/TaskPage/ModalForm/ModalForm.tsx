@@ -23,7 +23,7 @@ type ModalFormProps = {
   data: ModalDataType;
   setData: React.Dispatch<React.SetStateAction<ModalDataType>>;
   setErrors: Function;
-  workerId: number | null;
+  workerId: string | null;
 };
 
 function ModalForm(props: ModalFormProps) {
@@ -56,10 +56,9 @@ function ModalForm(props: ModalFormProps) {
       prevFormData.showNewQualification = true;
       prevFormData.newQualificationValue = "";
     } else {
-      prevFormData.qualification = Number(value);
+      prevFormData.qualification = value;
 
-      const prevGrantedQualification =
-        workerGrantedQualifications[Number(value)];
+      const prevGrantedQualification = workerGrantedQualifications[value];
       const prevGrantedQualificationValue = prevGrantedQualification?.value;
       if (prevGrantedQualificationValue !== undefined) {
         // Set to previous granted value for selected qualification

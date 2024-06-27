@@ -68,4 +68,6 @@ class TaskExportResultsView(MethodView):
             with open(results_file_path, "w") as f:
                 f.write(json.dumps(task_units_data, indent=4))
 
-        return {"file_created": True}
+        return {
+            "file_created": True,
+        }

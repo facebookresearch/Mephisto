@@ -22,5 +22,5 @@ mephisto:
     task_title: "Example how to easily create dynamic form-based Tasks"
     task_description: "In this Task, we use FormComposer feature."
     task_reward: 0
-    task_tags: "test,dynamic,form"
+    task_tags: "test,dynamic,form,form-composer"
     force_rebuild: true
