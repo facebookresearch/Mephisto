@@ -50,6 +50,7 @@ from mephisto.generators.form_composer.config_validation.utils import (
     set_custom_validators_js_env_var,
 )
 from mephisto.operations.registry import get_valid_provider_types
+from mephisto.scripts.local_db import auto_generate_all_docs_reference_md
 from mephisto.tools.scripts import build_custom_bundle
 from mephisto.utils.console_writer import ConsoleWriter
 from mephisto.utils.rich import console
@@ -249,6 +250,7 @@ def run_script(script_type, script_name, args: Optional[Any] = None):
         "review_feedback",
         "load_data",
         "clear_worker_onboarding",
+        "auto_generate_all_docs_reference_md",
     ]
     HEROKU_VALID_SCRIPTS_NAMES = ["initialize"]
     METRICS_VALID_SCRIPTS_NAMES = ["view", "shutdown"]
@@ -271,6 +273,7 @@ def run_script(script_type, script_name, args: Optional[Any] = None):
                 LOCAL_DB_VALID_SCRIPTS_NAMES[2]: review_feedback_local_db.main,
                 LOCAL_DB_VALID_SCRIPTS_NAMES[3]: load_data_local_db.main,
                 LOCAL_DB_VALID_SCRIPTS_NAMES[4]: clear_worker_onboarding_local_db.main,
+                LOCAL_DB_VALID_SCRIPTS_NAMES[5]: auto_generate_all_docs_reference_md.main,
             },
         },
         "heroku": {

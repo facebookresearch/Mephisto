@@ -8,7 +8,7 @@
 
 - Looking to get set-up and running quickly with Mephisto? Check out the **[10 minute quickstart](https://mephisto.ai/docs/guides/quickstart)**.
 
-- Want to learn more about the different concepts within Mephisto and how they work together? The excellent and thorough **[architecture overview](https://mephisto.ai/docs/explanations/architecture_overview)** should serve as a great deep-dive and reference for beginners and advanced users alike.
+- Want to learn more about the different concepts within Mephisto and how they work together? The excellent and thorough **[architecture overview](https://mephisto.ai/docs/explanations/abstractions_overview)** should serve as a great deep-dive and reference for beginners and advanced users alike.
 
 ### Customization
 

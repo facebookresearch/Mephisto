@@ -82,7 +82,7 @@ const config = {
           },
           {
             type: "doc",
-            docId: "explanations/architecture_overview",
+            docId: "explanations/abstractions_overview",
             position: "left",
             label: "Explanations",
           },
@@ -112,7 +112,7 @@ const config = {
               },
               {
                 label: "Explanations",
-                to: "/docs/explanations/architecture_overview",
+                to: "/docs/explanations/abstractions_overview",
               },
               {
                 label: "Reference",
