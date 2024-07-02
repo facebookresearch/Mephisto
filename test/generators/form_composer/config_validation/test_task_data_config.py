@@ -595,9 +595,9 @@ class TestTaskDataConfig(unittest.TestCase):
         token_sets_values_config_f.close()
 
         create_extrapolated_config(
-            form_config_path,
-            token_sets_values_config_path,
-            task_data_config_path,
+            form_config_path=form_config_path,
+            token_sets_values_config_path=token_sets_values_config_path,
+            task_data_config_path=task_data_config_path,
             data_path=self.data_dir,
         )
 
@@ -670,9 +670,10 @@ class TestTaskDataConfig(unittest.TestCase):
 
         with self.assertRaises(FileNotFoundError) as cm:
             create_extrapolated_config(
-                form_config_path,
-                token_sets_values_config_path,
-                task_data_config_path,
+                form_config_path=form_config_path,
+                token_sets_values_config_path=token_sets_values_config_path,
+                task_data_config_path=task_data_config_path,
+                data_path=self.data_dir,
             )
 
         self.assertEqual(
@@ -716,9 +717,10 @@ class TestTaskDataConfig(unittest.TestCase):
         token_sets_values_config_f.close()
 
         create_extrapolated_config(
-            form_config_path,
-            token_sets_values_config_path,
-            task_data_config_path,
+            form_config_path=form_config_path,
+            token_sets_values_config_path=token_sets_values_config_path,
+            task_data_config_path=task_data_config_path,
+            data_path=self.data_dir,
         )
 
         f = open(task_data_config_path, "r")

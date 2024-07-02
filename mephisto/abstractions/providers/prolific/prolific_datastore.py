@@ -295,7 +295,6 @@ class ProlificDatastore:
             table_name="workers",
             params={
                 "worker_id": worker_id,
-                "is_blocked": False,
             },
             select_field="id",
         )
@@ -392,7 +391,6 @@ class ProlificDatastore:
             table_name="units",
             params={
                 "unit_id": unit_id,
-                "is_expired": False,
             },
             select_field="id",
         )

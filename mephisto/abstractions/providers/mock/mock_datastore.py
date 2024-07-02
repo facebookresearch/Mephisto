@@ -69,7 +69,6 @@ class MockDatastore:
             table_name="requesters",
             params={
                 "requester_id": requester_id,
-                "is_registered": False,
             },
             select_field="requester_id",
         )
@@ -194,7 +193,6 @@ class MockDatastore:
             table_name="units",
             params={
                 "unit_id": unit_id,
-                "is_expired": False,
             },
             select_field="unit_id",
         )

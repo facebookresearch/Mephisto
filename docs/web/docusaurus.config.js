@@ -90,7 +90,7 @@ const config = {
             type: "doc",
             docId: "reference/overview",
             position: "left",
-            label: "API Reference",
+            label: "Reference",
           },
           { to: "/blog", label: "Blog", position: "left" },
           {
@@ -115,7 +115,7 @@ const config = {
                 to: "/docs/explanations/architecture_overview",
               },
               {
-                label: "API Reference",
+                label: "Reference",
                 to: "/docs/reference/overview",
               },
             ],

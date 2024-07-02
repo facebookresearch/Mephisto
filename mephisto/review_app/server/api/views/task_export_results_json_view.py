@@ -6,6 +6,7 @@
 
 import os
 
+from flask import Response
 from flask import send_file
 from flask.views import MethodView
 from werkzeug.exceptions import NotFound
@@ -15,7 +16,7 @@ from .task_export_results_view import get_results_dir
 
 
 class TaskExportResultsJsonView(MethodView):
-    def get(self, task_id: str = None, n_units: int = None) -> dict:
+    def get(self, task_id: str = None, n_units: int = None) -> Response:
         """Get result data file in JSON format"""
         results_dir = get_results_dir()
         results_file_path = get_result_file_path(results_dir, task_id, n_units)
@@ -26,5 +27,5 @@ class TaskExportResultsJsonView(MethodView):
         return send_file(
             results_file_path,
             as_attachment=True,
-            attachment_filename=f"task-{task_id}-results.json",
+            download_name=f"task-{task_id}-results.json",
         )

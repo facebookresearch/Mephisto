@@ -132,8 +132,10 @@ class TaskRunArgs:
         default="",
         metadata={
             "help": (
-                "The name of a shell script in your webapp directory that will run right after npm install and before npm build."
-                "This can be useful for local package development where you would want to link a package after installing dependencies from package.json"
+                "The name of a shell script in your webapp directory "
+                "that will run right after npm install and before npm build. "
+                "This can be useful for local package development where you would want "
+                "to link a package after installing dependencies from package.json"
             )
         },
     )
@@ -142,11 +144,18 @@ class TaskRunArgs:
         default=False,
         metadata={
             "help": (
-                "Determines if npm build should be ran every time the task is ran."
-                "By default there is an optimization that only builds the webapp when there is a change in its contents."
-                "It would make sense to set this to true when doing local package development as you want to force a rebuild after running the post_install_script."
+                "Determines if npm build should be ran every time the task is ran. "
+                "By default there is an optimization that only builds the webapp "
+                "when there is a change in its contents. "
+                "It would make sense to set this to true when doing local package development "
+                "as you want to force a rebuild after running the post_install_script."
             )
         },
+    )
+
+    resume_incomplete_run: Optional[bool] = field(
+        default=False,
+        metadata={"help": "Resume incomplete or interrupted TaskRun if it exists (EXPERIMENTAL)."},
     )
 
     @classmethod
@@ -425,10 +434,24 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
                 self.db.update_task_run(self.db_id, is_completed=True)
                 self.__is_completed = True
 
+    def resurrect_if_has_incomplete_assignments(self) -> None:
+        """
+        If TaskRun is already marked as completed, and we use `resume_incomplete_run` parameter
+        to resume this TaskRun, it must become incomplete in DB again
+        """
+        assignments = self.get_has_assignments()
+        if self.__is_completed and assignments:
+            statuses = self.get_assignment_statuses()
+            has_incomplete = False
+            for status in AssignmentState.incomplete():
+                if statuses[status] > 0:
+                    has_incomplete = True
+            if has_incomplete:
+                self.db.update_task_run(self.db_id, is_completed=False)
+                self.__is_completed = False
+
     def get_run_dir(self) -> str:
-        """
-        Return the directory where the data from this run is stored
-        """
+        """Return the directory where the data from this run is stored"""
         if self.__run_dir is None:
             task = self.get_task()
             project = task.get_project()

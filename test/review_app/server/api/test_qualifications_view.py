@@ -50,7 +50,7 @@ class TestQualificationsView(BaseTestApiViewCase):
     def test_qualification_create_no_passed_name_error(self, *args, **kwargs):
         with self.app_context:
             url = url_for("qualifications")
-            response = self.client.post(url)
+            response = self.client.post(url, json={})
             result = response.json
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
