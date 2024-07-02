@@ -13,6 +13,7 @@ from typing import Optional
 from typing import Tuple
 
 from flask import Flask
+from flask import jsonify
 from flask_cors import CORS
 from werkzeug import Response
 from werkzeug.exceptions import HTTPException as WerkzeugHTTPException
@@ -82,26 +83,41 @@ def create_app(debug: bool = False, database_path: Optional[str] = None) -> Flas
         return response
 
     @app.errorhandler(Exception)
-    def handle_not_flask_exception(e: Exception) -> Tuple[dict, int]:
+    def handle_not_flask_exception(e: Exception) -> Tuple[Response, int]:
         # Not to handle Flask exceptions here, pass it further to catch in `handle_flask_exception`
         if isinstance(e, WerkzeugHTTPException):
             return e
 
         elif isinstance(e, ProlificException):
             logger.exception("Prolific error")
-            return {
-                "error": e.message,
-            }, status.HTTP_400_BAD_REQUEST
+            return (
+                jsonify(
+                    {
+                        "error": e.message,
+                    }
+                ),
+                status.HTTP_400_BAD_REQUEST,
+            )
 
         elif isinstance(e, EntryDoesNotExistException):
-            return {
-                "error": "Not found",
-            }, status.HTTP_404_NOT_FOUND
+            return (
+                jsonify(
+                    {
+                        "error": "Not found",
+                    }
+                ),
+                status.HTTP_404_NOT_FOUND,
+            )
 
         # Other uncaught exceptions
         logger.error("".join(traceback.format_tb(e.__traceback__)))
-        return {
-            "error": f"Server error: {e}",
-        }, status.HTTP_500_INTERNAL_SERVER_ERROR
+        return (
+            jsonify(
+                {
+                    "error": f"Server error: {e}",
+                }
+            ),
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     return app

@@ -373,7 +373,7 @@ def metrics_cli(args):
 def review_app(
     info: ScriptInfo,
     host: Optional[str],
-    port: Optional[str],
+    port: Optional[int],
     debug: bool = False,
     force_rebuild: bool = False,
     skip_build: bool = False,
@@ -384,7 +384,6 @@ def review_app(
     """
     from flask.cli import show_server_banner
     from flask.helpers import get_debug_flag
-    from flask.helpers import get_env
     from mephisto.review_app.server import create_app
     from werkzeug.serving import run_simple
 
@@ -435,8 +434,7 @@ def review_app(
     debugger = debug
 
     # Show Flask banner
-    eager_loading = not reload
-    show_server_banner(get_env(), debug, info.app_import_path, eager_loading)
+    show_server_banner(debug, info.app_import_path)
 
     # Init Flask App
     app = create_app(debug=debug)

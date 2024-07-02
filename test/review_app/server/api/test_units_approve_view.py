@@ -22,7 +22,7 @@ class TestUnitsApproveView(BaseTestApiViewCase):
     def test_units_approve_no_unit_ids_passed_error(self, *args, **kwargs):
         with self.app_context:
             url = url_for("units_approve")
-            response = self.client.post(url)
+            response = self.client.post(url, json={})
             result = response.json
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

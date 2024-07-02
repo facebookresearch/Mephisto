@@ -78,7 +78,7 @@ class TestGrantWorkersView(BaseTestApiViewCase):
                 qualification_id=qualification_id,
                 worker_id=worker_id,
             )
-            response = self.client.post(url)
+            response = self.client.post(url, json={})
             result = response.json
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
