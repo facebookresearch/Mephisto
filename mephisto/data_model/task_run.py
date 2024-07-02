@@ -155,9 +155,7 @@ class TaskRunArgs:
 
     resume_incomplete_run: Optional[bool] = field(
         default=False,
-        metadata={
-            "help": "Resume incomplete or interrupted TaskRun if it exists (EXPERIMENTAL)."
-        },
+        metadata={"help": "Resume incomplete or interrupted TaskRun if it exists (EXPERIMENTAL)."},
     )
 
     @classmethod

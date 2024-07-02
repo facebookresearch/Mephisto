@@ -513,9 +513,7 @@ class Operator:
 
         try:
             resume_incomplete_run = run_config.task.resume_incomplete_run
-            logger.debug(
-                f"TaskRun argument `resume_incomplete_run` = {resume_incomplete_run}"
-            )
+            logger.debug(f"TaskRun argument `resume_incomplete_run` = {resume_incomplete_run}")
             if resume_incomplete_run:
                 incomplete_task_run = self.find_previous_task_run(run_config=run_config)
                 return self.launch_from_incomplete_run(
