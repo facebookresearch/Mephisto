@@ -20,11 +20,14 @@ To run Mephisto docs on your local machine for development (with Docker), run th
 ```shell
 docker-compose -f docker/docker-compose.dev.yml up
 docker exec -it mephisto_dc bash
+mephisto scripts local_db auto_generate_all_docs_reference_md
 cd /mephisto/docs/web/
 yarn
 yarn install
 yarn start-dev:docker
 ```
+
+Then run `mephisto scripts local_db auto_generate_all_docs_reference_md` to auto-generate `.md` files in `docs/web/docs/reference` directory. (They will describe parameters of some Python classes.) Noe that on production this command is called by Github Actions.
 
 You will now be able to access docs in the browser on [http://localhost:3001/](http://localhost:3001/) with live updates after each saving files from docs.
 

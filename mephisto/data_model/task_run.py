@@ -45,7 +45,7 @@ class TaskRunArgs:
     task_name: Optional[str] = field(
         default=MISSING,
         metadata={
-            "help": "Grouping to launch this task run under, none defaults to the blueprint type"
+            "help": "Grouping to launch this task run under, none defaults to the blueprint type."
         },
     )
     task_title: str = field(
@@ -78,7 +78,7 @@ class TaskRunArgs:
     )
     task_lifetime_in_seconds: int = field(
         default=60 * 60 * 24 * 31,
-        metadata={"help": "The time that the task will last for before expiring"},
+        metadata={"help": "The time that the task will last for before expiring."},
     )
     assignment_duration_in_seconds: int = field(
         default=30 * 60,
@@ -96,7 +96,7 @@ class TaskRunArgs:
     allowed_concurrent: int = field(
         default=0,
         metadata={
-            "help": "Maximum units a worker is allowed to work on at once. (0 is infinite)",
+            "help": "Maximum units a worker is allowed to work on at once. (0 is infinite).",
             "required": True,
         },
     )
@@ -105,7 +105,7 @@ class TaskRunArgs:
         metadata={
             "help": (
                 "Maximum tasks of this task name that a worker can work on across all "
-                "tasks that share this task_name. (0 is infinite)"
+                "tasks that share this task_name. (0 is infinite)."
             )
         },
     )
@@ -114,7 +114,7 @@ class TaskRunArgs:
         metadata={
             "help": (
                 "Maximum units that will be released simultaneously, setting a limit "
-                "on concurrent connections to Mephisto overall. (0 is infinite)"
+                "on concurrent connections to Mephisto overall. (0 is infinite)."
             )
         },
     )
@@ -132,10 +132,10 @@ class TaskRunArgs:
         default="",
         metadata={
             "help": (
-                "The name of a shell script in your webapp directory "
-                "that will run right after npm install and before npm build. "
+                "The name of a shell script in your webapp directory that will "
+                "run right after npm install and before npm build. "
                 "This can be useful for local package development where you would want "
-                "to link a package after installing dependencies from package.json"
+                "to link a package after installing dependencies from package.json."
             )
         },
     )
@@ -155,7 +155,7 @@ class TaskRunArgs:
 
     resume_incomplete_run: Optional[bool] = field(
         default=False,
-        metadata={"help": "Resume incomplete or interrupted TaskRun if it exists (EXPERIMENTAL)."},
+        metadata={"help": "Resume incomplete or interrupted TaskRun if it exists."},
     )
 
     @classmethod

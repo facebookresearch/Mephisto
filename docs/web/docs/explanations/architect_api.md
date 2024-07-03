@@ -4,10 +4,10 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-sidebar_position: 1
+sidebar_position: 2
 ---
 
-# Architects, Routers, and `mephisto-task`: The Architect API.
+# Architect API
 
 The Architect API is what allows Mephisto to completely abstract away the process of getting workers to operate in Mephisto tasks. In short, it aims to cover 4 primary functions:
 1. `Worker`/`Agent` registration and validation

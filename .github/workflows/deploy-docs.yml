@@ -42,11 +42,7 @@ jobs:
 
       - name: 📝 Auto Generate Blueprint Docs
         run: |
-          cd ../../mephisto/scripts/local_db/gh_actions
-          python auto_generate_blueprint.py
-          python auto_generate_architect.py
-          python auto_generate_requester.py
-          python auto_generate_provider.py
+          mephisto scripts local_db auto_generate_all_docs_reference_md
       - name: Install dependencies
         run: yarn install --frozen-lockfile
       - name: Build website
