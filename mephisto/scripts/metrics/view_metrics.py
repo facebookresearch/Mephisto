@@ -5,32 +5,42 @@
 # LICENSE file in the root directory of this source tree.
 
 import time
-from mephisto.utils.metrics import (
-    launch_grafana_server,
-    launch_prometheus_server,
-    get_dash_url,
-)
+
+from mephisto.utils.console_writer import ConsoleWriter
 from mephisto.utils.logger_core import set_mephisto_log_level
+from mephisto.utils.metrics import get_default_dashboard_url
+from mephisto.utils.metrics import launch_grafana_server
+from mephisto.utils.metrics import launch_prometheus_server
+
+logger = ConsoleWriter()
 
 
 def launch_servers():
     """
-    Launches a prometheus and grafana server instances and print the address as well as shutdown instructions
+    Launches a prometheus and grafana server instances and print the address
+    as well as shutdown instructions
     """
-    print("Launching servers")
+    logger.info("Launching servers")
+
     set_mephisto_log_level(level="info")
+
     if not launch_grafana_server():
-        print("Issue launching grafana, see above")
+        logger.info("Issue launching grafana, see above")
         return
+
     if not launch_prometheus_server():
-        print("Issue launching prometheus, see above")
+        logger.info("Issue launching prometheus, see above")
         return
-    print(f"Waiting for grafana server to come up.")
+
+    logger.info(f"Waiting for grafana server to come up.")
+
     time.sleep(3)
-    dash_url = get_dash_url()
-    print(f"Dashboard is now running, you can access it at {dash_url}")
-    print(
-        f"Once you're no longer using it, and no jobs need it anymore, you can shutdown with `shutdown_metrics.py`"
+
+    default_dashboard_url = get_default_dashboard_url()
+    logger.info(f"Dashboard is now running, you can access it at {default_dashboard_url}")
+    logger.info(
+        f"Once you're no longer using it, and no jobs need it anymore, "
+        f"you can shutdown with `shutdown_metrics.py`"
     )
 
 

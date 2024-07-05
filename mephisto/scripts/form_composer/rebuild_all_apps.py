@@ -138,7 +138,7 @@ def _build_examples_form_composer_demo(repo_path: str):
     print(f"[blue]Building '{app_path}'[/blue]")
 
     # Set env var for `custom_validators.js`
-    from mephisto.client.cli import FORM_COMPOSER__DATA_DIR_NAME
+    from mephisto.client.cli_form_composer_commands import FORM_COMPOSER__DATA_DIR_NAME
 
     data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME, "dynamic")
     set_custom_validators_js_env_var(data_path)
@@ -171,7 +171,7 @@ def _build_generators_form_composer(repo_path: str):
     print(f"[blue]Building '{app_path}'[/blue]")
 
     # Set env var for `custom_validators.js`
-    from mephisto.client.cli import FORM_COMPOSER__DATA_DIR_NAME
+    from mephisto.client.cli_form_composer_commands import FORM_COMPOSER__DATA_DIR_NAME
 
     data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME)
     set_custom_validators_js_env_var(data_path)

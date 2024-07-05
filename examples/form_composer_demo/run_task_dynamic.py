@@ -8,10 +8,10 @@ import os
 
 from omegaconf import DictConfig
 
-from mephisto.client.cli import FORM_COMPOSER__DATA_CONFIG_NAME
-from mephisto.client.cli import FORM_COMPOSER__DATA_DIR_NAME
-from mephisto.client.cli import FORM_COMPOSER__FORM_CONFIG_NAME
-from mephisto.client.cli import FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME
+from mephisto.client.cli_form_composer_commands import FORM_COMPOSER__DATA_CONFIG_NAME
+from mephisto.client.cli_form_composer_commands import FORM_COMPOSER__DATA_DIR_NAME
+from mephisto.client.cli_form_composer_commands import FORM_COMPOSER__FORM_CONFIG_NAME
+from mephisto.client.cli_form_composer_commands import FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     create_extrapolated_config,
 )

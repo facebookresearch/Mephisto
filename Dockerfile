@@ -9,7 +9,7 @@ FROM $BASE_IMAGE
 # Firstly, remove `yarn` repo as it causes error that stops building a container. Error:
 # (Error: The repository 'https://dl.yarnpkg.com/debian stable InRelease' is not signed)
 RUN apt update
-RUN apt install keychain -y
+RUN apt install keychain curl -y
 
 COPY . /mephisto
 RUN mkdir ~/.mephisto

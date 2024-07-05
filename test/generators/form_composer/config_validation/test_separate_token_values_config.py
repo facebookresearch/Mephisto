@@ -7,7 +7,9 @@ from unittest.mock import patch
 
 from botocore.exceptions import NoCredentialsError
 
-from mephisto.client.cli import FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME
+from mephisto.client.cli_form_composer_commands import (
+    FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
+)
 from mephisto.generators.form_composer.config_validation.separate_token_values_config import (
     update_separate_token_values_config_with_file_urls,
 )

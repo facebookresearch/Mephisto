@@ -59,7 +59,7 @@ Run a script from `mephisto/scripts` directory.
 ### mephisto metrics
 
 Extension to view task health metrics via dashboard using [Prometheus](https://prometheus.io/) and [Grafana](https://grafana.com/oss/grafana/).
-For more details you can consult [Docs for Metrics](docs/web/docs/guides/how_to_use/efficiency_organization/metrics_dashboarding.md).
+For more details you can consult [Docs for Metrics](docs/web/docs/guides/how_to_use/efficiency_organization/metrics_dashboard.md).
 
 
 ### mephisto review_app

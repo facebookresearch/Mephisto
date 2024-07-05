@@ -9,6 +9,7 @@ from rich import print
 
 def get_wut_arguments(args):
     """Display information about hydra config properties"""
+
     from mephisto.operations.registry import (
         get_blueprint_from_type,
         get_crowd_provider_from_type,
@@ -23,20 +24,36 @@ def get_wut_arguments(args):
         abstractions_table = create_table(["Abstraction", "Description"], "\n\n[b]Abstractions[/b]")
         abstractions_table.add_row(
             "blueprint",
-            f"The blueprint contains all of the related code required to set up a task run. \nValid blueprints types are [b]{get_valid_blueprint_types()}[/b]",
+            (
+                f"The blueprint contains all of the related code required to set up a task run.\n"
+                f"Valid blueprints types are [b]{get_valid_blueprint_types()}[/b]"
+            ),
         )
         abstractions_table.add_row(
             "architect",
-            f"Architect's contain the logic surrounding deploying a server that workers will be able to access. \nValid architects types are [b]{get_valid_architect_types()}[/b]",
+            (
+                f"Architect's contain the logic surrounding "
+                f"deploying a server that workers will be able to access.\n"
+                f"Valid architects types are [b]{get_valid_architect_types()}[/b]"
+            ),
         )
         abstractions_table.add_row(
             "requester",
-            f"The requester is an account for a crowd provider. Requesters are used as the identity that launches the task. \nValid requester types types are [b]{get_valid_provider_types()}[/b]. \n"
-            "\nUse `mephisto requesters` to see registered requesters, and `mephisto register <requester type>` to register.",
+            (
+                f"The requester is an account for a crowd provider. "
+                f"Requesters are used as the identity that launches the task.\n"
+                f"Valid requester types types are [b]{get_valid_provider_types()}[/b].\n\n"
+                "Use `mephisto requesters` to see registered requesters, "
+                "and `mephisto register <requester type>` to register."
+            ),
         )
         abstractions_table.add_row(
             "provider",
-            f"The crowd provider is responsible for standardizing Mephisto's interaction with external crowds. \nValid provider types are [b]{get_valid_provider_types()}[/b]",
+            (
+                f"The crowd provider is responsible for standardizing Mephisto's "
+                f"interaction with external crowds.\n"
+                f"Valid provider types are [b]{get_valid_provider_types()}[/b]"
+            ),
         )
         console.print(abstractions_table)
         return
@@ -55,7 +72,9 @@ def get_wut_arguments(args):
 
     if abstraction not in VALID_ABSTRACTIONS:
         print(
-            f"[red]Given abstraction {abstraction} not in valid abstractions {VALID_ABSTRACTIONS}][/red]"
+            f"[red]"
+            f"Given abstraction {abstraction} not in valid abstractions {VALID_ABSTRACTIONS}]"
+            f"[/red]"
         )
         return
 
@@ -65,7 +84,7 @@ def get_wut_arguments(args):
         target_class = TaskRun
     else:
         if len(abstraction_equal_split) == 1:
-            # querying about the general abstraction
+            # Querying about the general abstraction
             if abstraction == "blueprint":
                 click.echo("The blueprint determines the task content.\n")
                 valid_blueprints_text = """**Valid blueprints are:**"""
@@ -79,7 +98,8 @@ def get_wut_arguments(args):
             elif abstraction == "requester":
                 click.echo(
                     f"The requester is an account for a crowd provider. \n"
-                    "Use `mephisto requesters` to see registered requesters, and `mephisto register <requester type>` to register.\n"
+                    "Use `mephisto requesters` to see registered requesters, "
+                    "and `mephisto register <requester type>` to register.\n"
                 )
                 valid_requester_text = """**Valid requesters are:**"""
                 print_out_valid_options(valid_requester_text, get_valid_provider_types())
@@ -114,6 +134,7 @@ def get_wut_arguments(args):
                 target_class = get_crowd_provider_from_type(abstract_value).RequesterClass
             except:
                 valid = get_valid_provider_types()
+
         if valid is not None:
             print(f"\n[b]The valid types for {abstraction} are:[/b]")
             valid_options_text = """"""
@@ -121,7 +142,8 @@ def get_wut_arguments(args):
             print(f"[red]'{abstract_value}' not found[/red]\n")
             return
 
-    # These are values that do not convert to a string well or are incorrect, so they need to be hardcoded
+    # These are values that do not convert to a string well or are incorrect,
+    # so they need to be hardcoded
     argument_overrides = {
         "tips_location": ("default", "path_to_task/assets/tips.csv"),
         "heroku_config_args": ("default", "{}"),
@@ -130,9 +152,11 @@ def get_wut_arguments(args):
 
     arg_dict = get_extra_argument_dicts(target_class)[0]
     click.echo(arg_dict["desc"])
+
     checking_args = arg_dict["args"]
     if len(args) > 1:
         checking_args = {k: v for k, v in checking_args.items() if k in args[1:]}
+
     checking_args_keys = list(checking_args.keys())
     if len(checking_args_keys) > 0:
         first_arg = checking_args_keys[0]
@@ -141,6 +165,7 @@ def get_wut_arguments(args):
             first_arg_keys,
             "\n[b]{abstraction} Arguments[/b]".format(abstraction=abstraction.capitalize()),
         )
+
         for arg in checking_args:
             if arg in argument_overrides:
                 checking_args[arg][argument_overrides[arg][0]] = argument_overrides[arg][1]
@@ -155,10 +180,13 @@ def get_wut_arguments(args):
         state_args = get_task_state_dicts(target_class)[0]["args"]
         if len(args) > 1:
             state_args = {k: v for k, v in state_args.items() if k in args[1:]}
+
         state_args_keys = list(state_args.keys())
         if len(state_args_keys) > 0:
             click.echo(
-                f"\n\nAdditional SharedTaskState args from {target_class.SharedStateClass.__name__}, which may be configured in your run script"
+                f"\n\n"
+                f"Additional SharedTaskState args from {target_class.SharedStateClass.__name__}, "
+                f"which may be configured in your run script"
             )
             first_state_arg = state_args_keys[0]
             first_arg_keys = list(state_args[first_state_arg].keys())
@@ -173,3 +201,9 @@ def get_wut_arguments(args):
                 state_args_table.add_row(*arg_values)
             console.print(state_args_table)
             return [arg_dict, state_args]
+
+
+@click.argument("args", nargs=-1)
+def run_wut(args):
+    """Discover the configuration arguments for different abstractions"""
+    get_wut_arguments(args)
