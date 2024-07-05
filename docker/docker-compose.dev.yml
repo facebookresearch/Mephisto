@@ -11,8 +11,9 @@ services:
       context: ..
       dockerfile: Dockerfile
     ports:
-      - "8081:8000"
-      - "3001:3000"
+      - "8081:8000" # TaskReview app
+      - "3001:3000" # Task app
+      - "3032:3032" # Grafana metrics
     volumes:
       - ..:/mephisto
       - ./entrypoints/server.prolific.sh:/entrypoint.sh

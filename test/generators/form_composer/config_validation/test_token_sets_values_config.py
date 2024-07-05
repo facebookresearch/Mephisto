@@ -4,8 +4,10 @@ import shutil
 import tempfile
 import unittest
 
-from mephisto.client.cli import FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME
-from mephisto.client.cli import FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME
+from mephisto.client.cli_form_composer_commands import (
+    FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
+)
+from mephisto.client.cli_form_composer_commands import FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME
 from mephisto.generators.form_composer.config_validation.token_sets_values_config import (
     _premutate_separate_tokens,
 )

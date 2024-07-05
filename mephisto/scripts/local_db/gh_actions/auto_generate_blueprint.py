@@ -9,7 +9,7 @@ from typing import Optional
 
 from mdutils.mdutils import MdUtils
 
-from mephisto.client.cli_commands import get_wut_arguments
+from mephisto.client.cli_wut_commands import get_wut_arguments
 from mephisto.operations.registry import get_valid_blueprint_types
 
 

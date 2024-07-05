@@ -8,10 +8,12 @@ import unittest
 from copy import deepcopy
 from unittest.mock import patch
 
-from mephisto.client.cli import FORM_COMPOSER__DATA_CONFIG_NAME
-from mephisto.client.cli import FORM_COMPOSER__FORM_CONFIG_NAME
-from mephisto.client.cli import FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME
-from mephisto.client.cli import FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME
+from mephisto.client.cli_form_composer_commands import FORM_COMPOSER__DATA_CONFIG_NAME
+from mephisto.client.cli_form_composer_commands import FORM_COMPOSER__FORM_CONFIG_NAME
+from mephisto.client.cli_form_composer_commands import (
+    FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
+)
+from mephisto.client.cli_form_composer_commands import FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     _collect_form_config_items_to_extrapolate,
 )

@@ -20,11 +20,22 @@ Seem exciting? Let's dig in!
 ## Installation
 
 Installation is easy, just run the setup script:
-```
+```shell
 mephisto metrics install
 ```
 
 This script creates a local `prometheus` and `grafana` folder in mephisto's `metrics` directory, and populates them with default configurations for being able to view Mephisto run metrics.
+
+> NOTE: You may see a request to install `curl`.
+> In some systems it may not be installed. Do this manually.
+> Steps may be different depending on your system.
+
+If you use Docker, you need to connect to its environment (applies to other metrics commands as well):
+```shell
+docker-compose -f docker/docker-compose.dev.yml up
+docker exec -it mephisto_dc bash
+mephisto metrics install
+```
 
 ## Usage
 
@@ -101,3 +112,37 @@ For this section, each of the plots can show the health of your system in a numb
 ### Onboarding and Other Validation Metrics
 
 Similarly to the above dashboards, these panels provide details about onboarding-specific or other validation-specific processes.
+
+## Other commands
+
+### Cleanup
+
+If you need to shut down Prometheus and Grafana resources that may have persisted:
+```shell
+mephisto metrics cleanup
+```
+
+### Remove
+
+If you do not need metrics after testing anymore, you can remove all files to save space:
+```shell
+mephisto metrics remove
+```
+
+### Reinstall
+
+If you already had metrics installed, but they were updated in a newer Mephisto version, you can update them locally:
+```shell
+mephisto metrics reinstall
+```
+
+## Configuration
+
+If you wish to customize host, port, user or password for Grafana, you can set the following environment variables:
+
+- `GRAFANA_HOST` - Host of Grafana server (Default in Docker: `localhost`)
+- `GRAFANA_PORT` - Port of Grafana server (Default in Docker: `3032`)
+- `GRAFANA_USER` - Name of a user to login in web client (Default in Docker: `admin`)
+- `GRAFANA_PASSWORD` - Password of a user to login in web client (Default in Docker: `admin`)
+
+> NOTE: If you created Mephisto environment on your own, setting these variables is required.

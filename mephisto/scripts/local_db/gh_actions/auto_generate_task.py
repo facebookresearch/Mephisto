@@ -7,7 +7,7 @@ from typing import Optional
 
 from mdutils.mdutils import MdUtils
 
-from mephisto.client.cli_commands import get_wut_arguments
+from mephisto.client.cli_wut_commands import get_wut_arguments
 from mephisto.scripts.local_db.gh_actions.auto_generate_blueprint import (
     add_object_args_table_info,
 )

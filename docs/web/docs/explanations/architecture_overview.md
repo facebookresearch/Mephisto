@@ -7,13 +7,14 @@
 sidebar_position: 1
 ---
 
-# Architecture diagram
+## Architecture diagram
 
 At a high level, Mephisto runs its data collection/annotation tasks as shown in this sequence diagram.
 
-!`task_run_sequence_diagram.png`(./images/task_run_sequence_diagram.png)
+![task_run_sequence_diagram.png](./images/task_run_sequence_diagram.png)
 
-# Codebase structure
+
+## Codebase structure
 
 This is a quick guide over file directories in Mephisto project. Note that some directories include their own `README.md` file with further details.
 

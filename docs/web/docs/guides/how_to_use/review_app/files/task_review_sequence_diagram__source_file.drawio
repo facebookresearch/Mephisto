@@ -1,0 +1,186 @@
+<mxfile host="app.diagrams.net" modified="2024-07-02T18:11:12.191Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36" etag="v3RLzFtH0SjPhTHox-c7" version="24.6.4" type="device">
+  <diagram name="Page-1" id="5bnjxatqjOuaAF2oe5hL">
+    <mxGraphModel dx="954" dy="-458" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="5EaqwkNcLw-vjFIcxztH-12" value="&amp;nbsp; &amp;nbsp;[singe task unit review]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;verticalAlign=top;align=left;fontColor=#007FFF;arcSize=7;opacity=40;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="160" y="1467" width="420" height="123" as="geometry" />
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-63" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=2;strokeColor=#CCCCCC;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="380" y="1710" as="sourcePoint" />
+            <mxPoint x="380" y="1180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-66" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=2;strokeColor=#CCCCCC;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="180" y="1610" as="sourcePoint" />
+            <mxPoint x="180.5" y="1180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-67" value="TaskReview app" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="344" y="1130" width="70" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-70" value="Provider&lt;br style=&quot;font-size: 10px;&quot;&gt;API" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="145" y="1130" width="70" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-72" value="Mephisto DB" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="246" y="1130" width="70" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-73" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=2;strokeColor=#CCCCCC;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="280" y="1610" as="sourcePoint" />
+            <mxPoint x="280" y="1180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-75" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="560" y="1211" as="sourcePoint" />
+            <mxPoint x="380" y="1211" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-77" value="build and start&lt;br&gt;TaskReview app" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;glass=0;shadow=0;" parent="1" vertex="1">
+          <mxGeometry x="339" y="1231" width="82" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-83" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="379" y="1358" as="sourcePoint" />
+            <mxPoint x="280" y="1358" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-84" value="retrieve completed tasks" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="288" y="1335" width="88" height="17" as="geometry" />
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-113" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=2;strokeColor=#CCCCCC;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="560" y="1710" as="sourcePoint" />
+            <mxPoint x="560" y="1181" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-114" value="Reviewer" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="525" y="1130" width="70" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-116" value="run command&lt;br&gt;`mephisto review app ...`&amp;nbsp;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="404" y="1181" width="138" height="27" as="geometry" />
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-117" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="560" y="1320" as="sourcePoint" />
+            <mxPoint x="380" y="1320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-118" value="open &quot;Tasks&quot; page" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="395" y="1303" width="138" height="13" as="geometry" />
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-119" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="560" y="1420" as="sourcePoint" />
+            <mxPoint x="380" y="1420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-120" value="open &quot;Task&quot; page" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="395" y="1403" width="138" height="13" as="geometry" />
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-121" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="379" y="1454" as="sourcePoint" />
+            <mxPoint x="280" y="1454" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-122" value="retrieve all task units data" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="288" y="1431" width="88" height="17" as="geometry" />
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-123" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="560" y="1530" as="sourcePoint" />
+            <mxPoint x="380" y="1530" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-124" value="approve/reject unit" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="395" y="1513" width="138" height="13" as="geometry" />
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-125" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="369" y="1549" as="sourcePoint" />
+            <mxPoint x="280" y="1533" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="350" y="1533" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-126" value="update task unit and record unit review" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="275" y="1510" width="106" height="17" as="geometry" />
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-128" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="370" y="1549" as="sourcePoint" />
+            <mxPoint x="180" y="1569" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="350" y="1569" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-129" value="pay bonus or reject/block (as needed)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="178" y="1552" width="180" height="13" as="geometry" />
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-137" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="560" y="1387" as="sourcePoint" />
+            <mxPoint x="380" y="1387" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3-yWvNHymt2EtWyProw8-138" value="check responses stats page" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="395" y="1370" width="155" height="13" as="geometry" />
+        </mxCell>
+        <mxCell id="5EaqwkNcLw-vjFIcxztH-1" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="380" y="1549" as="sourcePoint" />
+            <mxPoint x="370" y="1549" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5EaqwkNcLw-vjFIcxztH-2" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="380" y="1290" as="sourcePoint" />
+            <mxPoint x="560" y="1290" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5EaqwkNcLw-vjFIcxztH-3" value="serve TaskReview app in browser" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="388" y="1273" width="165" height="13" as="geometry" />
+        </mxCell>
+        <mxCell id="5EaqwkNcLw-vjFIcxztH-4" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="380" y="1700" as="sourcePoint" />
+            <mxPoint x="560" y="1700" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5EaqwkNcLw-vjFIcxztH-5" value="&lt;span style=&quot;color: rgb(51, 51, 51);&quot;&gt;redirect to &quot;Tasks&quot; page&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="423" y="1682" width="112" height="13" as="geometry" />
+        </mxCell>
+        <mxCell id="5EaqwkNcLw-vjFIcxztH-6" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="380" y="1501" as="sourcePoint" />
+            <mxPoint x="560" y="1501" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5EaqwkNcLw-vjFIcxztH-7" value="&lt;font color=&quot;#333333&quot;&gt;display next task unit to review&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="388" y="1484" width="165" height="13" as="geometry" />
+        </mxCell>
+        <mxCell id="5EaqwkNcLw-vjFIcxztH-10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.002;entryY=0.113;entryDx=0;entryDy=0;curved=0;entryPerimeter=0;" edge="1" parent="1" source="5EaqwkNcLw-vjFIcxztH-8" target="5EaqwkNcLw-vjFIcxztH-12">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="190" y="1650" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5EaqwkNcLw-vjFIcxztH-8" value="all&lt;br&gt;task units&lt;br&gt;reviewed?" style="rhombus;whiteSpace=wrap;html=1;fontSize=10;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="340" y="1600" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="5EaqwkNcLw-vjFIcxztH-9" value="&lt;span style=&quot;color: rgb(51, 51, 51);&quot;&gt;YES&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="381" y="1680" width="21" height="13" as="geometry" />
+        </mxCell>
+        <mxCell id="5EaqwkNcLw-vjFIcxztH-11" value="&lt;span style=&quot;color: rgb(51, 51, 51);&quot;&gt;NO&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="318" y="1623" width="21" height="13" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
