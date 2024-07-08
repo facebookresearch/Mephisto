@@ -11,6 +11,7 @@ These form-based questionnaires are example of FormComposer task generator.
     - Dynamic form: `cd /mephisto/examples/form_composer_demo && python ./run_task_dynamic.py`
     - Dynamic form with Prolific on EC2: `cd /mephisto/examples/form_composer_demo && python ./run_task_dynamic_ec2_prolific.py`
     - Dynamic form with Mturk on EC2: `cd /mephisto/examples/form_composer_demo && python ./run_task_dynamic_ec2_mturk_sandbox.py`
+    - Simple form with Gold Units: `cd /mephisto/examples/form_composer_demo && python ./run_task_with_gold_unit.py`
 
 ---
 

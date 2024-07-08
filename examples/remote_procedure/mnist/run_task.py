@@ -43,7 +43,9 @@ def my_screening_unit_generator():
     prop
     """
     while True:
-        yield {"isScreeningUnit": True}
+        yield {
+            "isScreeningUnit": True,
+        }
 
 
 def validate_screening_unit(unit: Unit):
@@ -54,6 +56,7 @@ def validate_screening_unit(unit: Unit):
         annotation = data["outputs"]["final_submission"]["annotations"][0]
         if annotation["isCorrect"] and annotation["currentAnnotation"] == 3:
             return True
+
     return False
 
 
@@ -90,7 +93,7 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     )
 
     if is_using_screening_units:
-        """You have to defined a few more properties to enable screening units"""
+        # You have to define a few more properties to enable screening units
         shared_state.on_unit_submitted = ScreenTaskRequired.create_validation_function(
             cfg.mephisto,
             validate_screening_unit,
