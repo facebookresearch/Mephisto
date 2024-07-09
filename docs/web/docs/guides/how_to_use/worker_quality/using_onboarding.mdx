@@ -12,13 +12,18 @@ import Link from "@docusaurus/Link";
 
 # Teach potential workers with Onboarding
 
-The first step to getting quality data is describing your task properly and ensuring that workers have understood your instructions. To this end, Mephisto provides the `OnboardingRequired` Blueprint mixin.
+The first step to getting quality data is describing your task properly and ensuring that workers have understood your instructions.
+To this end, Mephisto provides the `OnboardingRequired` Blueprint mixin.
 
-Onboarding is an opportunity to give workers complete context of your task the first time they work on it. You can also use it to provide workers with a simple test to ensure they read and understand task instructions.
+Onboarding is an opportunity to give workers complete context of your task the first time they work on it.
+You can also use it to provide workers with a simple test to ensure they read and understand task instructions.
 
-Mephisto's onboarding disqualifies workers that fail the test, so it's good practice to ensure that the tests should be completable by anyone who reads through the instructions and also don't take up too much time.
+Mephisto's onboarding disqualifies workers that fail the test,
+so it's good practice to ensure that the tests should be completable by anyone
+who reads through the instructions and also don't take up too much time.
 
-If you're instead interested in filtering out workers who don't hit a specific quality bar, refer to [using screening units](../using_screen_units), as Mephisto doesn't pay out for failed onboarding.
+If you're instead interested in filtering out workers who don't hit a specific quality bar,
+refer to [using screening units](../using_screen_units), as Mephisto doesn't pay out for failed onboarding.
 
 ## Showcase
 
@@ -58,12 +63,12 @@ def handle_onboarding(onboarding_data):
 def main(operator: Operator, cfg: DictConfig) -> None:
   ...
   shared_state = SharedStaticTaskState(
-          static_task_data=[
-              {"text": "This text is good text!"},
-              {"text": "This text is bad text!"},
-          ],
-          validate_onboarding=handle_onboarding,
-      )
+      static_task_data=[
+          {"text": "This text is good text!"},
+          {"text": "This text is bad text!"},
+      ],
+      validate_onboarding=handle_onboarding,
+  )
   ...
 ```
 
@@ -71,12 +76,73 @@ def main(operator: Operator, cfg: DictConfig) -> None:
 
 ### See hydra configuration [here](https://github.com/facebookresearch/Mephisto/blob/main/examples/static_react_task/hydra_configs/conf/onboarding_example.yaml)
 
-Unlike Screening and Gold units, Onboarding expects that you set up a custom frontend compared to your main task. You want to provide workers with an in-depth exploration of your task up-front (though you can always re-use onboarding components in your main task as reference materials).
+Unlike Screening and Gold units, Onboarding expects that you set up a custom frontend compared to your main task.
+You want to provide workers with an in-depth exploration of your task up-front
+(though you can always re-use onboarding components in your main task as reference materials).
 
-The handleSubmit method of `mephisto-task` is used to send onboarding data from frontend to backend. For more info on how to build out onboarding frontends, check out our [tutorial](../../../tutorials/worker_controls).
+The handleSubmit method of `mephisto-task` is used to send onboarding data from frontend to backend.
+For more info on how to build out onboarding frontends, check out our [tutorial](../../../tutorials/worker_controls).
 
-**Note:** We've observed that some workers may share out the answers for onboarding tasks, so we encourage that you make your validation questions configurable such that you can update them with a change to `onboarding_data`.
+**Note:** We've observed that some workers may share out the answers for onboarding tasks,
+so we encourage that you make your validation questions configurable such that you can update them with a change to `onboarding_data`.
+
+### Simple example of `OnboardingComponent`
+
+```javascript
+function OnboardingComponent({ onSubmit }) {
+  return (
+    <div>
+      <Directions>
+        This component only renders if you have chosen to assign an onboarding
+        qualification for your task. Click the button to move on to the main
+        task.
+      </Directions>
+      <div
+        style={{
+          width: "100%",
+          padding: "1.5rem 0",
+          display: "flex",
+          alignItems: "center",
+          flexDirection: "column",
+        }}
+      >
+        <button
+          className="button is-success"
+          style={{ width: "fit-content", marginBottom: "0.65rem" }}
+          onClick={() => onSubmit({ success: true })}
+        >
+          Move to Main Task
+        </button>
+        <button
+          className="button is-danger"
+          style={{ width: "fit-content" }}
+          onClick={() => onSubmit({ success: false })}
+        >
+          Get Blocked
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+To show pretty "blocked user" banner after not passing onboarding, you may need to add a react component in your app as well:
+
+```javascript
+if (blockedReason !== null) {
+  return (
+    <section className="hero is-medium is-danger">
+      <div class="hero-body">
+        <h2 className="title is-3">
+          {blockedExplanation}
+        </h2>
+      </div>
+    </section>
+  );
+}
+```
 
 ## Additional Questions?
 
-You can find more information on using onboarding before your units in the reference documentation for <Link target={null} to="pathname:///python_api/mephisto/abstractions/blueprints/mixins/onboarding_required.html">`OnboardingRequired`</Link>.
+You can find more information on using onboarding before your units in the reference documentation for
+<Link target={null} to="pathname:///python_api/mephisto/abstractions/blueprints/mixins/onboarding_required.html">`OnboardingRequired`</Link>.

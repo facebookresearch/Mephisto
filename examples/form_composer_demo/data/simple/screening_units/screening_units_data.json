@@ -1,0 +1,70 @@
+[
+  {
+    "isScreeningUnit": true,
+    "expecting_answers": {
+      "name_first": "Mephisto",
+      "email": "screening@mephisto.ai"
+    },
+    "form": {
+      "title": "Form example (Screening)",
+      "instruction": "Please answer all questions to the best of your ability as part of our study.",
+      "sections": [
+        {
+          "name": "section_about",
+          "title": "About you",
+          "instruction": "Please introduce yourself. We would like to know more about your background, personal information, etc.",
+          "fieldsets": [
+            {
+              "title": "Personal information",
+              "instruction": "",
+              "rows": [
+                {
+                  "fields": [
+                    {
+                      "help": "",
+                      "id": "id_name_first",
+                      "label": "First name",
+                      "name": "name_first",
+                      "placeholder": "Type first name",
+                      "tooltip": "Your first name",
+                      "type": "input",
+                      "validators": {
+                        "required": true,
+                        "minLength": 2,
+                        "maxLength": 20
+                      },
+                      "value": ""
+                    }
+                  ],
+                  "help": "Please use your legal name"
+                },
+                {
+                  "fields": [
+                    {
+                      "help": "We may contact you later for additional information",
+                      "id": "id_email",
+                      "label": "Email address for Mephisto",
+                      "name": "email",
+                      "placeholder": "user@mephisto.ai",
+                      "tooltip": "Email address for Mephisto",
+                      "type": "email",
+                      "validators": {
+                        "required": true,
+                        "regexp": ["^[a-zA-Z0-9._-]+@mephisto\\.ai$", "ig"]
+                      },
+                      "value": ""
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "submit_button": {
+        "text": "Submit",
+        "tooltip": "Submit form"
+      }
+    }
+  }
+]

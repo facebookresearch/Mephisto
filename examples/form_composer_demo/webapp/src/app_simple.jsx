@@ -9,6 +9,7 @@ import ReactDOM from "react-dom";
 import {
   FormComposerBaseFrontend,
   LoadingScreen,
+  OnboardingComponent,
 } from "./components/core_components_simple.jsx";
 import { useMephistoTask, ErrorBoundary } from "mephisto-task-multipart";
 
@@ -16,13 +17,28 @@ import { useMephistoTask, ErrorBoundary } from "mephisto-task-multipart";
 
 function MainApp() {
   const {
-    isLoading,
-    initialTaskData,
-    handleSubmit,
+    blockedExplanation,
+    blockedReason,
     handleFatalError,
+    handleSubmit,
+    initialTaskData,
+    isLoading,
+    isOnboarding,
   } = useMephistoTask();
 
-  if (isLoading || !initialTaskData) {
+  if (blockedReason !== null) {
+    return (
+      <section className="alert alert-danger">
+        <h2 className="title is-3">{blockedExplanation}</h2>
+      </section>
+    );
+  }
+
+  if (isOnboarding) {
+    return <OnboardingComponent onSubmit={handleSubmit} />;
+  }
+
+  if (isLoading) {
     return <LoadingScreen />;
   }
 
@@ -31,6 +47,7 @@ function MainApp() {
       <ErrorBoundary handleError={handleFatalError}>
         <FormComposerBaseFrontend
           taskData={initialTaskData}
+          isOnboarding={isOnboarding}
           onSubmit={handleSubmit}
           onError={handleFatalError}
         />
