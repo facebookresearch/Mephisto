@@ -1,0 +1,31 @@
+#@package _global_
+
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+defaults:
+  - /mephisto/blueprint: static_react_task
+  - /mephisto/architect: local
+  - /mephisto/provider: mock
+
+mephisto:
+  blueprint:
+    data_json: ${task_dir}/data/simple/task_data.json
+    task_source: ${task_dir}/webapp/build/bundle.js
+    task_source_review: ${task_dir}/webapp/build/bundle.review.js
+    link_task_source: false
+    extra_source_dir: ${task_dir}/webapp/src/static
+    units_per_assignment: 1
+    passed_qualification_name: passed-qualification # Required for Screening
+    block_qualification: blocked-qualification # Required for Screening
+    use_screening_task: true # Required for Screening
+    max_screening_units: 1 # Required for Screening
+  task:
+    allowed_concurrent: 1 # Required for Screening
+    task_name: "Sample Questionnaire"
+    task_title: "Example how to easily create simple form-based Tasks with onboarding"
+    task_description: "In this Task, we use FormComposer feature."
+    task_reward: 0
+    task_tags: "test,simple,form,form-composer,screening"
+    force_rebuild: true

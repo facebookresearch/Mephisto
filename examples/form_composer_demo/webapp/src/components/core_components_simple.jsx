@@ -13,18 +13,66 @@ function LoadingScreen() {
 
 function Directions({ children }) {
   return (
-    <section className="hero is-light" data-cy="directions-container">
-      <div className="hero-body">
+    <section className="text-center" data-cy="directions-container">
+      <div className="alert alert-primary">
         <div className="container">
-          <p className="subtitle is-5">{children}</p>
+          <h2>{children}</h2>
         </div>
       </div>
     </section>
   );
 }
 
+// Required component for onboarding
+function OnboardingComponent({ onSubmit }) {
+  return (
+    <div>
+      <Directions>
+        You must be younger than 18 years old to take this task.
+      </Directions>
+
+      <div className="container d-flex flex-column justify-content-center align-items-center">
+        {/* Green button to confuse the user if them skipped the explanation of the task */}
+        <button
+          className="btn btn-success mb-2"
+          onClick={() =>
+            onSubmit({
+              success: false, // Onboarding payload to the server
+            })
+          }
+        >
+          I'm older than 18
+        </button>
+
+        {/* Correct unswer, but with red button */}
+        <button
+          className="btn btn-danger"
+          onClick={() =>
+            onSubmit({
+              success: true, // Onboarding payload to the server
+            })
+          }
+        >
+          I'm younger than 18
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ScreeningComponent({ taskData }) {
+  return (
+    <div className="alert alert-primary">
+      Screening Unit. Please, enter "{taskData.expecting_answers.name_first}" in
+      "First Name" and "{taskData.expecting_answers.email}" in "Email address
+      for Mephisto"
+    </div>
+  );
+}
+
 function FormComposerBaseFrontend({
   taskData,
+  isOnboarding,
   onSubmit,
   onError,
   finalResults = null,
@@ -37,6 +85,9 @@ function FormComposerBaseFrontend({
 
   return (
     <div>
+      {/* Screening banner */}
+      {taskData.isScreeningUnit && <ScreeningComponent taskData={taskData} />}
+
       <FormComposer
         data={initialConfigFormData}
         onSubmit={onSubmit}
@@ -46,4 +97,4 @@ function FormComposerBaseFrontend({
   );
 }
 
-export { LoadingScreen, FormComposerBaseFrontend };
+export { FormComposerBaseFrontend, LoadingScreen, OnboardingComponent };

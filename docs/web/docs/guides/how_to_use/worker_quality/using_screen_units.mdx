@@ -12,9 +12,14 @@ import Link from "@docusaurus/Link";
 
 # Check worker quality with Screening Units
 
-Screening units help filter out low-quality work, generally by hiding parts of the validation you're paying attention to behind the Mephisto server. To support this we provide the `ScreenTaskRequired` blueprint mixin.
+Screening units help filter out low-quality work,
+generally by hiding parts of the validation you're paying attention to behind the Mephisto server.
+To support this we provide the `ScreenTaskRequired` blueprint mixin.
 
-Screening units are a heuristic-based way to determine, on the first task completion, if a worker has understood the instructions of a task. They can be run either on real data you want annotated (for cases where your heuristics can be run whenever) or on specific 'test' data you believe it's easier to validate on.
+Screening units are a heuristic-based way to determine, on the first task completion,
+if a worker has understood the instructions of a task.
+They can be run either on real data you want annotated (for cases where your heuristics can be run whenever)
+or on specific 'test' data you believe it's easier to validate on.
 
 ## Showcase
 
@@ -53,7 +58,8 @@ There are a few required configuration parts for using screening units:
 
 ## Setting up SharedTaskState
 
-With the basic configuration done, you'll also need to provide additional arguments to your `SharedTaskState` to register the required qualifications and the screening validation function.
+With the basic configuration done, you'll also need to provide additional arguments to your `SharedTaskState`
+to register the required qualifications and the screening validation function.
 
 A shortened version of the run script for the video above looks like:
 
@@ -85,9 +91,9 @@ def main(operator: Operator, cfg: DictConfig) -> None:
   tasks: List[Dict[str, Any]] = [{"isScreeningUnit": False}] * cfg.num_tasks
   ...
   shared_state = SharedRemoteProcedureTaskState(
-        static_task_data=tasks,
-        function_registry=function_registry,
-    )
+    static_task_data=tasks,
+    function_registry=function_registry,
+  )
 
   if is_using_screening_units:
       """You have to defined a few more properties to enable screening units"""
@@ -97,7 +103,7 @@ def main(operator: Operator, cfg: DictConfig) -> None:
       )
       shared_state.screening_data_factory = my_screening_unit_generator()
       shared_state.qualifications += ScreenTaskRequired.get_mixin_qualifications(
-          cfg.mephisto, shared_state
+          cfg.mephisto, shared_state,
       )
   ...
 ```
@@ -106,6 +112,35 @@ def main(operator: Operator, cfg: DictConfig) -> None:
 
 ### See hydra configuration [here](https://github.com/facebookresearch/Mephisto/blob/main/examples/remote_procedure/mnist/hydra_configs/conf/screening_example.yaml)
 
+### Simple example of `ScreeningComponent`
+
+```javascript
+function ScreeningComponent({ taskData }) {
+  return (
+    <div>
+      Do <these actions> to succeed screening
+    </div>
+  );
+}
+```
+
+To show pretty "blocked user" banner after not passing onboarding, you may need to add a react component in your app as well:
+
+```javascript
+if (blockedReason !== null) {
+  return (
+    <section className="hero is-medium is-danger">
+      <div class="hero-body">
+        <h2 className="title is-3">
+          {blockedExplanation}
+        </h2>
+      </div>
+    </section>
+  );
+}
+```
+
 ## Additional Questions?
 
-You can find more information on using screening units in the reference documentation for <Link target={null} to="pathname:///python_api/mephisto/abstractions/blueprints/mixins/screen_task_required.html">`ScreenTaskRequired`</Link>.
+You can find more information on using screening units in the reference documentation for
+<Link target={null} to="pathname:///python_api/mephisto/abstractions/blueprints/mixins/screen_task_required.html">`ScreenTaskRequired`</Link>.
