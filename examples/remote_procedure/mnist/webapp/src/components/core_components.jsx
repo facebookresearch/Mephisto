@@ -154,15 +154,16 @@ function TaskFrontend({
     );
   }
 
-  // TODO Update this file such that, if finalResults contains data we render in review mode with that data
-  const NUM_ANNOTATIONS = initialTaskData.isScreeningUnit ? 1 : 3;
+  // TODO: Update this file such that,
+  //  if finalResults contains data we render in review mode with that data
+  const numAnnotations = initialTaskData.isScreeningUnit ? 1 : 3;
   const [annotations, updateAnnotations] = React.useReducer(
     (currentAnnotation, { updateIdx, updatedAnnotation }) => {
       return currentAnnotation.map((val, idx) =>
-        idx == updateIdx ? updatedAnnotation : val
+        idx === updateIdx ? updatedAnnotation : val
       );
     },
-    Array(NUM_ANNOTATIONS).fill({
+    Array(numAnnotations).fill({
       currentAnnotation: null,
       trueAnnotation: null,
       isCorrect: null,
@@ -170,7 +171,7 @@ function TaskFrontend({
   );
   let canSubmit =
     annotations.filter((a) => a.isCorrect === true || a.trueAnnotation !== "")
-      .length == NUM_ANNOTATIONS;
+      .length === numAnnotations;
 
   return (
     <div>
