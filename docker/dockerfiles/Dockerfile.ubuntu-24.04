@@ -1,0 +1,60 @@
+# Latest LTS Ubuntu
+ARG BASE_IMAGE=ubuntu:24.04
+FROM $BASE_IMAGE
+
+# [FOR DOCKERFILE ONLY] Skip interactive prompt questions, like selecting your geographic area
+ENV DEBIAN_FRONTEND noninteractive
+ENV DOCKER_CLI_HINTS false
+
+# 1. --- Setup environment ---
+
+# Install system requirements
+RUN apt update -y
+RUN apt upgrade -y
+RUN apt install software-properties-common keychain curl -y
+RUN add-apt-repository ppa:deadsnakes/ppa -y
+RUN apt update -y
+
+# Install Python env (Python3.9 and pip), and set default Python version
+RUN apt install wget python3.9 python3.9-dev python3.9-distutils -y
+RUN wget https://bootstrap.pypa.io/get-pip.py
+RUN python3.9 get-pip.py
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.9 1
+
+# Install JS env (Nodejs and Yarn)
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+RUN export NVM_DIR="$HOME/.nvm" \
+    && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" \
+    && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" \
+    && nvm install 16 \
+    && ln -s $(which node) /usr/bin/node \
+    && ln -s $(which npm) /usr/bin/npm
+
+RUN npm install -g yarn
+
+# 2. --- Setup Mephisto ---
+
+# Define path to the repo location
+ENV MEPHISTO_REPO_PATH /mephisto
+
+# [FOR DOCKERFILE ONLY] Copy repo into Docker container
+COPY . $MEPHISTO_REPO_PATH
+
+# Upgrade pip so we can use the `pyproject.toml` without raising an error
+RUN pip install --upgrade pip
+# Install Python requirements
+# [FOR DOCKERFILE ONLY] `--ignore-installed` - some libs can be preinstall in Docker-system
+# Use `cd /mephisto && pip install -e .` in your local environment
+RUN cd /mephisto && pip install --ignore-installed -e .
+
+# Setup Mephisto's directories
+RUN mkdir -p ~/.mephisto
+# Create Mephisto's data directory
+RUN mkdir -p $MEPHISTO_REPO_PATH/data
+# Change Mephisto data directory from the default `data/` in repo root to `~/mephisto-data/data/`
+RUN mephisto config core.main_data_directory $MEPHISTO_REPO_PATH/data
+
+# Assert that everything has been set up correctly
+RUN mephisto check
+
+CMD mephisto check
