@@ -11,15 +11,14 @@ FROM $BASE_IMAGE
 RUN apt update
 RUN apt install keychain curl -y
 
-COPY . /mephisto
-RUN mkdir ~/.mephisto
-
 # Create the main Mephisto data directory
+COPY . /mephisto
 RUN mkdir -p /mephisto/data
 
 # Write the mephisto config file manually for now to avoid prompt.
 # For bash-style string $ expansion for newlines,
 # we need to switch the shell to bash:
+RUN mkdir ~/.mephisto
 SHELL ["/bin/bash", "-c"]
 RUN echo $'core: \n  main_data_directory: /mephisto/data' >> ~/.mephisto/config.yml
 

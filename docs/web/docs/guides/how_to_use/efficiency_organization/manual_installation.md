@@ -7,55 +7,94 @@
 sidebar_position: 4
 ---
 
-# Manual installation Mephisto
+# Manually installing Mephisto
 
-_(THIS FILE IS WORK IN PROGRESS)_
+We strongly recommend [running Mephisto with Docker](/docs/guides/how_to_use/efficiency_organization/docker/) as we've shown in all included task examples.
 
-First, clone this repo to your local system.
+If you do need to build it up from scratch (e.g. on a remote server),
+follow this provided installation manual.
 
-Mephisto requires >= Python 3.8 and >= npm v6.
+> NOTE: Currently our instructions include only Ubuntu 24.04 LTS with Python 3.9 and Nodejs 16.
+> In the future we will include instructions and support for other systems as well.
 
-### Installation
+## Ubuntu 24.04 LTS
 
-You can install Mephisto in a few ways (Docker being the safest choice):
+Note that the following steps have already been coded up in
+[Dockerfile for Ubuntu 24.04 LTS](https://github.com/facebookresearch/Mephisto/blob/main/docker/dockerfiles/Dockerfile.ubuntu-24.04).
+This Dockerfile is not the base Mephisto image,
+but rather an example for testing and experimenting.
 
-- **Using docker:** see [Running Mephisto with Docker](/docs/guides/how_to_use/efficiency_organization/docker/)
-- **Using pip:** run this in the root repo directory
-    ```bash
-    $ pip install -e .
-    ```
-- **Using [poetry](https://github.com/python-poetry/poetry):** run this in the root repo directory
-    ```bash
-    # install poetry
-    $ curl -sSL https://install.python-poetry.org | python3 -
-    # from the root dir, install Mephisto:
-    $ poetry install
-    ```
+### 1. Clone Mephisto repository
 
-### Setup
+Download Mephisto code to `<MEPHISTO_REPO_PATH>` directory in your local system.
 
-Now that you have Mephisto installed, you should have access to the `mephisto` CLI tool. _If using Docker, you will need to SSH into the Docker container first._
-
-- We can use this CLI tool to change data directory (where the results of your crowdsourcing tasks will be stored). Its default location is `data` inside the repo root; and here we will set it to `~/mephisto-data/data` directory:
-    ```bash
-    $ mkdir ~/mephisto-data
-    $ mkdir ~/mephisto-data/data
-    $ mephisto config core.main_data_directory ~/mephisto-data/data
-    ```
-- We can check that everything has been set up correctly:
-```bash
-$ mephisto check
-Mephisto seems to be set up correctly.
+```shell
+cd <MEPHISTO_REPO_PATH>
+git clone git@github.com:facebookresearch/Mephisto.git
 ```
 
-Note that registering a sandbox user will not create a new entry in your `~/.aws/credentials` file if it's for the same account as your production user, as sandbox and prod on AWS use the same access keys.
 
-#### Task parameters
+### 2. Prepare system
 
-After registering a requester, you can use `mephisto.provider.requester_name=my_mturk_user` or `mephisto.provider.requester_name=my_mturk_user_sandbox` respectively to launch a task on Mturk.
+#### Install system requirements
+
+```shell
+apt update -y
+apt upgrade -y
+apt install software-properties-common keychain curl -y
+add-apt-repository ppa:deadsnakes/ppa -y
+apt update -y
+```
+
+#### Install Python env (Python3.9 and pip), and set default Python version
+
+```shell
+apt install wget python3.9 python3.9-dev python3.9-distutils -y
+wget https://bootstrap.pypa.io/get-pip.py
+python3.9 get-pip.py
+update-alternatives --install /usr/bin/python python /usr/bin/python3.9 1
+```
+
+#### Install JS env (Nodejs and Yarn)
+
+```shell
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+export NVM_DIR="$HOME/.nvm" \
+    && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" \
+    && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" \
+    && nvm install 16 \
+    && ln -s $(which node) /usr/bin/node \
+    && ln -s $(which npm) /usr/bin/npm
+npm install -g yarn
+```
+
+
+### 3. Setup Mephisto
+
+#### Install Python requirements
+
+```shell
+pip install --upgrade pip
+cd <MEPHISTO_REPO_PATH> && pip install -e .
+```
+
+#### # Setup Mephisto's directories
+
+```shell
+mkdir -p ~/.mephisto
+mkdir -p <MEPHISTO_REPO_PATH>/data
+mephisto config core.main_data_directory <MEPHISTO_REPO_PATH>/data
+```
+
+#### Assert that everything has been set up correctly
+
+```shell
+mephisto check
+```
 
 ---
 
 ## Let's get running!
 
-Now that you have your environment set up, you're ready for [Running your first task.](/docs/guides/tutorials/first_task/)
+Now that you have your environment set up, you're ready for
+[Running your first task](/docs/guides/tutorials/first_task/).
