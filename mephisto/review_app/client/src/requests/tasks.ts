@@ -113,3 +113,24 @@ export function getTaskStats(
     abortController
   );
 }
+
+export function getTaskCharts(
+  id: string,
+  setDataAction: SetRequestDataActionType,
+  setLoadingAction: SetRequestLoadingActionType,
+  setErrorsAction: SetRequestErrorsActionType,
+  abortController?: AbortController
+) {
+  const url = generateURL(urls.server.taskCharts, [id], null);
+
+  makeRequest(
+    "GET",
+    url,
+    null,
+    (data) => setDataAction(data),
+    setLoadingAction,
+    setErrorsAction,
+    "getTaskCharts error:",
+    abortController
+  );
+}

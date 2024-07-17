@@ -37,6 +37,11 @@
   text-align: center;
 }
 
+.tasks .tasks-table .titles-row .charts {
+  width: 80px;
+  text-align: center;
+}
+
 .tasks .tasks-table .task-row:not(.no-hover) {
   cursor: pointer;
 }

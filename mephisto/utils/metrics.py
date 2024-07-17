@@ -72,7 +72,7 @@ def _get_pid_from_file(fn) -> int:
     return pid
 
 
-def _get_grafana_url() -> str:
+def get_grafana_url() -> str:
     return f"http://{GRAFANA_HOST}:{GRAFANA_PORT}/"
 
 
@@ -221,7 +221,7 @@ def launch_grafana_server() -> bool:
     """
     if os.path.exists(GRAFANA_PID_FILE):
         try:
-            grafana_url = _get_grafana_url()
+            grafana_url = get_grafana_url()
             r = requests.get(grafana_url)
             is_ok = r.ok
         except requests.exceptions.ConnectionError:
@@ -271,7 +271,7 @@ def get_default_dashboard_url() -> str:
     Return the url to the default Mephisto dashboard. Requires a running grafana server
     """
     headers_dict = {"Accept": "application/json"}
-    grafana_url = _get_grafana_url()
+    grafana_url = get_grafana_url()
     url = urljoin(grafana_url, "/api/search?query=Default%20Mephisto%20Monitorin")
 
     r = requests.get(
