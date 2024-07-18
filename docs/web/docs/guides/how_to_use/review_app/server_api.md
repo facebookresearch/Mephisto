@@ -32,6 +32,8 @@ Here is a typical user journey through TaskReview app:
             - UI renders unit's review representation in an iframe
             - User can choose to reject/accept unit, grant/revoke qualification, and block the worker
 - When all units are reviewed, UI redirects user to the "Tasks" page
+- User clicks "Show" button in "Stats" column to see hystograms if a Task has suitable data format for them
+- User clicks "Open" button in "Chars" column to see Grafana dashboard to investigate a Task
 - User clicks "Download" button for a reviewed Task
     - UI pulls Task data from `GET /tasks/<task_id>/<n_units>/export-results.json` endpoint
 
@@ -91,7 +93,7 @@ Serve a single composed file with reviewed task results (API response is a file 
 
 ---
 
-### `GET /api/tasks/{id}/{n_units}/stats-results`
+### `GET /api/tasks/{id}/stats-results`
 
 Assemble stats with results for a Task.
 
@@ -107,6 +109,20 @@ Assemble stats with results for a Task.
   "task_id": <str>, 
   "task_name": <str>, 
   "workers_count": <int>
+}
+```
+
+---
+
+### `GET /api/tasks/{id}/charts`
+
+Check if Grafana server is available and redirect or return error.
+
+```
+{
+  "dashboard_url": <str> | null,
+  "server_is_available": <bool>,
+  "task_name": <str>,
 }
 ```
 

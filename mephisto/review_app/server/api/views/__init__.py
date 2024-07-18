@@ -9,6 +9,7 @@ from .qualification_workers_view import QualificationWorkersView
 from .qualifications_view import QualificationsView
 from .qualify_worker_view import QualifyWorkerView
 from .review_stats_view import ReviewStatsView
+from .task_charts_view import TaskChartsView
 from .task_export_results_json_view import TaskExportResultsJsonView
 from .task_export_results_view import TaskExportResultsView
 from .task_stats_results_view import TaskStatsResultsView

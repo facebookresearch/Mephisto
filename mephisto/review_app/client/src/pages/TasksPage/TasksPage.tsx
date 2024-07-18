@@ -103,6 +103,9 @@ function TasksPage(props: PropsType) {
             <th className={"title stats"}>
               <b>Stats</b>
             </th>
+            <th className={"title charts"}>
+              <b>Charts</b>
+            </th>
             <th className={"title export"}>
               <b>Export results</b>
             </th>
@@ -142,6 +145,14 @@ function TasksPage(props: PropsType) {
                         Show
                       </Link>
                     )}
+                  </td>
+                  <td className={"charts"}>
+                    <Link
+                      to={urls.client.taskCharts(task.id)}
+                      target={"_blank"}
+                    >
+                      Open
+                    </Link>
                   </td>
                   <td className={"export"}>
                     {task.is_reviewed &&

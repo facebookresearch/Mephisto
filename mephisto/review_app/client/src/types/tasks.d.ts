@@ -27,3 +27,9 @@ declare type TaskRusultStatsType = {
   task_name: string;
   workers_count: number;
 };
+
+declare type TaskChartsType = {
+  dashboard_url: string | null;
+  server_is_available: boolean;
+  task_name: string;
+};
