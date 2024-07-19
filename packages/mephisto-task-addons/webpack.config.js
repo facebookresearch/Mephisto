@@ -8,23 +8,23 @@ var path = require("path");
 var webpack = require("webpack");
 
 module.exports = {
-  entry: "./src/main.js",
+  entry: "./src/index.jsx",
   output: {
     path: __dirname,
-    filename: "build/bundle.js",
+    filename: "lib/index.js",
+    library: "mephisto-task-addons",
+    libraryTarget: "umd",
+  },
+  target: "web",
+  externals: {
+    react: "react",
   },
   resolve: {
     alias: {
-      react: path.resolve("./node_modules/react"),
       // Use local library with code that can submit metadata with files
       "mephisto-task-multipart": path.resolve(
         __dirname,
-        "../../../packages/mephisto-task-multipart"
-      ),
-      // Use local library with code that can submit Worker Opinion
-      "mephisto-task-addons": path.resolve(
-        __dirname,
-        "../../../packages/mephisto-task-addons"
+        "../../packages/mephisto-task-multipart"
       ),
     },
     fallback: {
@@ -46,8 +46,14 @@ module.exports = {
       },
       {
         test: /\.(svg|png|jpe?g|ttf)$/,
-        loader: "url-loader",
-        options: { limit: 100000 },
+        use: [
+          {
+            loader: "url-loader",
+            options: {
+              limit: 100000,
+            },
+          },
+        ],
       },
       {
         test: /\.jpg$/,

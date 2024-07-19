@@ -4,36 +4,42 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import time
 import asyncio
+import time
 from queue import Queue
+from typing import Any
+from typing import Dict
+from typing import Optional
+from typing import Set
+from typing import Tuple
+from typing import TYPE_CHECKING
+
 from prometheus_client import Histogram  # type: ignore
 
-from mephisto.data_model.packet import (
-    Packet,
-    PACKET_TYPE_ALIVE,
-    PACKET_TYPE_SUBMIT_ONBOARDING,
-    PACKET_TYPE_SUBMIT_UNIT,
-    PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE,
-    PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE,
-    PACKET_TYPE_REGISTER_AGENT,
-    PACKET_TYPE_AGENT_DETAILS,
-    PACKET_TYPE_UPDATE_STATUS,
-    PACKET_TYPE_REQUEST_STATUSES,
-    PACKET_TYPE_RETURN_STATUSES,
-    PACKET_TYPE_ERROR,
-    PACKET_TYPE_SUBMIT_METADATA,
-)
+from mephisto.abstractions._subcomponents.channel import Channel
+from mephisto.abstractions._subcomponents.channel import STATUS_CHECK_TIME
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.agent import _AgentBase
+from mephisto.data_model.agent import Agent
+from mephisto.data_model.packet import Packet
+from mephisto.data_model.packet import PACKET_TYPE_AGENT_DETAILS
+from mephisto.data_model.packet import PACKET_TYPE_ALIVE
+from mephisto.data_model.packet import PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE
+from mephisto.data_model.packet import PACKET_TYPE_ERROR
+from mephisto.data_model.packet import PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE
+from mephisto.data_model.packet import PACKET_TYPE_REGISTER_AGENT
+from mephisto.data_model.packet import PACKET_TYPE_REQUEST_STATUSES
+from mephisto.data_model.packet import PACKET_TYPE_RETURN_STATUSES
+from mephisto.data_model.packet import PACKET_TYPE_SUBMIT_METADATA
+from mephisto.data_model.packet import PACKET_TYPE_SUBMIT_ONBOARDING
+from mephisto.data_model.packet import PACKET_TYPE_SUBMIT_UNIT
+from mephisto.data_model.packet import PACKET_TYPE_UPDATE_STATUS
 from mephisto.operations.datatypes import LiveTaskRun
-from mephisto.abstractions._subcomponents.channel import Channel, STATUS_CHECK_TIME
-from typing import Dict, Tuple, Optional, Any, Set, TYPE_CHECKING
+from mephisto.utils.logger_core import format_loud
+from mephisto.utils.logger_core import get_logger
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
-
-from mephisto.utils.logger_core import get_logger, format_loud
 
 logger = get_logger(name=__name__)
 
@@ -259,12 +265,8 @@ class ClientIOHandler:
         agent.pending_actions.put(packet.data)
         agent.has_live_update.set()
 
-    def _on_submit_unit(self, packet: Packet, _channel_id: str):
-        """Handle an action as sent from an agent, enqueuing to the agent"""
-        live_run = self.get_live_run()
-        agent = live_run.worker_pool.get_agent_for_id(packet.subject_id)
-        assert agent is not None, "Could not find given agent!"
-
+    @staticmethod
+    def _save_files(packet: Packet, live_run: LiveTaskRun, agent: Agent):
         # Special handler for file downloads while we have architect access
         # NOTE: this is a leaky abstraction at the moment - only architects
         # know how to save files but "file saving" methods are defined by
@@ -278,12 +280,25 @@ class ClientIOHandler:
                     # TODO(#649) this is incredibly blocking!
                     architect.download_file(f_obj["filename"], save_dir)
 
-        agent.handle_submit(packet.data)
-
-    def _on_submit_metadata(self, packet: Packet):
+    def _on_submit_unit(self, packet: Packet, _channel_id: str):
+        """Handle an action as sent from an agent, enqueuing to the agent"""
         live_run = self.get_live_run()
         agent = live_run.worker_pool.get_agent_for_id(packet.subject_id)
+
         assert agent is not None, "Could not find given agent!"
+
+        self._save_files(packet, live_run, agent)
+
+        agent.handle_submit(packet.data)
+
+    def _on_submit_metadata(self, packet: Packet, _channel_id: str):
+        live_run = self.get_live_run()
+        agent = live_run.worker_pool.get_agent_for_id(packet.subject_id)
+
+        assert agent is not None, "Could not find given agent!"
+
+        self._save_files(packet, live_run, agent)
+
         agent.handle_metadata_submit(packet.data)
 
     def _on_submit_onboarding(self, packet: Packet, channel_id: str) -> None:
@@ -381,7 +396,7 @@ class ClientIOHandler:
                 self.log_metrics_for_packet(packet)
                 self.last_submission_time = time.time()
             elif packet.type == PACKET_TYPE_SUBMIT_METADATA:
-                self._on_submit_metadata(packet)
+                self._on_submit_metadata(packet, channel_id)
             elif packet.type == PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE:
                 update_id = packet.data.get("update_id")
                 if update_id is not None and update_id in self.seen_update_ids:

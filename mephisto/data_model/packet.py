@@ -57,6 +57,7 @@ class Packet:
             assert (
                 field in input_dict
             ), f"Packet input dict {input_dict} missing required field {field}"
+
         return Packet(
             packet_type=input_dict["packet_type"],
             subject_id=input_dict["subject_id"],

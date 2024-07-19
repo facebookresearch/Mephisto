@@ -11,7 +11,7 @@ import {
   OnboardingComponent,
   LoadingScreen,
 } from "./components/core_components.jsx";
-import { useMephistoTask, ErrorBoundary } from "mephisto-task";
+import { useMephistoTask, ErrorBoundary } from "mephisto-task-multipart";
 
 /* ================= Application Components ================= */
 
@@ -30,7 +30,7 @@ function MainApp() {
   if (blockedReason !== null) {
     return (
       <section className="hero is-medium is-danger">
-        <div class="hero-body">
+        <div className="hero-body">
           <h2 className="title is-3">{blockedExplanation}</h2>{" "}
         </div>
       </section>
@@ -39,7 +39,7 @@ function MainApp() {
   if (isPreview) {
     return (
       <section className="hero is-medium is-link">
-        <div class="hero-body">
+        <div className="hero-body">
           <div className="title is-3">
             This is an incredibly simple React task working with Mephisto!
           </div>

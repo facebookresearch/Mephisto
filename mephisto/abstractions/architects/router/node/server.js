@@ -474,6 +474,7 @@ app.post("/submit_onboarding", function (req, res) {
   clear_agent(agent_id);
 });
 
+// NOTE: `upload.any()` allows to pass not only JSON, but FormData as well
 app.post("/submit_task", upload.any(), function (req, res) {
   const {
     USED_AGENT_ID: agent_id,
@@ -481,10 +482,14 @@ app.post("/submit_task", upload.any(), function (req, res) {
     final_string_data: final_string_data,
     client_timestamp: client_timestamp,
   } = req.body;
+
   let extracted_data = final_data;
+
+  // `extracted_data` must be JSON. If request is FormData, is must be a string
   if (final_string_data) {
     extracted_data = JSON.parse(final_string_data);
   }
+
   if (req.files) {
     extracted_data.files = req.files;
 
@@ -493,10 +498,14 @@ app.post("/submit_task", upload.any(), function (req, res) {
     req.files.forEach((file) => {
       const _file = { ...file };
       delete _file.fieldname;
-      filesByFields[file.fieldname] = _file;
+      const fileByFieldPrev = filesByFields[file.fieldname] || [];
+      fileByFieldPrev.push(_file);
+      filesByFields[file.fieldname] = fileByFieldPrev;
     });
     extracted_data.filesByFields = filesByFields;
   }
+
+  // Prepare WebSocket packet
   let submit_packet = {
     packet_type: PACKET_TYPE_SUBMIT_UNIT,
     subject_id: agent_id,
@@ -504,13 +513,17 @@ app.post("/submit_task", upload.any(), function (req, res) {
     client_timestamp: client_timestamp ? Number(client_timestamp) : null,
     router_incoming_timestamp: pythonTime(),
   };
+
+  // Send packet via WebSocket
   _send_message(mephisto_socket, submit_packet);
+
   res.json({ status: "Submitted!" });
 
   // Cleanup local state for a task that's already submitted
   if (agent_id in agent_id_to_agent) {
     delete agent_id_to_agent[agent_id];
   }
+
   if (agent_id in agent_id_to_socket) {
     let socket_id = agent_id_to_socket[agent_id].id;
     delete agent_id_to_socket[agent_id];
@@ -518,21 +531,48 @@ app.post("/submit_task", upload.any(), function (req, res) {
   }
 });
 
-app.post("/submit_metadata", function (req, res) {
+// NOTE: `upload.any()` allows to pass not only JSON, but FormData as well
+app.post("/submit_metadata", upload.any(), function (req, res) {
   const {
     USED_AGENT_ID: agent_id,
     metadata: metadata,
     client_timestamp: client_timestamp,
   } = req.body;
-  // ex: handleMetadataSubmit(createTip(), createFeedback())
+
+  let extracted_data = metadata;
+
+  // `extracted_data` must be JSON. If request is FormData, is must be a string
+  if (typeof extracted_data === "string") {
+    extracted_data = JSON.parse(extracted_data);
+  }
+
+  if (req.files) {
+    extracted_data.files = req.files;
+
+    // Group files by fieldname to link them with fields
+    const filesByFields = {};
+    req.files.forEach((file) => {
+      const _file = { ...file };
+      delete _file.fieldname;
+      const fileByFieldPrev = filesByFields[file.fieldname] || [];
+      fileByFieldPrev.push(_file);
+      filesByFields[file.fieldname] = fileByFieldPrev;
+    });
+    extracted_data.filesByFields = filesByFields;
+  }
+
+  // Prepare WebSocket packet
   let submit_packet = {
     packet_type: PACKET_TYPE_SUBMIT_METADATA,
     subject_id: agent_id,
-    data: metadata,
+    data: extracted_data,
     client_timestamp: client_timestamp,
     router_incoming_timestamp: pythonTime(),
   };
+
+  // Send packet via WebSocket
   _send_message(mephisto_socket, submit_packet);
+
   res.json({ status: "Submitted metadata" });
 });
 
@@ -602,7 +642,7 @@ app.get("/download_file/:file", function (req, res) {
     req.connection.remoteAddress ||
     req.socket.remoteAddress ||
     req.connection.socket.remoteAddress;
-  if (ip == mephisto_socket._socket.remoteAddress) {
+  if (ip === mephisto_socket._socket.remoteAddress) {
     res.sendFile(path.join("/tmp/", req.params.file), function (err) {
       if (err) {
         console.log(err);

@@ -4,8 +4,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React from "react";
-import { Tips, Feedback } from "mephisto-worker-addons";
+import React, { useState } from "react";
+import { WorkerOpinion } from "mephisto-task-addons";
 
 function OnboardingComponent({ onSubmit }) {
   return (
@@ -15,8 +15,9 @@ function OnboardingComponent({ onSubmit }) {
         qualification for your task. Click the button to move on to the main
         task.
       </Directions>
+
       <button
-        className="button is-link"
+        className="btn btn-link"
         onClick={() => onSubmit({ success: true })}
       >
         Move to main task.
@@ -31,67 +32,67 @@ function LoadingScreen() {
 
 function Directions({ children }) {
   return (
-    <section className="hero is-light" data-cy="directions-container">
-      <div className="hero-body">
-        <div className="container">
-          <p className="subtitle is-5">{children}</p>
-        </div>
-      </div>
-    </section>
+    <div className="card mb-4">
+      <div className="card-body container">{children}</div>
+    </div>
   );
 }
 
 function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
+  const [showWorkerOpinion, setShowWorkerOpinion] = useState(false);
+
   return (
     <div>
       <Directions>
-        Directions: Please rate the below sentence as good or bad.
+        <h5>
+          Directions:
+          <br />
+          Please rate the below sentence as good or bad.
+          <br />
+          After that leave your opinion.
+        </h5>
       </Directions>
+
       <section className="section">
         <div className="container">
-          <p className="subtitle is-5"></p>
-          <p className="title is-3 is-spaced" data-cy="task-data-text">
-            {taskData.text}
-          </p>
-          <div className="field is-grouped">
-            <div className="control">
+          <h2 className="mb-3">{taskData.text}</h2>
+
+          {!showWorkerOpinion && (
+            <div className="mb-5">
               <button
-                data-cy="good-button"
-                className="button is-success is-large"
-                onClick={() => onSubmit({ rating: "good" })}
+                className="btn btn-success btn-lg mr-2"
+                onClick={() => {
+                  setShowWorkerOpinion(true);
+                  onSubmit({ rating: "good" });
+                }}
               >
                 Mark as Good
               </button>
-            </div>
-            <div className="control">
+
               <button
-                data-cy="bad-button"
-                className="button is-danger is-large"
-                onClick={() => onSubmit({ rating: "bad" })}
+                className="btn btn-danger btn-lg ml-2"
+                onClick={() => {
+                  setShowWorkerOpinion(true);
+                  onSubmit({ rating: "bad" });
+                }}
               >
                 Mark as Bad
               </button>
             </div>
-          </div>
+          )}
 
-          <div style={{ marginTop: "15rem", width: "fit-content" }}>
-            <Tips
-              width="30rem"
-              maxHeight="30rem"
-              placement="top-start"
-              maxHeaderLength={50}
-              maxTextLength={100}
-            />
-            <div style={{ margin: "1rem 0 0", width: "28rem" }}>
-              <Feedback
-                maxTextLength={200}
-                questions={[
-                  "What is your favorite part of this task?",
-                  "Were you satisfied with this task?",
-                ]}
-              />
-            </div>
-          </div>
+          {showWorkerOpinion && (
+            <>
+              <div className="mb-5">Thank you for your response!</div>
+
+              <div style={{ width: "600px" }}>
+                <WorkerOpinion
+                  maxTextLength={500}
+                  questions={["Was this task hard?", "Is this a good example?"]}
+                />
+              </div>
+            </>
+          )}
         </div>
       </section>
     </div>

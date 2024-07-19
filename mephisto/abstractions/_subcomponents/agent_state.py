@@ -4,31 +4,30 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from abc import ABC, abstractmethod
-from typing import (
-    Optional,
-    List,
-    Dict,
-    Any,
-    Union,
-    TYPE_CHECKING,
-)
-from dataclasses import dataclass, replace
+import os.path
 import time
 import weakref
-import os.path
+from abc import ABC
+from abc import abstractmethod
+from dataclasses import dataclass
+from dataclasses import replace
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import TYPE_CHECKING
+from typing import Union
+
 from mephisto.data_model.constants.assignment_state import AssignmentState
+from mephisto.utils.logger_core import get_logger
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent, OnboardingAgent
-    from mephisto.data_model.unit import Unit
-    from mephisto.data_model.packet import Packet
 
-from mephisto.utils.logger_core import get_logger
+DEFAULT_METADATA_PROPERTY_NAME = "default"
+METADATA_FILE = "agent_meta.json"
 
 logger = get_logger(name=__name__)
-
-METADATA_FILE = "agent_meta.json"
 
 
 @dataclass
@@ -40,10 +39,12 @@ class _AgentStateMetadata:
     put these as attributes of the agent state subclass directly.
     """
 
-    task_start: Optional[float] = None
-    task_end: Optional[float] = None
-    tips: Optional[List[Dict[str, Any]]] = None
+    default: Optional[Any] = None
     feedback: Optional[List[Dict[str, Any]]] = None
+    task_end: Optional[float] = None
+    task_start: Optional[float] = None
+    tips: Optional[List[Dict[str, Any]]] = None
+    worker_opinion: Optional[Dict[str, Any]] = None
 
 
 # TODO(#567) File manipulations should ultimately be handled by the MephistoDB, rather than
@@ -86,6 +87,7 @@ class AgentState(ABC):
                 correct_class = get_blueprint_from_type(agent.task_type).AgentStateClass
             else:
                 correct_class = get_blueprint_from_type(agent.task_type).OnboardingAgentStateClass
+
             return super().__new__(correct_class)
         else:
             # We are constructing another instance directly
@@ -156,9 +158,13 @@ class AgentState(ABC):
             AgentState.STATUS_APPROVED: AssignmentState.ACCEPTED,
             AgentState.STATUS_REJECTED: AssignmentState.REJECTED,
         }
-        assert (
-            agent_state in AGENT_STATE_TO_ASSIGNMENTS_STATE_MAP
-        ), f"Invalid agent state {agent_state} provided, valid: {AGENT_STATE_TO_ASSIGNMENTS_STATE_MAP.keys()}"
+
+        assert_message = (
+            f"Invalid agent state {agent_state} provided, valid: "
+            f"{AGENT_STATE_TO_ASSIGNMENTS_STATE_MAP.keys()}"
+        )
+        assert agent_state in AGENT_STATE_TO_ASSIGNMENTS_STATE_MAP, assert_message
+
         return AGENT_STATE_TO_ASSIGNMENTS_STATE_MAP[agent_state]
 
     # Implementations of an AgentState must implement the following:
@@ -309,6 +315,12 @@ class AgentState(ABC):
         """
         return self.metadata.task_end
 
+    def get_default(self) -> Optional[float]:
+        """
+        Return the default metadata for this task, if it is available
+        """
+        return self.metadata.default
+
     def get_tips(self) -> Optional[List[Dict[str, Any]]]:
         """
         Return the tips for this task, if it is available
@@ -321,13 +333,20 @@ class AgentState(ABC):
         """
         return self.metadata.feedback
 
+    def get_worker_opinion(self) -> Optional[List[Dict[str, Any]]]:
+        """
+        Return the Worker Opinion for this task, if it is available
+        """
+        return self.metadata.worker_opinion
+
     def update_metadata(self, property_name: str, property_value: Any) -> None:
         if self.metadata is not None:
-            assert (
-                hasattr(self.metadata, property_name) == True
-            ), "The {property_name} field must exist in _AgentStateMetadata. Go into _AgentStateMetadata and add the {property_name} field".format(
-                property_name=property_name
-            )
+            assert_message = (
+                "The {property_name} field must exist in _AgentStateMetadata. "
+                "Go into _AgentStateMetadata and add the {property_name} field"
+            ).format(property_name=property_name)
+            assert hasattr(self.metadata, property_name) is True, assert_message
+
             replaced = {property_name: property_value}
             self.metadata = replace(self.metadata, **replaced)
             self.save_data()
