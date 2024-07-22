@@ -17,7 +17,7 @@ jobs:
     outputs:
       simple_static_task: ${{ steps.filter.outputs.simple_static_task }}
       static_react_task: ${{ steps.filter.outputs.static_react_task }}
-      static_react_task_with_tips: ${{ steps.filter.outputs.static_react_task_with_tips }}
+      static_react_task_with_worker_opinion: ${{ steps.filter.outputs.static_react_task_with_worker_opinion }}
       mnist: ${{ steps.filter.outputs.mnist }}
       template: ${{ steps.filter.outputs.template }}
       toxicity_detection: ${{ steps.filter.outputs.toxicity_detection }}
@@ -46,8 +46,8 @@ jobs:
               - 'examples/simple_static_task/**'
             static_react_task:
               - 'examples/static_react_task/**'
-            static_react_task_with_tips:
-              - 'examples/static_react_task_with_tips/**'
+            static_react_task_with_worker_opinion:
+              - 'examples/static_react_task_with_worker_opinion/**'
             mnist:
               - 'examples/remote_procedure/mnist/**'
             template:
@@ -305,9 +305,9 @@ jobs:
           headless: true
 
   # Learn more about this test here: https://github.com/facebookresearch/Mephisto/pull/833
-  static_react_task_with_tips:
+  static_react_task_with_worker_opinion:
     needs: changes
-    if: ${{ (needs.changes.outputs.static_react_task_with_tips == 'true') || (needs.changes.outputs.mephisto-task == 'true') || (needs.changes.outputs.mephisto-worker-addons == 'true') || (needs.changes.outputs.abstractions == 'true') || (needs.changes.outputs.data_model == 'true') || (needs.changes.outputs.operations == 'true') || (needs.changes.outputs.tools == 'true')}}
+    if: ${{ (needs.changes.outputs.static_react_task_with_worker_opinion == 'true') || (needs.changes.outputs.mephisto-task == 'true') || (needs.changes.outputs.mephisto-task-addons == 'true') || (needs.changes.outputs.abstractions == 'true') || (needs.changes.outputs.data_model == 'true') || (needs.changes.outputs.operations == 'true') || (needs.changes.outputs.tools == 'true')}}
     runs-on: ubuntu-latest
     steps:
       - name: 🔀 Checking out repo
@@ -353,10 +353,10 @@ jobs:
           build: npm i -D cypress@11
           install: false
           browser: chrome
-          project: ./examples/static_react_task_with_tips/webapp
+          project: ./examples/static_react_task_with_worker_opinion/webapp
           config-file: ./cypress.config.js
-          spec: ./examples/static_react_task_with_tips/webapp/cypress/e2e/pre_submission_tests/*
-          start: python examples/static_react_task_with_tips/run_task.py mephisto.task.force_rebuild=true mephisto.task.post_install_script=link_packages.sh
+          spec: ./examples/static_react_task_with_worker_opinion/webapp/cypress/e2e/pre_submission_tests/*
+          start: python examples/static_react_task_with_worker_opinion/run_task.py mephisto.task.force_rebuild=true mephisto.task.post_install_script=link_packages.sh
           wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
           headless: true
 
@@ -426,10 +426,10 @@ jobs:
         with:
           build: npm i -D cypress@11
           install: false
-          project: ./examples/static_react_task_with_tips/webapp
+          project: ./examples/static_react_task_with_worker_opinion/webapp
           config-file: cypress.config.js
-          spec: ./examples/static_react_task_with_tips/webapp/cypress/e2e/post_submission_tests/*
-          start: python examples/static_react_task_with_tips/run_task.py mephisto.task.post_install_script=link_packages.sh mephisto.task.force_rebuild=true
+          spec: ./examples/static_react_task_with_worker_opinion/webapp/cypress/e2e/post_submission_tests/*
+          start: python examples/static_react_task_with_worker_opinion/run_task.py mephisto.task.post_install_script=link_packages.sh mephisto.task.force_rebuild=true
           wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
           browser: chrome
           headless: true

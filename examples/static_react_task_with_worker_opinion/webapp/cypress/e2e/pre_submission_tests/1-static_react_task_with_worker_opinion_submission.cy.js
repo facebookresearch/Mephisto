@@ -13,7 +13,7 @@ const feedbackText2 = "🎉 Second question should pass";
 const question1 = "What is your favorite part of this task?";
 const question2 = "Were you satisfied with this task?";
 
-describe("Loads static_react_task_with_tips", () => {
+describe("Loads `static_react_task_with_worker_opinion`", () => {
   it("Feedback component contains correct react elements", () => {
     cy.visit("/");
     cy.get(`.${feedbackClassNamePrefix}header1`);

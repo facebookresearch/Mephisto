@@ -9,7 +9,7 @@ describe("Checking for tips", () => {
   /*
   This test is supposed to be ran after running the pre_tip_submission cypress test.
   The pre_tip_submission cypress test submits three tips for reviewing.
-  Before running this test, you should review the tips for static_react_task_with_tips
+  Before running this test, you should review the tips for `static_react_task_with_worker_opinion`
   by running python review_tips_for_task.py.
 
   To pass this test, accept the first tip and reject the other two.

@@ -29,25 +29,26 @@ function MainApp() {
 
   if (blockedReason !== null) {
     return (
-      <section className="hero is-medium is-danger">
-        <div className="hero-body">
-          <h2 className="title is-3">{blockedExplanation}</h2>{" "}
+      <div className="card bg-danger mb-4">
+        <div className="card-body pt-xl-5 pb-xl-5">
+          <h2 className="text-white">{blockedExplanation}</h2>
         </div>
-      </section>
+      </div>
     );
   }
+
   if (isPreview) {
     return (
-      <section className="hero is-medium is-link">
-        <div className="hero-body">
-          <div className="title is-3">
+      <div className="card bg-primary mb-4">
+        <div className="card-body pt-xl-5 pb-xl-5">
+          <h2 className="text-white">
             This is an incredibly simple React task working with Mephisto!
-          </div>
-          <div className="subtitle is-4">
+          </h2>
+          <h5 className="text-white">
             Inside you'll be asked to rate a given sentence as good or bad.
-          </div>
+          </h5>
         </div>
-      </section>
+      </div>
     );
   }
   if (isLoading || !initialTaskData) {

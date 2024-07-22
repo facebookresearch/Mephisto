@@ -19,7 +19,7 @@ const headerError = "This header is toooooooooooooooooooooooooooooooooo long";
 const bodyError =
   "This body is toooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo long";
 
-describe("Loads static_react_task_with_tips", () => {
+describe("Loads `static_react_task_with_worker_opinion`", () => {
   it("Makes request for agent", () => {
     cy.intercept({ pathname: "/request_agent" }).as("agentRequest");
     cy.visit("/");

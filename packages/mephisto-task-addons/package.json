@@ -2,9 +2,10 @@
   "name": "mephisto-task-addons",
   "version": "1.0.3",
   "description": "The WorkerOpinion component will allow researchers to receive opinions about their Tasks or some ideas how to improve them.",
-  "main": "./lib/index.js",
+  "main": "./build/bundle.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "webpack --mode=development",
     "build": "NODE_ENV=production webpack --mode=production",
     "prepublishOnly": "NODE_ENV=production webpack --mode=production"
   },

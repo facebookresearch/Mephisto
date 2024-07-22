@@ -39,7 +39,7 @@ function Directions({ children }) {
 }
 
 function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
-  const [showWorkerOpinion, setShowWorkerOpinion] = useState(false);
+  const [resonseSubmitted, setResonseSubmitted] = useState(false);
 
   return (
     <div>
@@ -57,12 +57,12 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
         <div className="container">
           <h2 className="mb-3">{taskData.text}</h2>
 
-          {!showWorkerOpinion && (
+          {!resonseSubmitted && (
             <div className="mb-5">
               <button
                 className="btn btn-success btn-lg mr-2"
                 onClick={() => {
-                  setShowWorkerOpinion(true);
+                  setResonseSubmitted(true);
                   onSubmit({ rating: "good" });
                 }}
               >
@@ -72,7 +72,7 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
               <button
                 className="btn btn-danger btn-lg ml-2"
                 onClick={() => {
-                  setShowWorkerOpinion(true);
+                  setResonseSubmitted(true);
                   onSubmit({ rating: "bad" });
                 }}
               >
@@ -81,7 +81,7 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
             </div>
           )}
 
-          {showWorkerOpinion && (
+          {resonseSubmitted && (
             <>
               <div className="mb-5">Thank you for your response!</div>
 

@@ -28,9 +28,11 @@ function MainApp() {
 
   if (blockedReason !== null) {
     return (
-      <section className="alert alert-danger">
-        <h2 className="title is-3">{blockedExplanation}</h2>
-      </section>
+      <div className="card bg-danger mb-4">
+        <div className="card-body pt-xl-5 pb-xl-5">
+          <h2 className="text-white">{blockedExplanation}</h2>
+        </div>
+      </div>
     );
   }
 

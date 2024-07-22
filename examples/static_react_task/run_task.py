@@ -4,22 +4,27 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from omegaconf import DictConfig
+from rich import print
+
+from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
+    SharedStaticTaskState,
+)
 from mephisto.abstractions.blueprints.mixins.screen_task_required import (
     ScreenTaskRequired,
 )
 from mephisto.data_model.unit import Unit
 from mephisto.operations.operator import Operator
-from mephisto.tools.scripts import task_script, build_custom_bundle
-from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
-    SharedStaticTaskState,
-)
-from rich import print
-from omegaconf import DictConfig
+from mephisto.tools.scripts import build_custom_bundle
+from mephisto.tools.scripts import task_script
 
 
 def my_screening_unit_generator():
     while True:
-        yield {"text": "SCREENING UNIT: Press the red button", "is_screen": True}
+        yield {
+            "text": "SCREENING UNIT: Press the red button",
+            "is_screen": True,
+        }
 
 
 def validate_screening_unit(unit: Unit):
@@ -43,8 +48,20 @@ def handle_onboarding(onboarding_data):
     return False
 
 
+def _build_custom_bundles(cfg: DictConfig) -> None:
+    """Locally build bundles that are not available on npm repository"""
+    build_custom_bundle(
+        cfg.task_dir,
+        force_rebuild=cfg.mephisto.task.force_rebuild,
+        post_install_script=cfg.mephisto.task.post_install_script,
+    )
+
+
 @task_script(default_config_file="example_local_mock.yaml")
 def main(operator: Operator, cfg: DictConfig) -> None:
+    # Build packages
+    _build_custom_bundles(cfg)
+
     is_using_screening_units = cfg.mephisto.blueprint["use_screening_task"]
     shared_state = SharedStaticTaskState(
         static_task_data=[
@@ -55,10 +72,8 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     )
 
     if is_using_screening_units:
-        """
-        When using screening units there has to be a
-        few more properties set on shared_state
-        """
+        # When using screening units there has to be a
+        # few more properties set on shared_state
         shared_state.on_unit_submitted = ScreenTaskRequired.create_validation_function(
             cfg.mephisto,
             validate_screening_unit,
@@ -67,14 +82,6 @@ def main(operator: Operator, cfg: DictConfig) -> None:
         shared_state.qualifications += ScreenTaskRequired.get_mixin_qualifications(
             cfg.mephisto, shared_state
         )
-
-    task_dir = cfg.task_dir
-
-    build_custom_bundle(
-        task_dir,
-        force_rebuild=cfg.mephisto.task.force_rebuild,
-        post_install_script=cfg.mephisto.task.post_install_script,
-    )
 
     operator.launch_task_run(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)

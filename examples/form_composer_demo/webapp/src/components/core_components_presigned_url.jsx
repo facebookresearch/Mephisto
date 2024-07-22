@@ -39,13 +39,9 @@ function RenderingErrorsMessage() {
 
 function Directions({ children }) {
   return (
-    <section className="hero is-light" data-cy="directions-container">
-      <div className="hero-body">
-        <div className="container">
-          <p className="subtitle is-5">{children}</p>
-        </div>
-      </div>
-    </section>
+    <div className="card mb-4">
+      <div className="card-body container">{children}</div>
+    </div>
   );
 }
 

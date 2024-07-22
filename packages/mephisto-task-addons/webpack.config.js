@@ -11,7 +11,7 @@ module.exports = {
   entry: "./src/index.jsx",
   output: {
     path: __dirname,
-    filename: "lib/index.js",
+    filename: "build/bundle.js",
     library: "mephisto-task-addons",
     libraryTarget: "umd",
   },
