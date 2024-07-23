@@ -37,7 +37,7 @@
   text-align: center;
 }
 
-.tasks .tasks-table .titles-row .charts {
+.tasks .tasks-table .titles-row .timeline {
   width: 80px;
   text-align: center;
 }
@@ -77,12 +77,16 @@
   text-decoration: underline;
 }
 
-.tasks .tasks-table .task-row .stats a {
+.tasks .tasks-table .task-row .stats a,
+.tasks .tasks-table .task-row .timeline a,
+.tasks .tasks-table .task-row .worker-opinions a {
   cursor: pointer;
   text-decoration: unset;
 }
 
-.tasks .tasks-table .task-row .stats a:hover {
+.tasks .tasks-table .task-row .stats a:hover,
+.tasks .tasks-table .task-row .timeline a:hover,
+.tasks .tasks-table .task-row .worker-opinions a:hover {
   text-decoration: underline;
 }
 

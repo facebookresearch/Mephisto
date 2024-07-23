@@ -155,7 +155,7 @@ function WorkerOpinion({
             <div className={"form-row custom-file"}>
               <input
                 accept={"image/jpeg,image/png,image/gif"}
-                className={"custom-file-input col"}
+                className={"custom-file-input col metadata"}
                 id={"id_attachments"}
                 multiple={true}
                 name={"attachments"}

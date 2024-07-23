@@ -4,27 +4,27 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import TasksHeader from "components/TasksHeader/TasksHeader";
 import { setPageTitle } from "pages/TaskPage/helpers";
 import * as React from "react";
 import { useEffect } from "react";
 import { Spinner } from "react-bootstrap";
 import { useParams } from "react-router-dom";
-import { getTaskCharts } from "requests/tasks";
-import TasksHeader from "../TasksPage/TasksHeader/TasksHeader";
-import "./TaskChartsPage.css";
+import { getTaskTimeline } from "requests/tasks";
+import "./TaskTimelinePage.css";
 
 type ParamsType = {
   id: string;
 };
 
-interface TaskChartsPagePropsType {
+interface TaskTimelinePagePropsType {
   setErrors: Function;
 }
 
-function TaskChartsPage(props: TaskChartsPagePropsType) {
+function TaskTimelinePage(props: TaskTimelinePagePropsType) {
   const params = useParams<ParamsType>();
 
-  const [taskCharts, setTaskCharts] = React.useState<TaskChartsType>(null);
+  const [taskTimeline, setTaskTimeline] = React.useState<TaskTimelineType>(null);
   const [loading, setLoading] = React.useState(false);
 
   function onError(errorResponse: ErrorResponseType | null) {
@@ -36,43 +36,43 @@ function TaskChartsPage(props: TaskChartsPagePropsType) {
   // Effects
   useEffect(() => {
     // Set default title
-    setPageTitle("Mephisto - Task Charts");
+    setPageTitle("Mephisto - Task Timeline");
 
-    if (taskCharts === null) {
-      getTaskCharts(params.id, setTaskCharts, setLoading, onError, null);
+    if (taskTimeline === null) {
+      getTaskTimeline(params.id, setTaskTimeline, setLoading, onError, null);
     }
   }, []);
 
   useEffect(() => {
-    if (taskCharts) {
-      if (taskCharts.server_is_available) {
+    if (taskTimeline) {
+      if (taskTimeline.server_is_available) {
         // Redirect to Grafana dashboard
-        window.location.replace(taskCharts.dashboard_url);
+        window.location.replace(taskTimeline.dashboard_url);
       } else {
         // Update title with current task name
-        setPageTitle(`Mephisto - Task Charts - ${taskCharts.task_name}`);
+        setPageTitle(`Mephisto - Task Timeline - ${taskTimeline.task_name}`);
       }
     }
-  }, [taskCharts]);
+  }, [taskTimeline]);
 
-  if (taskCharts === null) {
+  if (taskTimeline === null) {
     return null;
   }
 
   return (
-    <div className={"task-charts"}>
+    <div className={"task-timeline"}>
       {/* Header */}
       <TasksHeader />
 
-      {!loading && taskCharts && (
+      {!loading && taskTimeline && (
         // Task name
         <div className={"header"}>
-          <div className={"task-name"}>Task: {taskCharts.task_name}</div>
+          <div className={"task-name"}>Task: {taskTimeline.task_name}</div>
         </div>
       )}
 
       <div className={"content"}>
-        {/* Preloader when we request task charts */}
+        {/* Preloader when we request task timeline */}
         {loading ? (
           <div className={"loading"}>
             <Spinner animation="border" role="status">
@@ -81,7 +81,7 @@ function TaskChartsPage(props: TaskChartsPagePropsType) {
           </div>
         ) : (
           <>
-            {!taskCharts.server_is_available && (
+            {!taskTimeline.server_is_available && (
               <>
                 <h4>Grafana server is unreachable</h4>
 
@@ -125,4 +125,4 @@ function TaskChartsPage(props: TaskChartsPagePropsType) {
   );
 }
 
-export default TaskChartsPage;
+export default TaskTimelinePage;

@@ -4,13 +4,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import TasksHeader from "components/TasksHeader/TasksHeader";
 import { setPageTitle } from "pages/TaskPage/helpers";
 import * as React from "react";
 import { useEffect } from "react";
 import { Spinner } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import { getTaskStats } from "requests/tasks";
-import TasksHeader from "../TasksPage/TasksHeader/TasksHeader";
 import { Histogram } from "./Histogram";
 import "./TaskStatsPage.css";
 

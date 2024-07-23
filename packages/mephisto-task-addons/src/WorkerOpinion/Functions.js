@@ -64,7 +64,7 @@ export function createWorkerOpinion(
 
   // Append files in Form Data next to JSON data
   const filesInfo = [];
-  const fileInputs = document.querySelectorAll("input[type='file']");
+  const fileInputs = document.querySelectorAll("input[type='file'].metadata");
   fileInputs.forEach((input) => {
     if (input.files?.length) {
       Object.values(input.files).forEach((file) => {

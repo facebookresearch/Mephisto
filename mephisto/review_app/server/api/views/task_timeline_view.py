@@ -12,7 +12,7 @@ from mephisto.data_model.task import Task
 from mephisto.utils import metrics
 
 
-class TaskChartsView(MethodView):
+class TaskTimelineView(MethodView):
     def get(self, task_id: str = None) -> dict:
         """Check if Grafana server is available and redirect or return error"""
 

@@ -19,8 +19,8 @@ import "./InReviewFileModal.css";
 type InReviewFileModalProps = {
   data: InReviewFileModalDataType;
   setData: React.Dispatch<React.SetStateAction<InReviewFileModalDataType>>;
-  show: boolean;
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
+  show: boolean;
 };
 
 /**
@@ -57,7 +57,7 @@ type InReviewFileModalProps = {
  *  }
  */
 function InReviewFileModal(props: InReviewFileModalProps) {
-  const { data, show, setShow } = props;
+  const { data, setShow, show } = props;
 
   const [fileUrl, setFileUrl] = React.useState<string>(null);
   const [fileExt, setFileExt] = React.useState<string>(null);
@@ -83,7 +83,9 @@ function InReviewFileModal(props: InReviewFileModalProps) {
 
     if (data.filename) {
       setFileUrl(
-        urls.server.unitsOutputsFileByFieldname(data.unitId, data.fieldname)
+        data.requestByFilename
+          ? urls.server.unitsOutputsFile(data.unitId, data.filename)
+          : urls.server.unitsOutputsFileByFieldname(data.unitId, data.fieldname)
       );
       setFileExt(data.filename.split(".").pop().toLowerCase());
     }

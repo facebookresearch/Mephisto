@@ -303,6 +303,10 @@ class AgentState(ABC):
         self._update_submit(submit_data)
         self.save_data()
 
+    def get_metadata(self) -> dict:
+        """Return all metadata as dict"""
+        return self.metadata.__dict__
+
     def get_task_start(self) -> Optional[float]:
         """
         Return the start time for this task, if it is available

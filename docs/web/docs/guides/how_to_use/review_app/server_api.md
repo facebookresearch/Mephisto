@@ -114,7 +114,7 @@ Assemble stats with results for a Task.
 
 ---
 
-### `GET /api/tasks/{id}/charts`
+### `GET /api/tasks/{id}/timeline`
 
 Check if Grafana server is available and redirect or return error.
 
@@ -123,6 +123,51 @@ Check if Grafana server is available and redirect or return error.
   "dashboard_url": <str> | null,
   "server_is_available": <bool>,
   "task_name": <str>,
+}
+```
+
+---
+
+### `GET /api/tasks/{id}/worker-opinions`
+
+Returns all Worker Opinions related to a Task.
+
+```
+{
+  "task_name": <str>,
+  "worker_opinions": [
+    {
+      "data": {
+        "attachments": [
+          {
+            "destination": <str>,
+            "encoding": <str>,
+            "fieldname": <str>,
+            "filename": <str>,
+            "mimetype": <str>,
+            "originalname": <str>,
+            "path": <str>,
+            "size": <int>
+          },
+          ... // more attachments
+        ],
+        "questions": [
+          {
+            "answer": <str>,
+            "id": <str>,
+            "question": <str>,
+            "reviewed": <bool>,
+            "toxicity": <str> | null
+          },
+          ... // more questions
+        ]
+      },
+      "unit_data_folder": <str>,
+      "unit_id": <str>,
+      "worker_id": <str>
+    },
+    ... // more worker opinions
+  ]
 }
 ```
 
@@ -264,6 +309,7 @@ Get full input for specified workers results (`units_ids` parameter is mandatory
             "has_task_source_review": <bool>,
             "id": <int>,
             "inputs": <json object>,  // instructions for worker
+            "metadata": <json object>,  // any metadata (e.g. Worker Opinion)
             "outputs": <json object>,  // response from worker
             "prepared_inputs": <json object>,  // prepared instructions from worker
             "unit_data_folder": <str>},  // path to data dir in file system

@@ -57,6 +57,7 @@ class UnitsDetailsView(MethodView):
 
             inputs = unit_data.get("data", {}).get("inputs") or {}
             outputs = unit_data.get("data", {}).get("outputs") or {}
+            metadata = unit_data.get("metadata", {})
 
             # In case if there is outdated code that returns `final_submission`
             # under `inputs` and `outputs` keys, we should use the value in side `final_submission`
@@ -79,6 +80,7 @@ class UnitsDetailsView(MethodView):
                     "has_task_source_review": has_task_source_review,
                     "id": unit.db_id,
                     "inputs": inputs,  # instructions for worker
+                    "metadata": metadata,
                     "outputs": outputs,  # response from worker
                     "prepared_inputs": prepared_inputs,  # prepared instructions from worker
                     "unit_data_folder": unit_data_folder,  # path to data dir in file system

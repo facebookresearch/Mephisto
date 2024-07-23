@@ -4,6 +4,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { InReviewFileModal } from "components/InReviewFileModal/InReviewFileModal";
+import WorkerOpinion from "components/WorkerOpinion/WorkerOpinion";
 import {
   MESSAGES_IFRAME_DATA_KEY,
   MESSAGES_IN_REVIEW_FILE_DATA_KEY,
@@ -13,7 +15,6 @@ import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
 import { useEffect } from "react";
 import { Button, Spinner } from "react-bootstrap";
-import JSONPretty from "react-json-pretty";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   postQualificationGrantWorker,
@@ -31,13 +32,14 @@ import {
 import { postWorkerBlock } from "requests/workers";
 import urls from "urls";
 import { setPageTitle, updateModalState } from "./helpers";
-import { InReviewFileModal } from "./InReviewFileModal/InReviewFileModal";
+import InitialParameters from "./InitialParameters/InitialParameters";
 import {
   APPROVE_MODAL_DATA_STATE,
   DEFAULT_MODAL_STATE_VALUE,
   REJECT_MODAL_DATA_STATE,
   SOFT_REJECT_MODAL_DATA_STATE,
 } from "./modalData";
+import Results from "./Results/Results";
 import ReviewModal from "./ReviewModal/ReviewModal";
 import TaskHeader from "./TaskHeader/TaskHeader";
 import "./TaskPage.css";
@@ -118,13 +120,23 @@ function TaskPage(props: PropsType) {
   const [resultsVisibility, setResultsVisibility] = React.useState<boolean>(
     null
   );
-
   const [inReviewFileModalShow, setInReviewFileModalShow] = React.useState<
     boolean
   >(false);
   const [inReviewFileModalData, setInReviewFileModalData] = React.useState<
     InReviewFileModalDataType
   >({});
+
+  function getUnitDataFolder(): string {
+    const unitDataFolderStartIndex = currentUnitDetails.unit_data_folder.indexOf(
+      "data/data"
+    );
+    const unitDataFolder = currentUnitDetails.unit_data_folder.slice(
+      unitDataFolderStartIndex
+    );
+
+    return unitDataFolder;
+  }
 
   window.onmessage = function (e) {
     if (
@@ -142,12 +154,7 @@ function TaskPage(props: PropsType) {
       else if (data.hasOwnProperty(MESSAGES_IN_REVIEW_FILE_DATA_KEY)) {
         const fieldname = data[MESSAGES_IN_REVIEW_FILE_DATA_KEY].fieldname;
         const filename = data[MESSAGES_IN_REVIEW_FILE_DATA_KEY].filename;
-        const unitDataFolderStartIndex = currentUnitDetails.unit_data_folder.indexOf(
-          "data/data"
-        );
-        const unitDataFolder = currentUnitDetails.unit_data_folder.slice(
-          unitDataFolderStartIndex
-        );
+        const unitDataFolder = getUnitDataFolder();
 
         setInReviewFileModalData({
           fieldname: fieldname,
@@ -161,9 +168,20 @@ function TaskPage(props: PropsType) {
     }
   };
 
-  const onGetTaskWorkerUnitsIdsSuccess = (
-    workerUnitsIds: WorkerUnitIdType[]
-  ) => {
+  function onClickOnWorkerOpinionAttachment(file: WorkerOpinionAttachmentType) {
+    const unitDataFolder = getUnitDataFolder();
+    setInReviewFileModalData({
+      fieldname: file.fieldname,
+      filename: file.filename,
+      requestByFilename: true,
+      title: file.filename,
+      unitDataFolder: unitDataFolder,
+      unitId: currentUnitOnReview,
+    });
+    setInReviewFileModalShow(true);
+  }
+
+  function onGetTaskWorkerUnitsIdsSuccess(workerUnitsIds: WorkerUnitIdType[]) {
     setWorkerUnits(() => {
       const workerUnitsMap = {};
 
@@ -185,9 +203,9 @@ function TaskPage(props: PropsType) {
 
       return sortedValue;
     });
-  };
+  }
 
-  const onApproveClick = () => {
+  function onApproveClick() {
     const initData = cloneDeep(APPROVE_MODAL_DATA_STATE);
 
     initData.applyToNext = false;
@@ -196,9 +214,9 @@ function TaskPage(props: PropsType) {
 
     setModalShow(true);
     setModalData(initData);
-  };
+  }
 
-  const onSoftRejectClick = () => {
+  function onSoftRejectClick() {
     const initData = cloneDeep(SOFT_REJECT_MODAL_DATA_STATE);
 
     initData.applyToNext = false;
@@ -207,9 +225,9 @@ function TaskPage(props: PropsType) {
 
     setModalShow(true);
     setModalData(initData);
-  };
+  }
 
-  const onRejectClick = () => {
+  function onRejectClick() {
     const initData = cloneDeep(REJECT_MODAL_DATA_STATE);
 
     initData.applyToNext = false;
@@ -218,9 +236,9 @@ function TaskPage(props: PropsType) {
 
     setModalShow(true);
     setModalData(initData);
-  };
+  }
 
-  const setNextUnit = () => {
+  function setNextUnit() {
     let firstWrokerUnits = workerUnits[0];
 
     // If no Workers left (in case if we review multiple Units)
@@ -249,9 +267,9 @@ function TaskPage(props: PropsType) {
 
     const firstUnit = firstWrokerUnits[1].shift();
     setCurrentUnitOnReview(firstUnit);
-  };
+  }
 
-  const onReviewSuccess = (_modalData: ModalDataType, unitIds: string[]) => {
+  function onReviewSuccess(_modalData: ModalDataType, unitIds: string[]) {
     if (_modalData.type === ReviewType.APPROVE) {
       // Grant Qualification
       if (
@@ -324,9 +342,9 @@ function TaskPage(props: PropsType) {
 
     // Try to get next Unit
     setNextUnit();
-  };
+  }
 
-  const getUnitsIdsByApplyToNext = (applyToNext: boolean): string[] => {
+  function getUnitsIdsByApplyToNext(applyToNext: boolean): string[] {
     let unitIds = [currentUnitOnReview];
 
     if (applyToNext) {
@@ -334,9 +352,9 @@ function TaskPage(props: PropsType) {
     }
 
     return unitIds;
-  };
+  }
 
-  const onModalSubmit = () => {
+  function onModalSubmit() {
     setModalShow(false);
 
     const unitIds = getUnitsIdsByApplyToNext(modalData.applyToNext);
@@ -386,17 +404,17 @@ function TaskPage(props: PropsType) {
     // Save current state of the modal data
     updateModalState(setModalState, modalData.type, modalData);
     setIframeLoaded(false);
-  };
+  }
 
-  const onError = (errorResponse: ErrorResponseType | null) => {
+  function onError(errorResponse: ErrorResponseType | null) {
     if (errorResponse) {
       props.setErrors((oldErrors) => [...oldErrors, ...[errorResponse.error]]);
     }
-  };
+  }
 
   // [RECEIVING WIDGET DATA]
   // ---
-  const sendDataToUnitIframe = (data: object) => {
+  function sendDataToUnitIframe(data: object) {
     const reviewData = {
       REVIEW_DATA: {
         inputs: data["prepared_inputs"],
@@ -405,7 +423,7 @@ function TaskPage(props: PropsType) {
     };
     const unitIframe = iframeRef.current;
     unitIframe.contentWindow.postMessage(JSON.stringify(reviewData), "*");
-  };
+  }
   // ---
 
   // Effects
@@ -622,62 +640,30 @@ function TaskPage(props: PropsType) {
         )}
 
         {currentUnitDetails?.inputs && (
-          <>
-            {/* Initial Unit parameters */}
-            <div className={"results"}>
-              <h2
-                className={"results-header"}
-                onClick={() => setInputsVisibility(!inputsVisibility)}
-                title={"Toggle initial Unit parameters data"}
-              >
-                Initial Parameters
-                <i className={"results-icon"}>
-                  {inputsVisibility ? <>&#x25BE;</> : <>&#x25B8;</>}
-                </i>
-              </h2>
+          // Initial Unit parameters
+          <InitialParameters
+            data={currentUnitDetails.inputs}
+            open={inputsVisibility}
+            isJSON={unitInputsIsJSON}
+          />
+        )}
 
-              <div className={`${inputsVisibility ? "" : "results-closed"}`}>
-                {unitInputsIsJSON ? (
-                  <JSONPretty
-                    className={"json-pretty"}
-                    data={currentUnitDetails.inputs}
-                    space={4}
-                  />
-                ) : (
-                  <div>{JSON.stringify(currentUnitDetails.inputs)}</div>
-                )}
-              </div>
-            </div>
-          </>
+        {currentUnitDetails?.metadata?.worker_opinion && (
+          // Worker Opinion about Unit
+          <WorkerOpinion
+            data={currentUnitDetails?.metadata?.worker_opinion}
+            onClickOnAttachment={onClickOnWorkerOpinionAttachment}
+          />
         )}
 
         {currentUnitDetails?.outputs && (
           <>
             {/* Results */}
-            <div className={"results"}>
-              <h2
-                className={"results-header"}
-                onClick={() => setResultsVisibility(!resultsVisibility)}
-                title={"Toggle Unit results data"}
-              >
-                Results
-                <i className={"results-icon"}>
-                  {resultsVisibility ? <>&#x25BE;</> : <>&#x25B8;</>}
-                </i>
-              </h2>
-
-              <div className={`${resultsVisibility ? "" : "results-closed"}`}>
-                {unitResultsIsJSON ? (
-                  <JSONPretty
-                    className={"json-pretty"}
-                    data={currentUnitDetails.outputs}
-                    space={4}
-                  />
-                ) : (
-                  <div>{JSON.stringify(currentUnitDetails.outputs)}</div>
-                )}
-              </div>
-            </div>
+            <Results
+              data={currentUnitDetails.outputs}
+              open={resultsVisibility}
+              isJSON={unitResultsIsJSON}
+            />
 
             {/* Completed Unit preview */}
             <div
@@ -700,6 +686,7 @@ function TaskPage(props: PropsType) {
         )}
       </div>
 
+      {/* Approve, reject or soft-reject modal */}
       <ReviewModal
         show={modalShow}
         setShow={setModalShow}
@@ -710,6 +697,7 @@ function TaskPage(props: PropsType) {
         workerId={currentWorkerOnReview}
       />
 
+      {/* Modal to show preview of file fields */}
       <InReviewFileModal
         show={inReviewFileModalShow}
         setShow={setInReviewFileModalShow}

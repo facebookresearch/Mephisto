@@ -4,7 +4,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-.task-charts {
+.task-timeline {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -12,20 +12,20 @@
   flex-direction: column;
 }
 
-.task-charts .header {
+.task-timeline .header {
   padding: 10px 20px;
   background-color: #ecdadf;
 }
 
-.task-charts .header .task-name {
+.task-timeline .header .task-name {
   font-size: 25px;
 }
 
-.task-charts .content {
+.task-timeline .content {
   padding: 10px 20px;
 }
 
-.task-charts .loading {
+.task-timeline .loading {
   width: 100%;
   height: 100px;
   display: flex;

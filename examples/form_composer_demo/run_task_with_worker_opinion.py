@@ -8,12 +8,20 @@ import os
 
 from omegaconf import DictConfig
 
-from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
-    SharedStaticTaskState,
-)
 from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import build_custom_bundle
 from mephisto.tools.scripts import task_script
+
+
+@task_script(default_config_file="example_local_mock")
+def main(operator: Operator, cfg: DictConfig) -> None:
+    os.environ["REACT_APP__WITH_WORKER_OPINION"] = "true"
+
+    # Build packages
+    _build_custom_bundles(cfg)
+
+    operator.launch_task_run(cfg.mephisto)
+    operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 
 def _build_custom_bundles(cfg: DictConfig) -> None:
@@ -40,33 +48,29 @@ def _build_custom_bundles(cfg: DictConfig) -> None:
         build_command="build",
     )
 
+    # Build `react-form-composer` React package
+    build_custom_bundle(
+        mephisto_packages_dir,
+        force_rebuild=cfg.mephisto.task.force_rebuild,
+        webapp_name="react-form-composer",
+        build_command="build",
+    )
+
+    # Build Review UI for the application
+    build_custom_bundle(
+        cfg.task_dir,
+        force_rebuild=cfg.mephisto.task.force_rebuild,
+        webapp_name="webapp",
+        build_command="build:simple:review",
+    )
+
     # Build Task UI for the application
     build_custom_bundle(
         cfg.task_dir,
         force_rebuild=cfg.mephisto.task.force_rebuild,
         post_install_script=cfg.mephisto.task.post_install_script,
-        build_command="dev",
+        build_command="dev:simple",
     )
-
-
-@task_script(default_config_file="example_local_mock")
-def main(operator: Operator, cfg: DictConfig) -> None:
-    # Build packages
-    _build_custom_bundles(cfg)
-
-    def onboarding_always_valid(onboarding_data):
-        return True
-
-    shared_state = SharedStaticTaskState(
-        static_task_data=[
-            {"text": "This text is good text!"},
-            {"text": "This text is bad text!"},
-        ],
-        validate_onboarding=onboarding_always_valid,
-    )
-
-    operator.launch_task_run(cfg.mephisto, shared_state)
-    operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 
 if __name__ == "__main__":

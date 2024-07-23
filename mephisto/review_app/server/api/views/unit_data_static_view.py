@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import itertools
 from typing import Optional
 from typing import Union
 
@@ -27,7 +28,8 @@ class UnitDataStaticView(MethodView):
             # under `outputs` key, we should use the value in side `final_submission`
             if "final_submission" in outputs:
                 outputs = outputs["final_submission"]
-            files_data = outputs.get("files", [])
+            files_by_fields = outputs.get("filesByFields", {}).values()
+            files_data = list(itertools.chain.from_iterable(files_by_fields))
 
             for file_data in files_data:
                 original_filename = file_data.get("originalname")

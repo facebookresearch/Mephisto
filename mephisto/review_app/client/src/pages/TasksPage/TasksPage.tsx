@@ -4,6 +4,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import TasksHeader from "components/TasksHeader/TasksHeader";
 import * as moment from "moment/moment";
 import * as React from "react";
 import { useEffect } from "react";
@@ -11,7 +12,6 @@ import { Spinner, Table } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { exportTaskResults, getTasks } from "requests/tasks";
 import urls from "urls";
-import TasksHeader from "./TasksHeader/TasksHeader";
 import "./TasksPage.css";
 
 const STORAGE_TASK_ID_KEY: string = "selectedTaskID";
@@ -103,8 +103,11 @@ function TasksPage(props: PropsType) {
             <th className={"title stats"}>
               <b>Stats</b>
             </th>
-            <th className={"title charts"}>
-              <b>Charts</b>
+            <th className={"title timeline"}>
+              <b>Timeline</b>
+            </th>
+            <th className={"title worker-opinions"}>
+              <b>Worker Opinions</b>
             </th>
             <th className={"title export"}>
               <b>Export results</b>
@@ -146,12 +149,20 @@ function TasksPage(props: PropsType) {
                       </Link>
                     )}
                   </td>
-                  <td className={"charts"}>
+                  <td className={"timeline"}>
                     <Link
-                      to={urls.client.taskCharts(task.id)}
+                      to={urls.client.taskTimeline(task.id)}
                       target={"_blank"}
                     >
-                      Open
+                      Show
+                    </Link>
+                  </td>
+                  <td className={"worker-opinions"}>
+                    <Link
+                      to={urls.client.taskWorkerOpinions(task.id)}
+                      target={"_blank"}
+                    >
+                      Show
                     </Link>
                   </td>
                   <td className={"export"}>
