@@ -314,6 +314,19 @@ class _AgentBase(ABC):
                         property_name="feedback", property_value=copy_of_feedback
                     )
 
+        elif "behaviors" in data:
+            for behavior in data["behaviors"]["data"]:
+                if self.state.metadata.behaviors is None:
+                    self.state.update_metadata(
+                        property_name="behaviors", property_value=[behavior]
+                    )
+                else:
+                    copy_of_behaviors = self.state.metadata.behaviors.copy()
+                    copy_of_behaviors.append(behavior)
+                    self.state.update_metadata(
+                        property_name="behaviors", property_value=copy_of_behaviors
+                    )
+
     def shutdown(self) -> None:
         """
         Force the given agent to end any polling threads and throw an AgentShutdownError
