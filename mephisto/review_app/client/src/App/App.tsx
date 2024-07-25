@@ -16,7 +16,7 @@ import TaskWorkerOpinionsPage from "pages/TaskWorkerOpinionsPage/TaskWorkerOpini
 import * as React from "react";
 import { Route, Routes } from "react-router-dom";
 import urls from "urls";
-import css from "./App.css"
+import css from "./App.css";
 
 function App() {
   const [errors, setErrors] = React.useState<string[]>([]);

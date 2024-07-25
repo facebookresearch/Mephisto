@@ -5,7 +5,6 @@
  */
 
 .worker-opinion .questions {
-  border-top: 1px solid #ccc;
   padding-top: 15px;
   white-space: pre !important;
 }

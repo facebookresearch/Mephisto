@@ -12,8 +12,8 @@ from urllib.parse import urljoin
 
 import requests
 
+from mephisto.utils import http_status
 from mephisto.utils.logger_core import get_logger
-from . import status
 from .exceptions import ProlificAPIKeyError
 from .exceptions import ProlificAuthenticationError
 from .exceptions import ProlificException
@@ -94,7 +94,7 @@ class BaseAPIResource(object):
                 raise ProlificException("Invalid HTTP method.")
 
             response.raise_for_status()
-            if response.status_code == status.HTTP_204_NO_CONTENT and not response.content:
+            if response.status_code == http_status.HTTP_204_NO_CONTENT and not response.content:
                 result = None
             else:
                 result = response.json()
@@ -109,7 +109,7 @@ class BaseAPIResource(object):
 
         except requests.exceptions.HTTPError as err:
             logger.error(f"{log_prefix} Request error: {err}. Response text: `{err.response.text}`")
-            if err.response.status_code == status.HTTP_401_UNAUTHORIZED:
+            if err.response.status_code == http_status.HTTP_401_UNAUTHORIZED:
                 raise ProlificAuthenticationError
 
             message = err.args[0]

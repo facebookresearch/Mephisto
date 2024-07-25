@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from flask import url_for
 
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.review_app.server.api.views.task_export_results_view import get_result_file_path
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit
@@ -51,7 +51,7 @@ class TestTaskExportResultsView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(result, {"file_created": True})
         self.assertEqual(response.mimetype, "application/json")
 
@@ -60,7 +60,7 @@ class TestTaskExportResultsView(BaseTestApiViewCase):
             url = url_for("task_export_results", task_id=999)
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, http_status.HTTP_404_NOT_FOUND)
 
     def test_task_export_result_not_reviews_error(self, *args, **kwargs):
         unit_id = get_test_unit(self.db)
@@ -72,7 +72,7 @@ class TestTaskExportResultsView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, http_status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             result["error"],
             (

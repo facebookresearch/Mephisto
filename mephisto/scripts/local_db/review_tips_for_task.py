@@ -16,23 +16,29 @@ Rejecting a tip deletes the tip from the tips list in the AgentState's metadata.
 It also removed the row in the assets/tips.csv file in your task's directory.
 """
 import csv
+import enum
+import warnings
 from genericpath import exists
 from pathlib import Path
-from typing import Any, List, Dict, Optional
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+
+from rich import box
+from rich import print
+from rich.prompt import FloatPrompt
+from rich.prompt import Prompt
+from rich.table import Table
+
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
-from rich import print
-from rich import box
-from rich.prompt import Prompt
-from rich.prompt import FloatPrompt
-from rich.table import Table
 from mephisto.tools.scripts import print_out_task_names
 from mephisto.utils.rich import console
-import enum
 
 
 class TipsReviewType(enum.Enum):
@@ -41,14 +47,14 @@ class TipsReviewType(enum.Enum):
     SKIP = "s"
 
 
-def get_index_of_value(lst: List[str], property: str) -> int:
+def get_index_of_value(lst: List[str], _property: str) -> int:
     for i in range(len(lst)):
-        if lst[i] == property:
+        if lst[i] == _property:
             return i
     return 0
 
 
-def add_row_to_tips_file(task_run: TaskRun, item_to_add: Dict[str, Any]):
+def _add_row_to_tips_file(task_run: TaskRun, item_to_add: Dict[str, Any]):
     """Adds a row the tips csv file"""
     blueprint_task_run_args = task_run.args["blueprint"]
     if "tips_location" in blueprint_task_run_args:
@@ -89,7 +95,7 @@ def remove_tip_from_metadata(
         quit()
 
 
-def accept_tip(tips: List, tips_copy: List, i: int, unit: Unit) -> None:
+def _accept_tip(tips: List, tips_copy: List, i: int, unit: Unit) -> None:
     """Accepts a tip in metadata"""
     tips_id = [tip_obj["id"] for tip_obj in tips_copy]
     # gets the index of the tip in the tip_copy list
@@ -98,11 +104,13 @@ def accept_tip(tips: List, tips_copy: List, i: int, unit: Unit) -> None:
 
     if assigned_agent is not None:
         tips_copy[index_to_update]["accepted"] = True
-        add_row_to_tips_file(unit.get_task_run(), tips_copy[index_to_update])
+        _add_row_to_tips_file(unit.get_task_run(), tips_copy[index_to_update])
         assigned_agent.state.update_metadata(property_name="tips", property_value=tips_copy)
 
 
 def main():
+    warnings.warn("No longer supported.", DeprecationWarning)
+
     db = LocalMephistoDB()
     mephisto_data_browser = MephistoDataBrowser(db)
     task_names = mephisto_data_browser.get_task_name_list()
@@ -157,7 +165,7 @@ def main():
                         print("")
                         if tip_response == TipsReviewType.ACCEPTED.value:
                             # persists the tip in the db as it is accepted
-                            accept_tip(tips, tips_copy, i, unit)
+                            _accept_tip(tips, tips_copy, i, unit)
                             print("[green]Tip Accepted[/green]")
                             # given the option to pay a bonus to the worker who wrote the tip
                             bonus = FloatPrompt.ask(

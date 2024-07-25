@@ -5,7 +5,7 @@
  */
 
 import { InReviewFileModal } from "components/InReviewFileModal/InReviewFileModal";
-import WorkerOpinion from "components/WorkerOpinion/WorkerOpinion";
+import WorkerOpinionCollapsable from "components/WorkerOpinionCollapsable/WorkerOpinionCollapsable";
 import {
   MESSAGES_IFRAME_DATA_KEY,
   MESSAGES_IN_REVIEW_FILE_DATA_KEY,
@@ -32,14 +32,14 @@ import {
 import { postWorkerBlock } from "requests/workers";
 import urls from "urls";
 import { setPageTitle, updateModalState } from "./helpers";
-import InitialParameters from "./InitialParameters/InitialParameters";
+import InitialParametersCollapsable from "./InitialParametersCollapsable/InitialParametersCollapsable";
 import {
   APPROVE_MODAL_DATA_STATE,
   DEFAULT_MODAL_STATE_VALUE,
   REJECT_MODAL_DATA_STATE,
   SOFT_REJECT_MODAL_DATA_STATE,
 } from "./modalData";
-import Results from "./Results/Results";
+import ResultsCollapsable from "./ResultsCollapsable/ResultsCollapsable";
 import ReviewModal from "./ReviewModal/ReviewModal";
 import TaskHeader from "./TaskHeader/TaskHeader";
 import "./TaskPage.css";
@@ -641,7 +641,7 @@ function TaskPage(props: PropsType) {
 
         {currentUnitDetails?.inputs && (
           // Initial Unit parameters
-          <InitialParameters
+          <InitialParametersCollapsable
             data={currentUnitDetails.inputs}
             open={inputsVisibility}
             isJSON={unitInputsIsJSON}
@@ -650,7 +650,7 @@ function TaskPage(props: PropsType) {
 
         {currentUnitDetails?.metadata?.worker_opinion && (
           // Worker Opinion about Unit
-          <WorkerOpinion
+          <WorkerOpinionCollapsable
             data={currentUnitDetails?.metadata?.worker_opinion}
             onClickOnAttachment={onClickOnWorkerOpinionAttachment}
           />
@@ -659,7 +659,7 @@ function TaskPage(props: PropsType) {
         {currentUnitDetails?.outputs && (
           <>
             {/* Results */}
-            <Results
+            <ResultsCollapsable
               data={currentUnitDetails.outputs}
               open={resultsVisibility}
               isJSON={unitResultsIsJSON}

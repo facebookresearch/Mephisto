@@ -38,16 +38,43 @@
   font-size: 18px;
 }
 
-
 .task-worker-opinions .content .task-worker-opinion .task-worker-opinion-title {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.task-worker-opinions
+  .content
+  .task-worker-opinion
+  .task-worker-opinion-title
+  .task-worker-opinion-title-id {
   font-size: 18px;
+}
+
+.task-worker-opinions
+  .content
+  .task-worker-opinion
+  .task-worker-opinion-title
+  .task-worker-opinion-title-id
+  .task-worker-opinion-title-id-value {
+  margin-left: 6px;
+  color: #aaaaaa;
 }
 
 .task-worker-opinions .content .task-worker-opinion .collapsable-block-icon {
   font-size: 32px;
 }
 
-.task-worker-opinions .content .task-worker-opinion .questions {
+.task-worker-opinions .content .task-worker-opinion .collapsable-block-content {
+  padding-left: 40px;
+}
+
+.task-worker-opinions
+  .content
+  .task-worker-opinion
+  .collapsable-block-content
+  .questions {
   margin-top: 5px;
 }
 

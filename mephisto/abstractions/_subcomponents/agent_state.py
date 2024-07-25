@@ -6,6 +6,7 @@
 
 import os.path
 import time
+import warnings
 import weakref
 from abc import ABC
 from abc import abstractmethod
@@ -329,12 +330,14 @@ class AgentState(ABC):
         """
         Return the tips for this task, if it is available
         """
+        warnings.warn("No longer supported.", DeprecationWarning)
         return self.metadata.tips
 
     def get_feedback(self) -> Optional[List[Dict[str, Any]]]:
         """
         Return the tips for this task, if it is available
         """
+        warnings.warn("No longer supported.", DeprecationWarning)
         return self.metadata.feedback
 
     def get_worker_opinion(self) -> Optional[List[Dict[str, Any]]]:

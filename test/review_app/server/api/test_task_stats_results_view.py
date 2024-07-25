@@ -10,7 +10,7 @@ from unittest.mock import patch
 from flask import url_for
 from omegaconf import OmegaConf
 
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRunArgs
 from mephisto.data_model.unit import Unit
@@ -45,7 +45,7 @@ class TestTaskStatsResultsView(BaseTestApiViewCase):
             url = url_for("task_stats_results", task_id=999)
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, http_status.HTTP_404_NOT_FOUND)
 
     def test_task_stats_result_not_reviews_error(self, *args, **kwargs):
         _, task_id = get_test_task(self.db)
@@ -55,7 +55,7 @@ class TestTaskStatsResultsView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, http_status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             result["error"],
             "This task has never been launched before.",
@@ -72,7 +72,7 @@ class TestTaskStatsResultsView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, http_status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             result["error"],
             "Statistics for tasks of this type are not yet supported.",
@@ -101,7 +101,7 @@ class TestTaskStatsResultsView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(result, expected_value)
 
 

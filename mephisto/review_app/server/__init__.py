@@ -20,7 +20,7 @@ from werkzeug.exceptions import HTTPException as WerkzeugHTTPException
 from werkzeug.utils import import_string
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.abstractions.providers.prolific.api.exceptions import ProlificException
 from mephisto.tools.data_browser import DataBrowser
 from mephisto.utils.db import EntryDoesNotExistException
@@ -96,7 +96,7 @@ def create_app(debug: bool = False, database_path: Optional[str] = None) -> Flas
                         "error": e.message,
                     }
                 ),
-                status.HTTP_400_BAD_REQUEST,
+                http_status.HTTP_400_BAD_REQUEST,
             )
 
         elif isinstance(e, EntryDoesNotExistException):
@@ -106,7 +106,7 @@ def create_app(debug: bool = False, database_path: Optional[str] = None) -> Flas
                         "error": "Not found",
                     }
                 ),
-                status.HTTP_404_NOT_FOUND,
+                http_status.HTTP_404_NOT_FOUND,
             )
 
         # Other uncaught exceptions
@@ -117,7 +117,7 @@ def create_app(debug: bool = False, database_path: Optional[str] = None) -> Flas
                     "error": f"Server error: {e}",
                 }
             ),
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            http_status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
     return app

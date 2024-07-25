@@ -8,7 +8,7 @@ import unittest
 
 from flask import url_for
 
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.utils.testing import get_test_qualification
 from test.review_app.server.api.base_test_api_view_case import BaseTestApiViewCase
 
@@ -22,7 +22,7 @@ class TestQualificationsView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(len(result["qualifications"]), 1)
         self.assertEqual(result["qualifications"][0]["id"], qualification_id)
 
@@ -32,7 +32,7 @@ class TestQualificationsView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(len(result["qualifications"]), 0)
 
     def test_qualification_create_success(self, *args, **kwargs):
@@ -43,7 +43,7 @@ class TestQualificationsView(BaseTestApiViewCase):
             response = self.client.post(url, json={"name": qualification_name})
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(result["name"], qualification_name)
         self.assertTrue("id" in result)
 
@@ -53,7 +53,7 @@ class TestQualificationsView(BaseTestApiViewCase):
             response = self.client.post(url, json={})
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, http_status.HTTP_400_BAD_REQUEST)
         self.assertEqual(result["error"], 'Field "name" is required.')
 
     def test_qualification_create_already_exists_error(self, *args, **kwargs):
@@ -65,7 +65,7 @@ class TestQualificationsView(BaseTestApiViewCase):
             response = self.client.post(url, json={"name": qualification_name})
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, http_status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             result["error"],
             f'Qualification with name "{qualification_name}" already exists.',

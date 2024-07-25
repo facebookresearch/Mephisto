@@ -82,7 +82,8 @@ class DataBrowser:
         task_run = TaskRun.get(self.db, run_id)
         return self._get_units_for_task_runs([task_run])
 
-    def get_data_from_unit(self, unit: Unit) -> Dict[str, Any]:
+    @staticmethod
+    def get_data_from_unit(unit: Unit) -> Dict[str, Any]:
         """
         Return a dict containing all data associated with the given
         unit, including its status, data, and start and end time.

@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import warnings
 from uuid import uuid4
 
 from mephisto.abstractions._subcomponents.agent_state import AgentState
@@ -39,6 +40,7 @@ def _save_metadata_without_transforming(data: dict, state: AgentState):
 
 def _save_tips(data: dict, state: AgentState):
     """Handles the metadata submission of a tip"""
+    warnings.warn("No longer supported.", DeprecationWarning)
 
     tips_property_name = "tips"
 
@@ -67,6 +69,7 @@ def _save_tips(data: dict, state: AgentState):
 
 def _save_feedback(data: dict, state: AgentState):
     """Handles the metadata submission of a feedback"""
+    warnings.warn("No longer supported.", DeprecationWarning)
 
     feedback_property_name = "feedback"
 

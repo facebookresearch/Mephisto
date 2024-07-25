@@ -9,7 +9,7 @@ import unittest
 from flask import url_for
 
 from mephisto.abstractions._subcomponents.agent_state import AgentState
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit
 from mephisto.utils.testing import get_test_qualification
@@ -35,7 +35,7 @@ class TestStatsView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(
             result["stats"],
             {

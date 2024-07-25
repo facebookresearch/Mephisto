@@ -67,7 +67,5 @@ module.exports = {
       },
     ],
   },
-  plugins: [
-    new webpack.EnvironmentPlugin({ ...process.env })
-  ]
+  plugins: [new webpack.EnvironmentPlugin({ ...process.env })],
 };

@@ -6,32 +6,27 @@
 
 import CollapsableBlock from "components/CollapsableBlock/CollapsableBlock";
 import * as React from "react";
-import JSONPretty from 'react-json-pretty';
-import "./InitialParameters.css";
+import JSONPretty from "react-json-pretty";
+import "./ResultsCollapsable.css";
 
-
-type InitialParametersPropsType = {
+type ResultsCollapsablePropsType = {
   data: object;
   open?: boolean;
   isJSON: boolean;
 };
 
-function InitialParameters(props: InitialParametersPropsType) {
+function ResultsCollapsable(props: ResultsCollapsablePropsType) {
   const { data, open, isJSON } = props;
 
   return (
     <CollapsableBlock
-      className={"initial-parameters"}
+      className={"results"}
       open={open}
-      title={"Initial Parameters"}
-      tooltip={"Toggle initial Unit parameters data"}
+      title={"Results"}
+      tooltip={"Toggle Unit results data"}
     >
       {isJSON ? (
-        <JSONPretty
-          className={"json-pretty"}
-          data={data}
-          space={4}
-        />
+        <JSONPretty className={"json-pretty"} data={data} space={4} />
       ) : (
         <div>{JSON.stringify(data)}</div>
       )}
@@ -39,4 +34,4 @@ function InitialParameters(props: InitialParametersPropsType) {
   );
 }
 
-export default InitialParameters;
+export default ResultsCollapsable;

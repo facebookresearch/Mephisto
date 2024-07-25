@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from flask import url_for
 
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.data_model.agent import Agent
 from mephisto.utils.testing import get_test_agent
 from mephisto.utils.testing import get_test_unit
@@ -24,7 +24,7 @@ class TestUnitDataStaticView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, http_status.HTTP_404_NOT_FOUND)
         self.assertEqual(result["error"], "File not found")
 
     @patch("mephisto.data_model.unit.Unit.get_assigned_agent")
@@ -44,7 +44,7 @@ class TestUnitDataStaticView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, http_status.HTTP_404_NOT_FOUND)
         self.assertEqual(
             result["error"],
             "The requested URL was not found on the server. "
@@ -76,7 +76,7 @@ class TestUnitDataStaticView(BaseTestApiViewCase):
             url = url_for("unit_data_static", unit_id=unit_id, filename=filename_from_fs)
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(response.mimetype, "text/plain")
         self.assertEqual(response.data, b"")
 
@@ -108,12 +108,14 @@ class TestUnitDataStaticView(BaseTestApiViewCase):
         mock_get_parsed_data.return_value = {
             "inputs": {},
             "outputs": {
-                "files": [
-                    {
-                        "originalname": filename_original_name,
-                        "filename": filename_from_fs,
-                    },
-                ],
+                "filesByFields": {
+                    "files": [
+                        {
+                            "originalname": filename_original_name,
+                            "filename": filename_from_fs,
+                        },
+                    ],
+                },
             },
         }
 
@@ -121,7 +123,7 @@ class TestUnitDataStaticView(BaseTestApiViewCase):
             url = url_for("unit_data_static", unit_id=unit_id, filename=filename_original_name)
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(response.mimetype, "text/plain")
         self.assertEqual(response.data, b"")
 

@@ -37,15 +37,17 @@ class TaskWorkerOpinionsView(MethodView):
                 agent = unit.get_assigned_agent()
                 unit_data_folder = agent.get_data_dir() if agent else None
 
-                worker_opinions.append({
-                    "worker_id": unit.worker_id,
-                    "unit_data_folder": unit_data_folder,
-                    "unit_id": unit.db_id,
-                    "data": {
-                        "attachments": worker_opinion["attachments"],
-                        "questions": worker_opinion["questions"],
-                    },
-                })
+                worker_opinions.append(
+                    {
+                        "worker_id": unit.worker_id,
+                        "unit_data_folder": unit_data_folder,
+                        "unit_id": unit.db_id,
+                        "data": {
+                            "attachments": worker_opinion["attachments"],
+                            "questions": worker_opinion["questions"],
+                        },
+                    }
+                )
 
         return {
             "task_name": task.task_name,

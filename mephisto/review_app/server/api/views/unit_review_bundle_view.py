@@ -14,7 +14,7 @@ from flask import send_file
 from flask.views import MethodView
 from omegaconf.errors import ConfigKeyError
 
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.unit import Unit
 
@@ -44,7 +44,7 @@ class UnitReviewBundleView(MethodView):
                         ),
                     }
                 ),
-                status=status.HTTP_404_NOT_FOUND,
+                status=http_status.HTTP_404_NOT_FOUND,
                 mimetype="application/json",
             )
 

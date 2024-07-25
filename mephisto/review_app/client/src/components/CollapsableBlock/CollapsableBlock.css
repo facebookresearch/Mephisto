@@ -29,6 +29,10 @@
   line-height: 0.5;
 }
 
-.collapsable-block .collapsable-block-closed {
+.collapsable-block .collapsable-block-separator {
+  margin: 5px 0 0;
+}
+
+.collapsable-block .collapsable-block-content.collapsable-block-closed {
   display: none;
 }

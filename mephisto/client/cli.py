@@ -119,7 +119,6 @@ def register_provider(args):
             provider_text += "\n* " + provider
         provider_text_markdown = Markdown(provider_text)
         console.print(provider_text_markdown)
-        logger.info("")
         return
 
     from mephisto.abstractions.databases.local_database import LocalMephistoDB

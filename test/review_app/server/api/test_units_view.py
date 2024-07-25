@@ -8,7 +8,7 @@ import unittest
 
 from flask import url_for
 
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit
 from mephisto.utils.testing import get_test_unit
@@ -22,7 +22,7 @@ class TestUnitsView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, http_status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             result["error"],
             "At least one of `task_id` or `unit_ids` parameters must be specified.",
@@ -34,7 +34,7 @@ class TestUnitsView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, http_status.HTTP_404_NOT_FOUND)
         self.assertEqual(result["error"], "Not found")
 
     def test_one_unit_with_task_id_success(self, *args, **kwargs):
@@ -50,7 +50,7 @@ class TestUnitsView(BaseTestApiViewCase):
 
         first_response_unit = result["units"][0]
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(len(result["units"]), 1)
 
         self.assertEqual(first_response_unit["id"], unit_id)
@@ -95,7 +95,7 @@ class TestUnitsView(BaseTestApiViewCase):
             result = response.json
 
         first_response_unit = result["units"][0]
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(len(result["units"]), 1)
         self.assertEqual(first_response_unit["id"], unit_1_id)
 
@@ -125,7 +125,7 @@ class TestUnitsView(BaseTestApiViewCase):
 
         first_response_unit = result["units"][0]
         second_response_unit = result["units"][1]
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(len(result["units"]), 2)
         self.assertEqual(first_response_unit["id"], unit_1_id)
         self.assertEqual(second_response_unit["id"], unit_2_id)

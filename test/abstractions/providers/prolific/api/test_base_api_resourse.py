@@ -13,7 +13,7 @@ import pytest
 from requests import Response
 from requests.exceptions import HTTPError
 
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.abstractions.providers.prolific.api.base_api_resource import BaseAPIResource
 from mephisto.abstractions.providers.prolific.api.base_api_resource import HTTPMethod
 from mephisto.abstractions.providers.prolific.api.exceptions import ProlificAPIKeyError
@@ -46,7 +46,7 @@ class TestBaseAPIResource(unittest.TestCase):
 
         mock_response = Response()
         mock_response.raise_for_status = lambda: None
-        mock_response.status_code = status.HTTP_200_OK
+        mock_response.status_code = http_status.HTTP_200_OK
         mock_response._content = content
 
         mock_requests_get.return_value = mock_response
@@ -80,7 +80,7 @@ class TestBaseAPIResource(unittest.TestCase):
 
         mock_response = Response()
         mock_response.raise_for_status = lambda: None
-        mock_response.status_code = status.HTTP_204_NO_CONTENT
+        mock_response.status_code = http_status.HTTP_204_NO_CONTENT
         mock_response._content = content
 
         mock_requests_get.return_value = mock_response
@@ -160,7 +160,7 @@ class TestBaseAPIResource(unittest.TestCase):
 
         mock_response = Response()
         mock_response.raise_for_status = lambda: None
-        mock_response.status_code = status.HTTP_204_NO_CONTENT
+        mock_response.status_code = http_status.HTTP_204_NO_CONTENT
         mock_response._content = content
 
         error_message = "Error"
@@ -199,7 +199,7 @@ class TestBaseAPIResource(unittest.TestCase):
 
         mock_response = Response()
         mock_response.raise_for_status = lambda: None
-        mock_response.status_code = status.HTTP_401_UNAUTHORIZED
+        mock_response.status_code = http_status.HTTP_401_UNAUTHORIZED
         mock_response._content = content
 
         error_message = "Error"
@@ -268,7 +268,7 @@ class TestBaseAPIResource(unittest.TestCase):
 
         mock_response = Response()
         mock_response.raise_for_status = lambda: None
-        mock_response.status_code = status.HTTP_200_OK
+        mock_response.status_code = http_status.HTTP_200_OK
         mock_response._content = content
 
         mock_requests_get.return_value = mock_response
@@ -293,7 +293,7 @@ class TestBaseAPIResource(unittest.TestCase):
 
         mock_response = Response()
         mock_response.raise_for_status = lambda: None
-        mock_response.status_code = status.HTTP_200_OK
+        mock_response.status_code = http_status.HTTP_200_OK
         mock_response._content = content
 
         mock_requests_post.return_value = mock_response
@@ -318,7 +318,7 @@ class TestBaseAPIResource(unittest.TestCase):
 
         mock_response = Response()
         mock_response.raise_for_status = lambda: None
-        mock_response.status_code = status.HTTP_200_OK
+        mock_response.status_code = http_status.HTTP_200_OK
         mock_response._content = content
 
         mock_requests_patch.return_value = mock_response
@@ -343,7 +343,7 @@ class TestBaseAPIResource(unittest.TestCase):
 
         mock_response = Response()
         mock_response.raise_for_status = lambda: None
-        mock_response.status_code = status.HTTP_200_OK
+        mock_response.status_code = http_status.HTTP_200_OK
         mock_response._content = content
 
         mock_requests_delete.return_value = mock_response

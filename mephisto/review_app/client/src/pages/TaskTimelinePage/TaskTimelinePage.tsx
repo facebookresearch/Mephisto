@@ -24,7 +24,9 @@ interface TaskTimelinePagePropsType {
 function TaskTimelinePage(props: TaskTimelinePagePropsType) {
   const params = useParams<ParamsType>();
 
-  const [taskTimeline, setTaskTimeline] = React.useState<TaskTimelineType>(null);
+  const [taskTimeline, setTaskTimeline] = React.useState<TaskTimelineType>(
+    null
+  );
   const [loading, setLoading] = React.useState(false);
 
   function onError(errorResponse: ErrorResponseType | null) {

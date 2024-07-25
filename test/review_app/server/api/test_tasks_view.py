@@ -8,7 +8,7 @@ import unittest
 
 from flask import url_for
 
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.utils.testing import get_test_task
 from test.review_app.server.api.base_test_api_view_case import BaseTestApiViewCase
 
@@ -20,7 +20,7 @@ class TestTasksView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(result["tasks"], [])
 
     def test_one_task_success(self, *args, **kwargs):
@@ -32,7 +32,7 @@ class TestTasksView(BaseTestApiViewCase):
             result = response.json
 
         first_response_task = result["tasks"][0]
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(len(result["tasks"]), 1)
         self.assertEqual(first_response_task["id"], task_id)
         self.assertEqual(first_response_task["name"], task_name)

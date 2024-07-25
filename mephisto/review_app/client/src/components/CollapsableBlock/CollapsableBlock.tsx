@@ -4,10 +4,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { useEffect } from 'react';
+import { useEffect } from "react";
 import * as React from "react";
 import "./CollapsableBlock.css";
-
 
 type CollapsableBlockPropsType = {
   children: any;
@@ -42,7 +41,14 @@ function CollapsableBlock(props: CollapsableBlockPropsType) {
           </i>
         </div>
 
-        <div className={`${openContent ? "" : "collapsable-block-closed"}`}>
+        {openContent && <hr className={"collapsable-block-separator"} />}
+
+        <div
+          className={`
+            collapsable-block-content
+            ${openContent ? "" : "collapsable-block-closed"}
+          `}
+        >
           {children}
         </div>
       </div>

@@ -17,19 +17,25 @@ unreviewed feedback and give you the option to mark the feedback as reviewed.
 """
 
 import enum
-from typing import Any, Dict, List
+import warnings
+from typing import Any
+from typing import Dict
+from typing import List
+
+from rich import box
+from rich import print
+from rich.markdown import Markdown
+from rich.prompt import IntPrompt
+from rich.prompt import Prompt
+from rich.table import Table
+
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.unit import Unit
 from mephisto.scripts.local_db.review_tips_for_task import get_index_of_value
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
-from rich import print
-from rich.markdown import Markdown
-from rich.prompt import Prompt, IntPrompt
 from mephisto.tools.scripts import print_out_task_names
 from mephisto.utils.rich import console
-from rich.table import Table
-from rich import box
 
 yes_response = set(["yes", "y", "YES", "Yes"])
 
@@ -41,7 +47,7 @@ class FeedbackReviewType(enum.Enum):
     UNREVIEWED = "u"
 
 
-def set_feedback_as_reviewed(feedback: List, id: str, unit: Unit) -> None:
+def _set_feedback_as_reviewed(feedback: List, id: str, unit: Unit) -> None:
     """Sets the reviewed property of a feedback to true"""
     assigned_agent = unit.get_assigned_agent()
     feedback_ids = [feedback_obj["id"] for feedback_obj in feedback]
@@ -51,7 +57,7 @@ def set_feedback_as_reviewed(feedback: List, id: str, unit: Unit) -> None:
         assigned_agent.state.update_metadata(property_name="feedback", property_value=feedback)
 
 
-def print_out_reviewed_feedback_elements(
+def _print_out_reviewed_feedback_elements(
     filtered_feedback_list: List[Dict[str, Any]], agent: Agent
 ) -> None:
     if agent is not None:
@@ -78,7 +84,7 @@ def print_out_reviewed_feedback_elements(
         console.print(feedback_table)
 
 
-def print_out_unreviewed_feedback_elements(
+def _print_out_unreviewed_feedback_elements(
     filtered_feedback_list: List[Dict[str, Any]],
     unit: Unit,
     feedback: List[Dict[str, Any]],
@@ -90,7 +96,9 @@ def print_out_unreviewed_feedback_elements(
         feedback_table = Table(
             "Property",
             "Value",
-            title="Unreviewed Feedback {current_feedback} of {total_feedback} From Agent {agent_id}".format(
+            title=(
+                "Unreviewed Feedback {current_feedback} of {total_feedback} From Agent {agent_id}"
+            ).format(
                 current_feedback=i + 1,
                 total_feedback=len(filtered_feedback_list),
                 agent_id=agent.get_agent_id() if agent is not None else "-1",
@@ -112,7 +120,7 @@ def print_out_unreviewed_feedback_elements(
             show_default=False,
         )
         if mark_feedback_as_reviewed == FeedbackReviewType.YES.value:
-            set_feedback_as_reviewed(feedback, feedback_obj["id"], unit)
+            _set_feedback_as_reviewed(feedback, feedback_obj["id"], unit)
             print("\nMarked the feedback as reviewed!")
 
         elif mark_feedback_as_reviewed == FeedbackReviewType.NO.value:
@@ -123,6 +131,7 @@ def print_out_unreviewed_feedback_elements(
 
 
 def main():
+    warnings.warn("No longer supported.", DeprecationWarning)
     db = LocalMephistoDB()
     mephisto_data_browser = MephistoDataBrowser(db)
     task_names = mephisto_data_browser.get_task_name_list()
@@ -159,7 +168,11 @@ def main():
     console.print(questions_markdown)
     # Making sure that the filter index is valid
     filter_by_question_index = IntPrompt.ask(
-        '\nIf you want to filter feedback by a question, then enter the question number to filter on.\nIf you want to see feedback to all questions, enter "-1" (Default: -1)',
+        (
+            "\nIf you want to filter feedback by a question, "
+            "then enter the question number to filter on."
+            '\nIf you want to see feedback to all questions, enter "-1" (Default: -1)'
+        ),
         choices=[str(i) for i in range(-1, len(questions_list))],
         default=-1,
         show_default=False,
@@ -222,11 +235,11 @@ def main():
                         # Filter the toxicity feedback to get reviewed feedback
                         reviewed_feedback = list(
                             filter(
-                                lambda feedback_obj: feedback_obj["reviewed"] == True,
+                                lambda feedback_obj: feedback_obj["reviewed"] is True,
                                 filtered_feedback,
                             )
                         )
-                        print_out_reviewed_feedback_elements(
+                        _print_out_reviewed_feedback_elements(
                             filtered_feedback_list=reviewed_feedback,
                             agent=unit.get_assigned_agent(),
                         )
@@ -234,11 +247,11 @@ def main():
                         # Filter the toxicity feedback to get unreviewed feedback
                         un_reviewed_feedback = list(
                             filter(
-                                lambda feedback_obj: feedback_obj["reviewed"] == False,
+                                lambda feedback_obj: feedback_obj["reviewed"] is False,
                                 filtered_feedback,
                             )
                         )
-                        print_out_unreviewed_feedback_elements(
+                        _print_out_unreviewed_feedback_elements(
                             filtered_feedback_list=un_reviewed_feedback,
                             unit=unit,
                             feedback=feedback,

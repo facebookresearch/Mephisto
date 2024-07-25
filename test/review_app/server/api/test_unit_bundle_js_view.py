@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from flask import url_for
 
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.operations.hydra_config import MephistoConfig
 from mephisto.utils.testing import get_test_unit
 from mephisto.utils.testing import MOCK_ARCHITECT_ARGS
@@ -53,7 +53,7 @@ class TestUnitBundleJSView(BaseTestApiViewCase):
             url = url_for("unit_review_bundle", unit_id=unit_id)
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(response.data, react_reviewapp_bundle_js_data.encode())
         self.assertEqual(response.mimetype, "text/javascript")
 
@@ -64,7 +64,7 @@ class TestUnitBundleJSView(BaseTestApiViewCase):
             url = url_for("unit_review_bundle", unit_id=unit_id)
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, http_status.HTTP_404_NOT_FOUND)
         self.assertTrue("error" in response.json)
 
 

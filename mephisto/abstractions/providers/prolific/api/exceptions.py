@@ -6,7 +6,7 @@
 
 from typing import Optional
 
-from . import status
+from mephisto.utils import http_status
 
 
 class ProlificException(Exception):
@@ -27,7 +27,7 @@ class ProlificAPIKeyError(ProlificException):
 
 class ProlificRequestError(ProlificException):
     default_message = "Request error."
-    status_code = status.HTTP_400_BAD_REQUEST
+    status_code = http_status.HTTP_400_BAD_REQUEST
 
     def __init__(self, message: Optional[str] = None, status_code: Optional[int] = None):
         self.message = message or self.default_message
@@ -36,4 +36,4 @@ class ProlificRequestError(ProlificException):
 
 class ProlificAuthenticationError(ProlificRequestError):
     default_message = "Authentication was failed."
-    status_code = status.HTTP_401_UNAUTHORIZED
+    status_code = http_status.HTTP_401_UNAUTHORIZED

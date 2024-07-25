@@ -8,7 +8,7 @@ import unittest
 
 from flask import url_for
 
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.utils.testing import get_test_task
 from test.review_app.server.api.base_test_api_view_case import BaseTestApiViewCase
 
@@ -20,7 +20,7 @@ class TestTaskView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, http_status.HTTP_404_NOT_FOUND)
         self.assertEqual(result, {"error": "Not found"})
 
     def test_one_task_success(self, *args, **kwargs):
@@ -31,7 +31,7 @@ class TestTaskView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(result["id"], task_id)
         self.assertEqual(result["name"], task_name)
         self.assertTrue("created_at" in result)

@@ -80,7 +80,6 @@
 
 .json-pretty .__json-pretty__ {
   white-space: pre !important;
-  border-top: 1px solid #cccccc;
   padding-top: 15px;
 }
 

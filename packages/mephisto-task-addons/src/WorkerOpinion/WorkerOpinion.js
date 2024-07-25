@@ -16,6 +16,8 @@ import TextArea from "./TextArea";
 const DEFAULT_MAX_TEXT_LENGTH = 700;
 const DEFAULT_TEXTAREA_ROWS = 3;
 const DEFAULT_TEXTAREA_WIDTH = "100%";
+const DEFAULT_WIDGET_REQUIRED = false;
+const DEFAULT_WIDGET_TITLE = "Your Feedback";
 const defaultStateValue = {
   status: 0,
   text: "",
@@ -27,6 +29,8 @@ function WorkerOpinion({
   handleSubmit,
   maxTextLength,
   textAreaWidth,
+  title,
+  required,
 }) {
   // To make classNames more readable
   const stylePrefix = `mephisto-task-addons-worker-opinion__`;
@@ -38,6 +42,8 @@ function WorkerOpinion({
   const modifiedTextAreaWidth = textAreaWidth
     ? textAreaWidth
     : DEFAULT_TEXTAREA_WIDTH;
+  const widgetTitle = title || DEFAULT_WIDGET_TITLE;
+  const widgetRequired = required || DEFAULT_WIDGET_REQUIRED;
 
   // For when there are questions
   const [questionsTexts, setQuestionsTexts] = useState([]);
@@ -78,8 +84,10 @@ function WorkerOpinion({
       <div className={`alert alert-secondary`} role={"alert"}>
         <header className={`${stylePrefix}header-items`}>
           <h2 className={`${stylePrefix}header`}>
-            Write opinion
-            <small className={`${stylePrefix}subtitle`}>(optional)</small>
+            {widgetTitle}
+            {!widgetRequired && (
+              <small className={`${stylePrefix}subtitle`}>(optional)</small>
+            )}
           </h2>
         </header>
 

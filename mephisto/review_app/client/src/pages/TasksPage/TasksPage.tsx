@@ -107,7 +107,7 @@ function TasksPage(props: PropsType) {
               <b>Timeline</b>
             </th>
             <th className={"title worker-opinions"}>
-              <b>Worker Opinions</b>
+              <b>Opinions</b>
             </th>
             <th className={"title export"}>
               <b>Export results</b>

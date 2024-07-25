@@ -8,7 +8,7 @@ import unittest
 
 from flask import url_for
 
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit
 from mephisto.utils.testing import get_test_qualification
@@ -27,7 +27,7 @@ class TestQualificationWorkersView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(len(result["workers"]), 0)
 
     def test_qualification_list_one_worker_success(self, *args, **kwargs):
@@ -56,7 +56,7 @@ class TestQualificationWorkersView(BaseTestApiViewCase):
             result = response.json
 
         first_worker = result["workers"][0]
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(len(result["workers"]), 1)
         self.assertEqual(first_worker["worker_id"], worker_id)
         self.assertEqual(first_worker["value"], qualification_value)
