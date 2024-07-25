@@ -11,7 +11,7 @@ sidebar_position: 2
 The simplest Task scenario is showing the same exact form to all of your workers. In that case you need to:
 
 - Compose `task_data.json` file containing definition of a single form (and place it into FormComposer config folder)
-- Optionally, verify your config: `mephisto form_composer_config --verify`
+- Optionally, verify your config: `mephisto form_composer config --verify`
 - Run FormComposer: `mephisto form_composer`
 
 But suppose you wish to show a slightly different version of the form to your workers. You can do so by defining multiple form versions. FormComposer provides several ways of doing so.
@@ -23,7 +23,7 @@ But suppose you wish to show a slightly different version of the form to your wo
 If your form versions vary considerably (e.g. showing different sets of fields), you should do the following steps:
 
 - Populate these form versions into `task_data.json` file manually (it will be basically a JSON array of N individual form versions configs)
-- Optionally, verify your config: `mephisto form_composer_config --verify`
+- Optionally, verify your config: `mephisto form_composer config --verify`
 - Run FormComposer: `mephisto form_composer`
 
 _As a result, for each Task assignment Mephisto will automatically produce N units, each unit having a different form version. In total you will be collecting data from `N * units_per_assignment` workers._
@@ -37,8 +37,8 @@ If your form versions vary only slightly (e.g. same set of fields, but showing d
 - Ensure you populate these files, and place them into your FormComposer config folder:
     - `form_config.json`: tokenized form config - same as regular form config, except it will contain tokens within certain objects' attributes (see [Tokens extrapolation](#tokens-extrapolation))
     - `token_sets_values_config.json`: file containing sets of token values, where each set is used to generate one version of the form (and each form version will be completed by `units_per_assignment` different workers).
-- Optionally, verify your files: `mephisto form_composer_config --verify`
-- Generate task data config: `mephisto form_composer_config --extrapolate-token-sets`
+- Optionally, verify your files: `mephisto form_composer config --verify`
+- Generate task data config: `mephisto form_composer config --extrapolate-token-sets`
     - This will overwrite existing `task_data.json` file with auto-generated form versions, by extrapolating provided token sets values
 - Run FormComposer: `mephisto form_composer`
 
@@ -72,8 +72,8 @@ If you wish to reuse the same token across different form attributes and levels,
 In a special case when all of your tokens sets are simply permutations of several value lists, sets of token values can be easily auto-generated.
 
 - Populate your lists of values for every separate token into `separate_token_values_config.json` file
-- Optionally, verify your config: `mephisto form_composer_config --verify`
-- Generate `token_sets_values_config.json` with command: `mephisto form_composer_config --permutate-separate-tokens`
+- Optionally, verify your config: `mephisto form_composer config --verify`
+- Generate `token_sets_values_config.json` with command: `mephisto form_composer config --permutate-separate-tokens`
 
 _"Permutation" means all possible combinations of values. For example, permutations of amounts `2, 3`, sizes `big` and animals `cats, dogs` will produce result `2 big cats, 2 big dogs, 3 big cats, 3 big dogs`._
 

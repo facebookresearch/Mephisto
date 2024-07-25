@@ -22,13 +22,13 @@ Once your Task launches, your console will display you URLs like this: `http://<
 
 You can launch FormComposer inside a Docker container:
 
-1. Prepare configs using [form_composer_config command](/docs/guides/how_to_use/form_composer/configuration/form_composer_config_command/):
+1. Prepare configs using [`form_composer config` command](/docs/guides/how_to_use/form_composer/configuration/form_composer_config_command/):
 
 ```shell
 docker-compose -f docker/docker-compose.dev.yml run \
     --build \
     --rm mephisto_dc \
-    mephisto form_composer_config --extrapolate-token-sets
+    mephisto form_composer config --extrapolate-token-sets
 ```
 
 2. Run composer itself using `form_composer` command:
@@ -45,10 +45,10 @@ docker-compose -f docker/docker-compose.dev.yml run \
 #### Without docker-compose
 
 First ensure that mephisto package is installed locally - please refer to [Mephisto's main doc](https://mephisto.ai/docs/guides/quickstart/).
-Once that is done, run [form_composer_config command](/docs/guides/how_to_use/form_composer/configuration/form_composer_config_command/) if needed, followed by `form_composer` command:
+Once that is done, run [`form_composer config` command](/docs/guides/how_to_use/form_composer/configuration/form_composer_config_command/) if needed, followed by `form_composer` command:
 
 ```shell
-mephisto form_composer_config --extrapolate-token-sets
+mephisto form_composer config --extrapolate-token-sets
 mephisto form_composer
 mephisto form_composer --task-data-config-only
 ```

@@ -119,16 +119,16 @@ This example builds further upon the Dynamic form example. Here we use presigned
 
 - Set up environment variables (in file `docker/envs/env.dev`):
     - Required: valid AWS credentials: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_DEFAULT_REGION`
-    - Required: a private S3 bucket with files that you will embed in the example form (either replace dummy URLs in the configs by hand, or automatically generate new ones with `mephisto form_composer_config` command)
+    - Required: a private S3 bucket with files that you will embed in the example form (either replace dummy URLs in the configs by hand, or automatically generate new ones with `mephisto form_composer config` command)
     - Optional: `S3_URL_EXPIRATION_MINUTES` (default value is 60 minutes)
 - Default config file: [dynamic_example_local_mock.yaml](/examples/form_composer_demo/hydra_configs/conf/dynamic_example_local_mock.yaml).
-- Create config: see all options for `form_composer_config` command [here](/mephisto/generators/form_composer/README.md#using-formcomposerconfig-utility). Example command:
+- Create config: see all options for `form_composer config` command [here](/mephisto/generators/form_composer/README.md#using-formcomposerconfig-utility). Example command:
   ```shell
   docker-compose -f docker/docker-compose.dev.yml run \
       --build \
       --publish 3001:3000 \
       --rm mephisto_dc \
-      mephisto form_composer_config --verify --directory "/mephisto/examples/form_composer_demo/data/dynamic_presigned_urls"
+      mephisto form_composer config --verify --directory "/mephisto/examples/form_composer_demo/data/dynamic_presigned_urls"
   ```
 - Launch command after you generated all configs:
   ```shell
@@ -161,20 +161,20 @@ Putting it altogether, let's prepare and launch a task featuring a form containi
 - SSH into the running container: `docker exec -it mephisto_dc bash`
 - Generate your task data config with these commands:
   ```shell
-  mephisto form_composer_config \
+  mephisto form_composer config \
     --directory "/mephisto/examples/form_composer_demo/data/dynamic_presigned_urls" \
     --update-file-location-values "https://your-bucket.s3.amazonaws.com/..." \
     --use-presigned-urls
 
-  mephisto form_composer_config \
+  mephisto form_composer config \
     --directory "/mephisto/examples/form_composer_demo/data/dynamic_presigned_urls" \
     --permutate-separate-tokens
 
-  mephisto form_composer_config \
+  mephisto form_composer config \
     --directory "/mephisto/examples/form_composer_demo/data/dynamic_presigned_urls" \
     --extrapolate-token-sets
 
-  mephisto form_composer_config \
+  mephisto form_composer config \
     --directory "/mephisto/examples/form_composer_demo/data/dynamic_presigned_urls" \
     --verify
   ```

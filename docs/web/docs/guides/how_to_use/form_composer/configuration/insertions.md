@@ -15,7 +15,7 @@ FormComposer allows using custom code insertions in these scenarios:
 - Define custom styles for the FormComposer UI in a CSS file
 
 The inserted code must reside in separate files (called "insertion files") located in `insertions` subdirectory of your form config directory.
-- _Remember that you can change default config directory path using `--directory` option of `form_composer_config` command_
+- _Remember that you can change default config directory path using `--directory` option of `form_composer config` command_
 
 ---
 

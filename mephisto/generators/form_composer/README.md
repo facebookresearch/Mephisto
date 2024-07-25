@@ -23,7 +23,7 @@ If launched with `docker-compose`, replace port `3000` with the remapped port (e
 You can launch FormComposer inside a Docker container:
 
 1. Prepare and validate configs as it described it in [Config files](https://mephisto.ai/docs/guides/how_to_use/form_composer/configuration/setup/) and
-[Running application](https://mephisto.ai/docs/guides/how_to_use/form_composer/running/#using-form_composer_config-utility)
+[Running application](https://mephisto.ai/docs/guides/how_to_use/form_composer/running/)
 
 2. Run composer itself (see details in [Running application](https://mephisto.ai/docs/guides/how_to_use/form_composer/running/))
 

@@ -22,7 +22,7 @@ If your task has questionnaire format, you can build it out-of-the box with no c
 To launch a form-based Task from within a Docker container follow these steps:
 
 1. Prepare and validate your config files as described in [FormComposer config files](/docs/guides/how_to_use/form_composer/configuration/setup/) and
-[FormComposer config utils](/docs/guides/how_to_use/form_composer/running/#using-form_composer_config-utility) sections
+[form_composer config command](/docs/guides/how_to_use/form_composer/configuration/form_composer_config_command/) sections
 
 2. Launch your form-based Task (see details in [Running FormComposer task](/docs/guides/how_to_use/form_composer/running/)). For a lcal testing scenario, we will run:
 

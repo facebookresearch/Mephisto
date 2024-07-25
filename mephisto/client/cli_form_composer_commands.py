@@ -9,6 +9,8 @@ import subprocess
 from typing import Optional
 
 import click
+from rich_click import RichCommand
+from rich_click import RichGroup
 
 from mephisto.generators.form_composer.config_validation.separate_token_values_config import (
     update_separate_token_values_config_with_file_urls,
@@ -47,12 +49,31 @@ def _get_form_composer_app_path() -> str:
     return app_path
 
 
-@click.option("-o", "--task-data-config-only", type=bool, default=True, is_flag=True)
-def form_composer(task_data_config_only: bool = True):
+@click.group(
+    name="form_composer",
+    context_settings=dict(help_option_names=["-h", "--help"]),
+    cls=RichGroup,
+    invoke_without_command=True,
+)
+@click.pass_context
+@click.option(
+    "-o",
+    "--task-data-config-only",
+    type=bool,
+    default=True,
+    is_flag=True,
+    help="Validate only final data config",
+)
+def form_composer_cli(ctx: click.Context, task_data_config_only: bool = True):
     """
     Generator of form-based Tasks with clean cross-platform Bootstrap forms
     with client-side form validation.
     """
+
+    if ctx.invoked_subcommand is not None:
+        # It's needed to add the ability to run `config` command,
+        # run default code only if there's no other command after `form_composer`
+        return
 
     # Get app path to run Python script from there (instead of the current file's directory).
     # This is necessary, because the whole infrastructure is built relative to the location
@@ -90,13 +111,69 @@ def form_composer(task_data_config_only: bool = True):
         process.wait()
 
 
-@click.option("-v", "--verify", type=bool, default=False, is_flag=True)
-@click.option("-f", "--update-file-location-values", type=str, default=None)
-@click.option("-e", "--extrapolate-token-sets", type=bool, default=False, is_flag=True)
-@click.option("-p", "--permutate-separate-tokens", type=bool, default=False, is_flag=True)
-@click.option("-d", "--directory", type=str, default=None)
-@click.option("-u", "--use-presigned-urls", type=bool, default=False, is_flag=True)
-def form_composer_config(
+@form_composer_cli.command("config", cls=RichCommand)
+@click.pass_context
+@click.option(
+    "-v",
+    "--verify",
+    type=bool,
+    default=False,
+    is_flag=True,
+    help="Validate all JSON configs currently present in the form builder config directory",
+)
+@click.option(
+    "-f",
+    "--update-file-location-values",
+    type=str,
+    default=None,
+    help=(
+        "Update existing separate-token values config "
+        "with file URLs automatically taken from a location (e.g. an S3 folder)"
+    ),
+)
+@click.option(
+    "-e",
+    "--extrapolate-token-sets",
+    type=bool,
+    default=False,
+    is_flag=True,
+    help="Generate form versions based on extrapolated values of token sets",
+)
+@click.option(
+    "-p",
+    "--permutate-separate-tokens",
+    type=bool,
+    default=False,
+    is_flag=True,
+    help=(
+        "Create tokens sets as all possible permutations of "
+        "values lists defined in separate-token values config"
+    ),
+)
+@click.option(
+    "-d",
+    "--directory",
+    type=str,
+    default=None,
+    help=(
+        "Path to the directory where form and token configs are located. "
+        "By default, it's the `data` directory of `form_composer` generator"
+    ),
+)
+@click.option(
+    "-u",
+    "--use-presigned-urls",
+    type=bool,
+    default=False,
+    is_flag=True,
+    help=(
+        "A modifier for `--update_file_location_values` parameter. "
+        "Wraps every S3 URL with a standard handler that presigns these URLs during form rendering "
+        "when we use `--update_file_location_values` command"
+    ),
+)
+def config(
+    ctx: click.Context,
     verify: Optional[bool] = False,
     update_file_location_values: Optional[str] = None,
     extrapolate_token_sets: Optional[bool] = False,
@@ -107,18 +184,6 @@ def form_composer_config(
     """
     Prepare (parts of) config for the `form_composer` command.
     Note that each parameter is essentially a separate command, and they cannot be mixed.
-
-    :param verify: Validate all JSON configs currently present in the form builder config directory
-    :param update_file_location_values: Update existing separate-token values config
-        with file URLs automatically taken from a location (e.g. an S3 folder)
-    :param extrapolate_token_sets: Generate form versions based on extrapolated values of token sets
-    :param permutate_separate_tokens: Create tokens sets as all possible permutations of
-        values lists defined in separate-token values config
-    :param directory: Path to the directory where form and token configs are located.
-        By default, it's the `data` directory of `form_composer` generator
-    :param use_presigned_urls: a modifier for `--update_file_location_values` parameter.
-        Wraps every S3 URL with a standard handler that presigns these URLs during form rendering
-        when we use `--update_file_location_values` command
     """
 
     # Substitute defaults for missing param values
