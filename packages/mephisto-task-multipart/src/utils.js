@@ -22,6 +22,13 @@ const axios = require("axios");
 const axiosInstance = axios.create();
 export { axiosInstance };
 
+const urls = {
+  logError: "/log_error",
+  submitMetadata: "/submit_metadata",
+  submitOnboarding: "/submit_onboarding",
+  submitTask: "/submit_task",
+};
+
 function resolveProviderURLParams() {
   try {
     if (getProviderURLParams) {
@@ -64,6 +71,10 @@ export function postData(url = "", data = {}) {
 }
 
 export function postMultipartData(url, formData) {
+  // Next step of sending data to the Mephisto server is covered by code in
+  // `mephisto/abstractions/architects/router/node/server.js`.
+  // This part prepears and sends Websocket message
+
   // Default options are marked with *
   return axiosInstance({
     url: url,
@@ -126,7 +137,7 @@ export function requestAgent() {
 }
 
 export function postCompleteOnboarding(agent_id, onboarding_data) {
-  return postProviderRequest("/submit_onboarding", {
+  return postProviderRequest(urls.submitOnboarding, {
     USED_AGENT_ID: agent_id,
     onboarding_data: onboarding_data,
   });
@@ -140,7 +151,7 @@ export function postCompleteTask(agent_id, complete_data, multipart) {
     formData.append("USED_AGENT_ID", agent_id);
     formData.append("client_timestamp", clientTimestamp);
 
-    return postMultipartData("/submit_task", formData)
+    return postMultipartData(urls.submitTask, formData)
       .then((data) => {
         handleSubmitToProvider(
           formData.get("final_string_data") || formData.get("final_data")
@@ -151,7 +162,7 @@ export function postCompleteTask(agent_id, complete_data, multipart) {
         console.log("Submitted");
       });
   } else {
-    return postData("/submit_task", {
+    return postData(urls.submitTask, {
       USED_AGENT_ID: agent_id,
       final_data: complete_data,
       client_timestamp: clientTimestamp,
@@ -166,18 +177,33 @@ export function postCompleteTask(agent_id, complete_data, multipart) {
   }
 }
 
-export function postMetadata(agent_id, metadata) {
-  return postData("/submit_metadata", {
-    USED_AGENT_ID: agent_id,
-    metadata: metadata,
-    client_timestamp: pythonTime(),
-  }).then(function (data) {
-    return data;
-  });
+export function postMetadata(agent_id, metadata, multipart) {
+  const clientTimestamp = pythonTime();
+
+  if (multipart) {
+    const formData = metadata;
+    formData.set("USED_AGENT_ID", agent_id);
+    formData.set("metadata", metadata.get("data"));
+    formData.set("client_timestamp", clientTimestamp);
+
+    return postMultipartData(urls.submitMetadata, formData).then((data) => {
+      console.log("Metadata submitted");
+      return data;
+    });
+  } else {
+    return postData(urls.submitMetadata, {
+      USED_AGENT_ID: agent_id,
+      metadata: metadata,
+      client_timestamp: clientTimestamp,
+    }).then(function (data) {
+      console.log("Metadata submitted");
+      return data;
+    });
+  }
 }
 
 export function postErrorLog(agent_id, complete_data) {
-  return postData("/log_error", {
+  return postData(urls.logError, {
     USED_AGENT_ID: agent_id,
     error_data: complete_data,
     client_timestamp: pythonTime(),

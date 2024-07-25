@@ -69,3 +69,9 @@ _Note that a custom view of Task results is included (at the bottom) only if you
 ![Task statistics](./screenshots/task_stats.png)
 <br/>
 <br/>
+
+### Task worker opinions
+
+![Task statistics](./screenshots/task_worker_opinions.png)
+<br/>
+<br/>

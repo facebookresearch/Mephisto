@@ -37,6 +37,12 @@ module.exports = {
         __dirname,
         "../../../packages/mephisto-task-multipart"
       ),
+      // Use local library with code that can submit Worker Opinion
+      "mephisto-task-addons": path.resolve(
+        __dirname,
+        "../../../packages/mephisto-task-addons"
+      ),
+      // Use local library with FormComposer component
       "react-form-composer": path.resolve(
         __dirname,
         "../../../packages/react-form-composer"
@@ -71,4 +77,5 @@ module.exports = {
       },
     ],
   },
+  plugins: [new webpack.EnvironmentPlugin({ ...process.env })],
 };

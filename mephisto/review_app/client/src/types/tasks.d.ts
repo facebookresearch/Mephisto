@@ -28,8 +28,20 @@ declare type TaskRusultStatsType = {
   workers_count: number;
 };
 
-declare type TaskChartsType = {
+declare type TaskTimelineType = {
   dashboard_url: string | null;
   server_is_available: boolean;
   task_name: string;
+};
+
+declare type TaskWorkerOpinionType = {
+  data: WorkerOpinionType;
+  unit_data_folder: string;
+  unit_id: string;
+  worker_id: string;
+};
+
+declare type TaskWorkerOpinionsType = {
+  task_name: string;
+  worker_opinions: TaskWorkerOpinionType[];
 };

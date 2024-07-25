@@ -71,18 +71,10 @@ const useMephistoTask = function () {
   );
 
   const handleMetadataSubmit = React.useCallback(
-    (...args) => {
-      const metadata = {};
-      // Update metadata
-      for (const arg of args) {
-        if (arg && arg.hasOwnProperty("type")) {
-          const typeOfItemToAdd = arg["type"];
-          metadata[typeOfItemToAdd] = arg;
-        }
-      }
-
+    (metadata) => {
+      const isMultipart = metadata instanceof FormData;
       return new Promise(function (resolve, reject) {
-        resolve(postMetadata(state.agentId, metadata));
+        resolve(postMetadata(state.agentId, metadata, isMultipart));
       });
     },
     [state.agentId]

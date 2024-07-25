@@ -8,32 +8,31 @@ from __future__ import annotations
 
 import os
 import threading
+from abc import ABC
+from abc import abstractmethod
 from queue import Queue
+from typing import Any
+from typing import cast
+from typing import Dict
+from typing import Mapping
+from typing import Optional
+from typing import TYPE_CHECKING
+from typing import Union
 from uuid import uuid4
+
 from prometheus_client import Gauge  # type: ignore
 
-from abc import ABC, abstractmethod
 from mephisto.abstractions.blueprint import AgentState
+from mephisto.data_model._db_backed_meta import MephistoDataModelComponentMixin
+from mephisto.data_model._db_backed_meta import MephistoDBBackedABCMeta
+from mephisto.data_model.exceptions import AgentDisconnectedError
+from mephisto.data_model.exceptions import AgentReturnedError
+from mephisto.data_model.exceptions import AgentShutdownError
+from mephisto.data_model.exceptions import AgentTimeoutError
 from mephisto.data_model.worker import Worker
-from mephisto.data_model._db_backed_meta import (
-    MephistoDBBackedABCMeta,
-    MephistoDataModelComponentMixin,
-)
-from mephisto.data_model.exceptions import (
-    AgentReturnedError,
-    AgentDisconnectedError,
-    AgentTimeoutError,
-    AgentShutdownError,
-)
-
-from typing import Optional, Mapping, Dict, Any, cast, TYPE_CHECKING, Union
-
-try:
-    from detoxify import Detoxify
-
-    DETOXIFY_INSTALLED = True
-except ImportError:
-    DETOXIFY_INSTALLED = False
+from mephisto.utils.agent_metadata import save_agent_metadata
+from mephisto.utils.logger_core import get_logger
+from mephisto.utils.logger_core import warn_once
 
 if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
@@ -43,11 +42,6 @@ if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
     from mephisto.operations.datatypes import LiveTaskRun
 
-from mephisto.utils.logger_core import get_logger, warn_once
-
-logger = get_logger(name=__name__)
-
-
 ACTIVE_AGENT_STATUSES = Gauge(
     "active_agent_statuses",
     "Tracking of all units current statuses",
@@ -56,11 +50,14 @@ ACTIVE_AGENT_STATUSES = Gauge(
 for status in AgentState.valid():
     ACTIVE_AGENT_STATUSES.labels(status=status, agent_type="main")
     ACTIVE_AGENT_STATUSES.labels(status=status, agent_type="onboarding")
+
 ACTIVE_WORKERS = Gauge(
     "active_workers",
     "Tracking of active workers and how many agents they have",
     ["worker_id", "agent_type"],
 )
+
+logger = get_logger(name=__name__)
 
 
 class _AgentBase(ABC):
@@ -261,58 +258,7 @@ class _AgentBase(ABC):
 
     def handle_metadata_submit(self, data: Dict[str, Any]) -> None:
         """Handles the submission of metadata (as of now that is tips and feedback)"""
-
-        if "tips" in data:
-            """Handles the submission of a tip"""
-            assert (
-                hasattr(self.state.metadata, "tips") == True
-            ), "The {property_name} field must exist in _AgentStateMetadata. Go into _AgentStateMetadata and add the {property_name} field".format(
-                property_name="tips"
-            )
-            new_tip_header = data["tips"]["header"]
-            new_tip_text = data["tips"]["text"]
-            copy_of_tips = None
-            tip_to_add = {
-                "id": str(uuid4()),
-                "header": new_tip_header,
-                "text": new_tip_text,
-                "accepted": False,
-            }
-            if self.state.metadata.tips is None:
-                self.state.update_metadata(property_name="tips", property_value=[tip_to_add])
-            else:
-                copy_of_tips = self.state.metadata.tips.copy()
-                copy_of_tips.append(tip_to_add)
-                self.state.update_metadata(property_name="tips", property_value=copy_of_tips)
-
-        elif "feedback" in data:
-            questions_and_answers = data["feedback"]["data"]
-            for question_obj in questions_and_answers:
-                new_feedback_text = question_obj["text"]
-                new_feedback_toxicity = (
-                    Detoxify("original").predict(new_feedback_text)["toxicity"]
-                    if DETOXIFY_INSTALLED == True
-                    else None
-                )
-                feedback_to_add = {
-                    "id": str(uuid4()),
-                    "question": question_obj["question"],
-                    "text": new_feedback_text,
-                    "reviewed": False,
-                    "toxicity": None
-                    if new_feedback_toxicity is None
-                    else str(new_feedback_toxicity),
-                }
-                if self.state.metadata.feedback is None:
-                    self.state.update_metadata(
-                        property_name="feedback", property_value=[feedback_to_add]
-                    )
-                else:
-                    copy_of_feedback = self.state.metadata.feedback.copy()
-                    copy_of_feedback.append(feedback_to_add)
-                    self.state.update_metadata(
-                        property_name="feedback", property_value=copy_of_feedback
-                    )
+        save_agent_metadata(data, self.state)
 
     def shutdown(self) -> None:
         """
@@ -493,7 +439,10 @@ class Agent(_AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBac
 
     @staticmethod
     def _register_agent(
-        db: "MephistoDB", worker: Worker, unit: "Unit", provider_type: str
+        db: "MephistoDB",
+        worker: Worker,
+        unit: "Unit",
+        provider_type: str,
     ) -> "Agent":
         """
         Create this agent in the mephisto db with the correct setup
@@ -508,12 +457,12 @@ class Agent(_AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBac
             unit.task_type,
             provider_type,
         )
-        a = Agent.get(db, db_id)
+        agent = Agent.get(db, db_id)
         ACTIVE_AGENT_STATUSES.labels(status=AgentState.STATUS_NONE, agent_type="main").inc()
         ACTIVE_WORKERS.labels(worker_id=worker.db_id, agent_type="main").inc()
-        logger.debug(f"Registered new agent {a} for {unit}.")
-        a.update_status(AgentState.STATUS_ACCEPTED)
-        return a
+        logger.debug(f"Registered new agent {agent} for {unit}.")
+        agent.update_status(AgentState.STATUS_ACCEPTED)
+        return agent
 
     # Specialized child cases may need to implement the following
 
@@ -607,7 +556,9 @@ class Agent(_AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBac
 
 
 class OnboardingAgent(
-    _AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta
+    _AgentBase,
+    MephistoDataModelComponentMixin,
+    metaclass=MephistoDBBackedABCMeta,
 ):
     """
     Onboarding agents are a special extension of agents used
@@ -727,10 +678,13 @@ class OnboardingAgent(
         Create an OnboardingAgent for a worker to use as part of a task run
         """
         db_id = db.new_onboarding_agent(
-            worker.db_id, task_run.task_id, task_run.db_id, task_run.task_type
+            worker.db_id,
+            task_run.task_id,
+            task_run.db_id,
+            task_run.task_type,
         )
-        a = OnboardingAgent.get(db, db_id)
+        onboarding_agent = OnboardingAgent.get(db, db_id)
         ACTIVE_AGENT_STATUSES.labels(status=AgentState.STATUS_NONE, agent_type="onboarding").inc()
         ACTIVE_WORKERS.labels(worker_id=worker.db_id, agent_type="onboarding").inc()
-        logger.debug(f"Registered new {a} for worker {worker}.")
-        return a
+        logger.debug(f"Registered new {onboarding_agent} for worker {worker}.")
+        return onboarding_agent

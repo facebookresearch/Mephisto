@@ -8,7 +8,7 @@ import unittest
 
 from flask import url_for
 
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.utils.testing import get_test_unit
 from test.review_app.server.api.base_test_api_view_case import BaseTestApiViewCase
 
@@ -20,7 +20,7 @@ class TestUnitsDetailsView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, http_status.HTTP_400_BAD_REQUEST)
         self.assertEqual(result["error"], "`unit_ids` parameter must be specified.")
 
     def test_units_parsing_arguments_error(self, *args, **kwargs):
@@ -29,7 +29,7 @@ class TestUnitsDetailsView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, http_status.HTTP_400_BAD_REQUEST)
         self.assertEqual(result["error"], "`unit_ids` must be a comma-separated list of integers.")
 
     def test_no_units_success(self, *args, **kwargs):
@@ -38,7 +38,7 @@ class TestUnitsDetailsView(BaseTestApiViewCase):
             response = self.client.get(url)
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(len(result["units"]), 0)
 
     def test_one_unit_success(self, *args, **kwargs):
@@ -50,7 +50,7 @@ class TestUnitsDetailsView(BaseTestApiViewCase):
             result = response.json
 
         first_unit = result["units"][0]
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(len(result["units"]), 1)
         self.assertEqual(first_unit["id"], unit_id)
 

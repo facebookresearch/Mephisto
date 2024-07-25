@@ -4,14 +4,15 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.unit import Unit
-from mephisto.data_model.task_run import TaskRun
-from mephisto.data_model.worker import Worker
+from typing import Any
+from typing import Dict
+from typing import List
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.constants.assignment_state import AssignmentState
-
-from typing import List, Any, Dict
+from mephisto.data_model.task_run import TaskRun
+from mephisto.data_model.unit import Unit
+from mephisto.data_model.worker import Worker
 
 
 class DataBrowser:
@@ -81,7 +82,8 @@ class DataBrowser:
         task_run = TaskRun.get(self.db, run_id)
         return self._get_units_for_task_runs([task_run])
 
-    def get_data_from_unit(self, unit: Unit) -> Dict[str, Any]:
+    @staticmethod
+    def get_data_from_unit(unit: Unit) -> Dict[str, Any]:
         """
         Return a dict containing all data associated with the given
         unit, including its status, data, and start and end time.
@@ -90,15 +92,19 @@ class DataBrowser:
         relevant assignment this unit was a part of.
         """
         agent = unit.get_assigned_agent()
+
         assert agent is not None, f"Trying to get completed data from unassigned unit {unit}"
+
         return {
-            "worker_id": agent.worker_id,
-            "unit_id": unit.db_id,
             "assignment_id": unit.assignment_id,
-            "status": agent.db_status,
             "data": agent.state.get_parsed_data(),
-            "task_start": agent.state.get_task_start(),
+            "metadata": agent.state.get_metadata(),
+            "status": agent.db_status,
             "task_end": agent.state.get_task_end(),
+            "task_start": agent.state.get_task_start(),
+            "unit_id": unit.db_id,
+            "worker_id": agent.worker_id,
+            # TODO: Deprecated fields, removed them after removing Tips and Feedback
             "tips": agent.state.get_tips(),
             "feedback": agent.state.get_feedback(),
         }
@@ -125,9 +131,11 @@ class DataBrowser:
             if unit.agent_id is not None:
                 unit_data = self.get_data_from_unit(unit)
 
-                assert property_name in unit_data, (
-                    "The {property_name} field must exist in the unit's data. Look for {property_name} in the get_data_from_unit function"
-                ).format(property_name=property_name)
+                assert_message = (
+                    f"The {property_name} field must exist in the unit's data. "
+                    f"Look for {property_name} in the get_data_from_unit function"
+                )
+                assert property_name in unit_data, assert_message
 
                 unit_property_val = unit_data[property_name]
                 if unit_property_val is not None:

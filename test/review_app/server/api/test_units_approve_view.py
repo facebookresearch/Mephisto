@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from flask import url_for
 
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit
 from mephisto.utils.testing import get_test_task_run
@@ -25,7 +25,7 @@ class TestUnitsApproveView(BaseTestApiViewCase):
             response = self.client.post(url, json={})
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, http_status.HTTP_400_BAD_REQUEST)
         self.assertEqual(result["error"], "`unit_ids` parameter must be specified.")
 
     def test_units_approve_success(self, *args, **kwargs):
@@ -45,7 +45,7 @@ class TestUnitsApproveView(BaseTestApiViewCase):
             response = self.client.post(url, json={"unit_ids": [unit_id]})
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(result, {})
         self.assertEqual(unit.get_db_status(), AssignmentState.ACCEPTED)
 
@@ -68,7 +68,7 @@ class TestUnitsApproveView(BaseTestApiViewCase):
             with self.assertLogs(level="ERROR") as cm:
                 response = self.client.post(url, json={"unit_ids": [unit_id], "bonus": bonus})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertIn(f"Could not pay bonus. Passed value is invalid: {bonus}", cm.output[0])
 
     @patch("mephisto.abstractions.providers.mock.mock_worker.MockWorker.bonus_worker")
@@ -94,7 +94,7 @@ class TestUnitsApproveView(BaseTestApiViewCase):
             with self.assertLogs(level="ERROR") as cm:
                 response = self.client.post(url, json={"unit_ids": [unit_id], "bonus": bonus})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertIn(f"Could not pay bonus. Reason: {error_message}", cm.output[0])
 
     @patch("mephisto.abstractions.providers.mock.mock_worker.MockWorker.bonus_worker")
@@ -119,7 +119,7 @@ class TestUnitsApproveView(BaseTestApiViewCase):
             with self.assertLogs(level="ERROR") as cm:
                 response = self.client.post(url, json={"unit_ids": [unit_id], "bonus": bonus})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertIn("Could not pay bonus. Unexpected error", cm.output[0])
 
 

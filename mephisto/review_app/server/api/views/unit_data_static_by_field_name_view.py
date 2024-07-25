@@ -29,7 +29,12 @@ class UnitDataStaticByFieldNameView(MethodView):
         files_data = outputs.get("filesByFields", {})
         file_data = files_data.get(fieldname)
         if file_data:
-            return file_data.get("filename")
+            if isinstance(file_data, dict):
+                # Deprecated logic, but it can be needed for already existing Tasks
+                return file_data.get("filename")
+            elif isinstance(file_data, list):
+                # TODO: Make this work with more than one file. For now it returns only first one
+                return file_data[0].get("filename")
 
         return None
 

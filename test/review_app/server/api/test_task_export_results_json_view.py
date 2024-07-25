@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from flask import url_for
 
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.review_app.server.api.views.task_export_results_view import get_result_file_path
 from test.review_app.server.api.base_test_api_view_case import BaseTestApiViewCase
 
@@ -32,7 +32,7 @@ class TestTaskExportResultsJsonView(BaseTestApiViewCase):
             url = url_for("task_export_results_json", task_id=task_id, n_units=n_units)
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(response.data, results_file_data.encode())
         self.assertEqual(response.mimetype, "application/json")
 
@@ -45,8 +45,8 @@ class TestTaskExportResultsJsonView(BaseTestApiViewCase):
             url = url_for("task_export_results_json", task_id=1, n_units=99)
             response2 = self.client.get(url)
 
-        self.assertEqual(response1.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response2.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response1.status_code, http_status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response2.status_code, http_status.HTTP_404_NOT_FOUND)
 
 
 if __name__ == "__main__":

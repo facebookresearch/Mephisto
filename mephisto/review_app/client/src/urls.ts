@@ -11,7 +11,8 @@ const urls = {
     home: "/",
     task: (id) => `/tasks/${id}`,
     taskStats: (id) => `/tasks/${id}/stats`,
-    taskCharts: (id) => `/tasks/${id}/charts`,
+    taskTimeline: (id) => `/tasks/${id}/timeline`,
+    taskWorkerOpinions: (id) => `/tasks/${id}/worker-opinions`,
     tasks: "/tasks",
   },
   server: {
@@ -23,11 +24,12 @@ const urls = {
       API_URL + `/api/qualifications/${id}/workers/${workerId}/revoke`,
     stats: API_URL + "/api/review-stats",
     task: (id) => API_URL + `/api/tasks/${id}`,
-    taskCharts: (id) => API_URL + `/api/tasks/${id}/charts`,
     taskExportResults: (id) => API_URL + `/api/tasks/${id}/export-results`,
     taskExportResultsJson: (id, nUnits) =>
       API_URL + `/api/tasks/${id}/${nUnits}/export-results.json`,
     taskStatsResults: (id) => API_URL + `/api/tasks/${id}/stats-results`,
+    taskTimeline: (id) => API_URL + `/api/tasks/${id}/timeline`,
+    taskWorkerOpinions: (id) => API_URL + `/api/tasks/${id}/worker-opinions`,
     tasks: API_URL + "/api/tasks",
     tasksWorkerUnitsIds: (id) => API_URL + `/api/tasks/${id}/worker-units-ids`,
     unitReviewHtml: (id) => API_URL + `/api/units/${id}/review.html`,

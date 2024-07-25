@@ -8,7 +8,7 @@ import unittest
 
 from flask import url_for
 
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.utils.testing import get_test_unit
 from test.review_app.server.api.base_test_api_view_case import BaseTestApiViewCase
 
@@ -21,7 +21,7 @@ class TestUnitHtmlView(BaseTestApiViewCase):
             url = url_for("unit_review_html", unit_id=unit_id)
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertTrue(
             f'<script src="/units/{unit_id}/bundle.js"></script>' in response.data.decode()
         )

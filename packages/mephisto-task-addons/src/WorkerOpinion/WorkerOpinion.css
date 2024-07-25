@@ -1,0 +1,57 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.mephisto-task-addons-worker-opinion__subtitle {
+  font-style: italic;
+  font-size: 0.65em;
+  margin-left: 10px;
+}
+
+.mephisto-task-addons-worker-opinion__green-box,
+.mephisto-task-addons-worker-opinion__red-box {
+  padding: 1rem;
+  width: min(18rem, 100%);
+  border-radius: 0.5rem;
+  margin: 1rem 0 0.75rem;
+  box-sizing: border-box;
+}
+
+.mephisto-task-addons-worker-opinion__green-box {
+  background-color: #d1e7dd;
+  color: #315243;
+}
+
+.mephisto-task-addons-worker-opinion__red-box {
+  background-color: #f8d7da;
+  color: #5c3c3f;
+}
+
+.mephisto-task-addons-worker-opinion__text-area:disabled {
+  cursor: not-allowed !important;
+}
+
+.mephisto-task-addons-worker-opinion__text-area-error {
+  box-shadow: 0 0 0 0.25rem rgba(241, 91, 91, 0.65) !important;
+  transition: background-color 200ms, box-shadow 200ms;
+}
+
+.mephisto-task-addons-worker-opinion__text-area:hover {
+  background-color: rgb(245, 245, 245);
+  box-shadow: 0 0 0 0.2rem rgba(209, 209, 209, 0.5);
+  transition: background-color 200ms, box-shadow 200ms;
+}
+
+.mephisto-task-addons-worker-opinion__text-area:focus {
+  background-color: rgb(255, 255, 255);
+  transition: background-color 200ms, box-shadow 200ms;
+  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.5);
+}
+
+.mephisto-task-addons-worker-opinion__attachments .custom-file-label small {
+  font-style: italic;
+  font-size: 0.65em;
+  margin-left: 10px;
+}

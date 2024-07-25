@@ -8,37 +8,37 @@
 Utilities that are useful for Mephisto-related scripts.
 """
 
-from mephisto.abstractions.databases.local_database import LocalMephistoDB
-from mephisto.abstractions.providers.mturk.mturk_utils import try_prerun_cleanup
-from mephisto.operations.operator import Operator
-from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
-from mephisto.utils.logger_core import format_loud
-from mephisto.utils.testing import get_mock_requester
-from mephisto.utils.dirs import get_root_data_dir, get_run_file_dir
-from mephisto.operations.hydra_config import (
-    build_default_task_config,
-    register_script_config,
-    TaskConfig,
-)
-from rich.markdown import Markdown
-from mephisto.utils.rich import console
-from omegaconf import DictConfig, OmegaConf
 import functools
-import hydra
-import subprocess
-from typing import (
-    List,
-    Tuple,
-    Any,
-    Type,
-    TypeVar,
-    Callable,
-    Optional,
-    cast,
-    TYPE_CHECKING,
-)
 import os
+import subprocess
+from typing import Any
+from typing import Callable
+from typing import cast
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import Type
+from typing import TYPE_CHECKING
+from typing import TypeVar
+
+import hydra
+from omegaconf import DictConfig
+from omegaconf import OmegaConf
 from rich import print
+from rich.markdown import Markdown
+
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
+from mephisto.abstractions.providers.mturk.mturk_utils import try_prerun_cleanup
+from mephisto.operations.hydra_config import build_default_task_config
+from mephisto.operations.hydra_config import register_script_config
+from mephisto.operations.hydra_config import TaskConfig
+from mephisto.operations.operator import Operator
+from mephisto.utils.dirs import get_root_data_dir
+from mephisto.utils.dirs import get_run_file_dir
+from mephisto.utils.logger_core import format_loud
+from mephisto.utils.rich import console
+from mephisto.utils.testing import get_mock_requester
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
@@ -305,7 +305,8 @@ def print_out_task_names(header: str, task_names: List[str]) -> None:
     """Prints out task names and formats them nicely using rich"""
     if len(task_names) == 0:
         print(
-            "\n[red]There are no task names found[/red] \nYou should launch a task first and then run this script after the task is shut down\n"
+            "\n[red]There are no task names found[/red]\n"
+            "You should launch a task first and then run this script after the task is shut down\n"
         )
         quit()
     task_names_text = """# {header} \n ## Task Names:""".format(header=header)

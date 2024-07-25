@@ -8,7 +8,7 @@ import unittest
 
 from flask import url_for
 
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
@@ -28,7 +28,7 @@ class TestWorkerBlockView(BaseTestApiViewCase):
             response = self.client.post(url, json={})
             result = response.json
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, http_status.HTTP_400_BAD_REQUEST)
         self.assertEqual(result["error"], "`review_note` parameter must be specified.")
 
     def test_worker_block_success(self, *args, **kwargs):
@@ -58,7 +58,7 @@ class TestWorkerBlockView(BaseTestApiViewCase):
 
         worker: Worker = Worker.get(self.db, worker_id)
         blocked_after = worker.is_blocked(requester)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(result, {})
         self.assertFalse(blocked_before)
         self.assertTrue(blocked_after)

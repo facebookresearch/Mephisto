@@ -8,10 +8,11 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min";
 import Errors from "components/Errors/Errors";
 import HomePage from "pages/HomePage/HomePage";
-import TaskChartsPage from "pages/TaskChartsPage/TaskChartsPage";
 import TaskPage from "pages/TaskPage/TaskPage";
 import TasksPage from "pages/TasksPage/TasksPage";
 import TaskStatsPage from "pages/TaskStatsPage/TaskStatsPage";
+import TaskTimelinePage from "pages/TaskTimelinePage/TaskTimelinePage";
+import TaskWorkerOpinionsPage from "pages/TaskWorkerOpinionsPage/TaskWorkerOpinionsPage";
 import * as React from "react";
 import { Route, Routes } from "react-router-dom";
 import urls from "urls";
@@ -32,12 +33,16 @@ function App() {
           element={<TaskPage setErrors={setErrors} />}
         />
         <Route
+          path={urls.client.taskTimeline(":id")}
+          element={<TaskTimelinePage setErrors={setErrors} />}
+        />
+        <Route
           path={urls.client.taskStats(":id")}
           element={<TaskStatsPage setErrors={setErrors} />}
         />
         <Route
-          path={urls.client.taskCharts(":id")}
-          element={<TaskChartsPage setErrors={setErrors} />}
+          path={urls.client.taskWorkerOpinions(":id")}
+          element={<TaskWorkerOpinionsPage setErrors={setErrors} />}
         />
         <Route
           path={urls.client.tasks}

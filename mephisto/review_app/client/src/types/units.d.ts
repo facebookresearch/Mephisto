@@ -28,10 +28,38 @@ declare type WorkerUnitIdType = {
   worker_id: string;
 };
 
+declare type WorkerOpinionAttachmentType = {
+  destination: string;
+  encoding: string;
+  fieldname: string;
+  filename: string;
+  mimetype: string;
+  originalname: string;
+  path: string;
+  size: number;
+};
+
+declare type WorkerOpinionQuestionType = {
+  answer: string;
+  question: string;
+  reviewed: boolean;
+  toxicity: any;
+};
+
+declare type WorkerOpinionType = {
+  attachments: WorkerOpinionAttachmentType[];
+  questions: WorkerOpinionQuestionType[];
+};
+
+declare type UnitDetailsMetadataType = {
+  worker_opinion?: WorkerOpinionType;
+};
+
 declare type UnitDetailsType = {
   has_task_source_review: boolean;
   id: string;
   inputs: object;
+  metadata: UnitDetailsMetadataType;
   outputs: object;
   prepared_inputs: object;
   unit_data_folder: string;

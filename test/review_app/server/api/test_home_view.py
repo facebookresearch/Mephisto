@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from flask import url_for
 
-from mephisto.abstractions.providers.prolific.api import status
+from mephisto.utils import http_status
 from test.review_app.server.api.base_test_api_view_case import BaseTestApiViewCase
 
 
@@ -19,7 +19,7 @@ class TestHomeView(BaseTestApiViewCase):
             url = url_for("client-home")
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(response.status_code, http_status.HTTP_302_FOUND)
 
     @patch("os.path.join")
     def test_home_success(self, mock_join, *args, **kwargs):
@@ -36,7 +36,7 @@ class TestHomeView(BaseTestApiViewCase):
             url = url_for("client-tasks", path="tasks")
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(response.data, ui_html_file_data.encode())
         self.assertEqual(response.mimetype, "text/html")
 
@@ -48,7 +48,7 @@ class TestHomeView(BaseTestApiViewCase):
             url = url_for("client-tasks", path="tasks")
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(
             response.json["error"],
             "UI interface isn't ready to use. Build it or use separate address for dev UI server.",

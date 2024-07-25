@@ -35,7 +35,8 @@ This is a quick guide over file directories in Mephisto project. Note that some 
             - `webpack.config.js` - webpack config for React app containing FC
             - `webpack.config.presigned_urls.js` - webpack config for React app containing FC with presigned S3 URLs feature
             - `webpack.config.review.js` - webpack config for React app displayin read-only task page inside iframe (for TaskReview app)
-      - `static_react_task_with_tips` - deprecated example (current code uses "bonuses" and "feedback" for disambiguation instead of "tips")
+      - `static_react_task` - simple React application (with Onboarding and Screening)
+      - `static_react_task_with_worker_opinion` - simple React application with Worker Opinion widget
       - `simple_static_task` - deprecated example (Mephisto is moving away from HTML templates as its tooling mostly supports React-based tasks)
       - `other examples` - older Mephisto examples (working, but not the best code structure)
 - `hydra_configs` - settings for Hydra (Mephisto's configuration tool)

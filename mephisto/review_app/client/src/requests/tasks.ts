@@ -114,14 +114,14 @@ export function getTaskStats(
   );
 }
 
-export function getTaskCharts(
+export function getTaskTimeline(
   id: string,
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
   abortController?: AbortController
 ) {
-  const url = generateURL(urls.server.taskCharts, [id], null);
+  const url = generateURL(urls.server.taskTimeline, [id], null);
 
   makeRequest(
     "GET",
@@ -130,7 +130,28 @@ export function getTaskCharts(
     (data) => setDataAction(data),
     setLoadingAction,
     setErrorsAction,
-    "getTaskCharts error:",
+    "getTaskTimeline error:",
+    abortController
+  );
+}
+
+export function getTaskWorkerOpinions(
+  id: string,
+  setDataAction: SetRequestDataActionType,
+  setLoadingAction: SetRequestLoadingActionType,
+  setErrorsAction: SetRequestErrorsActionType,
+  abortController?: AbortController
+) {
+  const url = generateURL(urls.server.taskWorkerOpinions, [id], null);
+
+  makeRequest(
+    "GET",
+    url,
+    null,
+    (data) => setDataAction(data),
+    setLoadingAction,
+    setErrorsAction,
+    "getTaskWorkerOpinions error:",
     abortController
   );
 }

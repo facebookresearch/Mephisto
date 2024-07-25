@@ -73,19 +73,21 @@ def run_script(script_type, script_name, args: Optional[Any] = None):
         return res
 
     if script_type is None or script_type.strip() not in VALID_SCRIPT_TYPES:
-        logger.info("")
         raise click.UsageError(
             "You must specify a valid script_type from below. \n\nValid script types are:"
             + print_non_markdown_list(VALID_SCRIPT_TYPES)
         )
+
     script_type = script_type.strip()
 
     script_type_to_scripts_data = {
         "local_db": {
             "valid_script_names": LOCAL_DB_VALID_SCRIPTS_NAMES,
             "scripts": {
+                # TODO: `review_tips_local_db` is deprecated
                 LOCAL_DB_VALID_SCRIPTS_NAMES[0]: review_tips_local_db.main,
                 LOCAL_DB_VALID_SCRIPTS_NAMES[1]: remove_accepted_tip_local_db.main,
+                # TODO: `review_feedback_local_db` is deprecated
                 LOCAL_DB_VALID_SCRIPTS_NAMES[2]: review_feedback_local_db.main,
                 LOCAL_DB_VALID_SCRIPTS_NAMES[3]: load_data_local_db.main,
                 LOCAL_DB_VALID_SCRIPTS_NAMES[4]: clear_worker_onboarding_local_db.main,
@@ -124,7 +126,6 @@ def run_script(script_type, script_name, args: Optional[Any] = None):
     if script_name is None or (
         script_name not in script_type_to_scripts_data[script_type]["valid_script_names"]
     ):
-        logger.info("")
         raise click.UsageError(
             "You must specify a valid script_name from below. \n\nValid script names are:"
             + print_non_markdown_list(
