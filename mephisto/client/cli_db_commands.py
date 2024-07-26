@@ -9,6 +9,7 @@ from typing import Optional
 
 import click
 from rich_click import RichCommand
+from rich_click import RichGroup
 
 from mephisto.tools.db_data_porter import DBDataPorter
 from mephisto.tools.db_data_porter.constants import DEFAULT_CONFLICT_RESOLVER
@@ -36,7 +37,7 @@ def _print_used_options_for_running_command_message(ctx: click.Context, options:
     logger.debug(message)
 
 
-@click.group(name="db", context_settings=dict(help_option_names=["-h", "--help"]))
+@click.group(name="db", context_settings=dict(help_option_names=["-h", "--help"]), cls=RichGroup)
 def db_cli():
     """Operations with Mephisto DB and provider-specific datastores"""
     pass

@@ -10,8 +10,7 @@ from rich_click import RichCommand
 from rich_click import RichGroup
 
 from mephisto.client.cli_db_commands import db_cli
-from mephisto.client.cli_form_composer_commands import form_composer
-from mephisto.client.cli_form_composer_commands import form_composer_config
+from mephisto.client.cli_form_composer_commands import form_composer_cli
 from mephisto.client.cli_metrics_commands import metrics_cli
 from mephisto.client.cli_review_app_commands import review_app
 from mephisto.client.cli_scripts_commands import run_script
@@ -179,8 +178,7 @@ cli.command("scripts", cls=RichCommand, context_settings={"ignore_unknown_option
 )
 cli.command("wut", cls=RichCommand, context_settings={"ignore_unknown_options": True})(run_wut)
 cli.command("review_app", cls=RichCommand)(review_app)
-cli.command("form_composer", cls=RichCommand)(form_composer)
-cli.command("form_composer_config", cls=RichCommand)(form_composer_config)
+cli.add_command(form_composer_cli)
 cli.add_command(metrics_cli)
 cli.add_command(db_cli)
 

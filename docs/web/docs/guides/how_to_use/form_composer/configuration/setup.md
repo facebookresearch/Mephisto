@@ -16,7 +16,7 @@ FormComposer tasks are fully defined by their configuration files. These files c
 The structure and purpose of these files is detailed further in other sections:
 - [Config files reference](/docs/guides/how_to_use/form_composer/configuration/config_files/)
 - [Using multiple form versions](/docs/guides/how_to_use/form_composer/configuration/multiple_form_versions/)
-- [form_composer_config command](/docs/guides/how_to_use/form_composer/configuration/form_composer_config_command/)
+- [`form_composer config` command](/docs/guides/how_to_use/form_composer/configuration/form_composer_config_command/)
 - [Using code insertions](/docs/guides/how_to_use/form_composer/configuration/insertions/)
 - [Form rendering callbacks](/docs/guides/how_to_use/form_composer/configuration/form_callbacks/)
 

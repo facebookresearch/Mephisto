@@ -6,25 +6,25 @@
 sidebar_position: 3
 ---
 
-# `form_composer_config` command
+# `form_composer config` command
 
-The `form_composer_config` utility command helps auto-generate FormComposer config. It supports several options:
+The `form_composer config` utility command helps auto-generate FormComposer config. It supports several options:
 
 ```shell
 # Sample launching commands
-mephisto form_composer_config --update-file-location-values "https://s3.amazonaws.com/..." --use_presigned_urls
-mephisto form_composer_config --update-file-location-values "https://s3.amazonaws.com/..."
-mephisto form_composer_config --permutate-separate-tokens
-mephisto form_composer_config --extrapolate-token-sets
-mephisto form_composer_config --verify
+mephisto form_composer config --update-file-location-values "https://s3.amazonaws.com/..." --use_presigned_urls
+mephisto form_composer config --update-file-location-values "https://s3.amazonaws.com/..."
+mephisto form_composer config --permutate-separate-tokens
+mephisto form_composer config --extrapolate-token-sets
+mephisto form_composer config --verify
 # Parameters that work together
-mephisto form_composer_config --directory /my/own/path/to/data/ --verify
-mephisto form_composer_config --directory /my/own/path/to/data/ --extrapolate-token-sets
-mephisto form_composer_config --update-file-location-values "https://s3.amazonaws.com/..."
+mephisto form_composer config --directory /my/own/path/to/data/ --verify
+mephisto form_composer config --directory /my/own/path/to/data/ --extrapolate-token-sets
+mephisto form_composer config --update-file-location-values "https://s3.amazonaws.com/..."
 ```
 
 where
-- `-d/--directory` - a **modifier** for all `form_composer_config` command options that specifies the directory where all form JSON config files are located (if missing the default is `mephisto/generators/form_composer/data` directory)
+- `-d/--directory` - a **modifier** for all `form_composer config` command options that specifies the directory where all form JSON config files are located (if missing the default is `mephisto/generators/form_composer/data` directory)
 - `-v/--verify` - if truthy, validates all JSON configs currently present in the form builder config directory
 - `-p/--permutate-sepatate-tokens` - if truthy, generates token sets values as all possible combinations of values of individual tokens
 - `-f/--update-file-location-values S3_FOLDER_URL` - generates token values based on file names found within the specified S3 folder (see a separate section about this mode of running FormComposer)

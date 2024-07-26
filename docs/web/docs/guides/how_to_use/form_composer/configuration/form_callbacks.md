@@ -18,7 +18,7 @@ An example of a remote procedure that gets called during the initial form loadin
 The below command auto-generates config token values that presign themselves during rendering of the Task page:
 
 ```
-mephisto form_composer_config --update-file-location-values "https://s3.amazonaws.com/..." --use_presigned_urls
+mephisto form_composer config --update-file-location-values "https://s3.amazonaws.com/..." --use_presigned_urls
 ```
 
 This is how URL pre-signing works:
@@ -30,7 +30,7 @@ This is how URL pre-signing works:
 
 Presigned S3 URLs use the following environment variables:
 - Required: valid AWS credentials: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_DEFAULT_REGION`
-  form_composer_config` command)
+  (`form_composer config` command)
 - Optional: URL expiration time `S3_URL_EXPIRATION_MINUTES` (if missing the default value is 60 minutes)
 
 
