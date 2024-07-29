@@ -7,7 +7,7 @@
     "@annotated/keypoint": "workspace:packages/annotated/keypoint",
     "@annotated/shell": "workspace:packages/annotated/shell",
     "@annotated/video-player": "workspace:packages/annotated/video-player",
-    "@blueprintjs/core": "^4.9.4",
+    "@blueprintjs/core": "^5.11.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",
