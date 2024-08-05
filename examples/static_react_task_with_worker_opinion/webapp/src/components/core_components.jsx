@@ -32,7 +32,7 @@ function LoadingScreen() {
 
 function Directions({ children }) {
   return (
-    <div className="card mb-4">
+    <div className="card mb-4" data-cy="directions-container">
       <div className="card-body container">{children}</div>
     </div>
   );
@@ -55,12 +55,15 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
 
       <section className="section">
         <div className="container">
-          <h2 className="mb-3">{taskData.text}</h2>
+          <h2 className="mb-3" data-cy="task-data-text">
+            {taskData.text}
+          </h2>
 
           {!resonseSubmitted && (
             <div className="mb-5">
               <button
                 className="btn btn-success btn-lg mr-2"
+                data-cy="good-button"
                 onClick={() => {
                   setResonseSubmitted(true);
                   onSubmit({ rating: "good" });
@@ -71,6 +74,7 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
 
               <button
                 className="btn btn-danger btn-lg ml-2"
+                data-cy="bad-button"
                 onClick={() => {
                   setResonseSubmitted(true);
                   onSubmit({ rating: "bad" });

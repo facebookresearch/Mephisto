@@ -26,7 +26,7 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | b
 RUN export NVM_DIR="$HOME/.nvm" \
     && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" \
     && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" \
-    && nvm install 16 \
+    && nvm install 22 \
     && ln -s $(which node) /usr/bin/node \
     && ln -s $(which npm) /usr/bin/npm
 
@@ -43,6 +43,8 @@ COPY . $MEPHISTO_REPO_PATH
 # Upgrade pip so we can use the `pyproject.toml` without raising an error
 RUN pip install --upgrade pip
 # Install Python requirements
+# [FOR DOCKERFILE ONLY] Requirements for Mephisto example `mnist`. Uncomment if you need them
+# RUN pip install torch pillow numpy detoxify
 # [FOR DOCKERFILE ONLY] `--ignore-installed` - some libs can be preinstall in Docker-system
 # Use `cd /mephisto && pip install -e .` in your local environment
 RUN cd /mephisto && pip install --ignore-installed -e .

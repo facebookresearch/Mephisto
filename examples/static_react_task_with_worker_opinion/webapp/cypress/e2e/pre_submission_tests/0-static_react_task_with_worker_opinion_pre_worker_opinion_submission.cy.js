@@ -4,7 +4,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { tipClassNamePrefix } from "../../helper";
+import { workerOpinionClassNamePrefix } from "../../helper";
 
 const firstTipHeader = "🎉 This is my test tip header";
 const firstTipBody = "🎈 This is my test tip body";
@@ -28,19 +28,18 @@ describe("Loads `static_react_task_with_worker_opinion`", () => {
     });
   });
 
-  // TODO: TODO: Fix tests for WorkerOpinion widget
-  // it("Loads correct task react elements", () => {
-  //   cy.visit("/");
-  //   cy.get('[data-cy="directions-container"]');
-  //   cy.get('[data-cy="task-data-text"]');
-  //   cy.get('[data-cy="good-button"]');
-  //   cy.get('[data-cy="bad-button"]');
-  // });
+  it("Loads correct task react elements", () => {
+    cy.visit("/");
+    cy.get('[data-cy="directions-container"]');
+    cy.get('[data-cy="task-data-text"]');
+    cy.get('[data-cy="good-button"]');
+    cy.get('[data-cy="bad-button"]');
+  });
 
-  // TODO: TODO: Fix tests for WorkerOpinion widget
+  // TODO: Fix tests for WorkerOpinion widget
   // it("Loads correct tip react elements", () => {
   //   cy.visit("/");
-  //   cy.get(`.${tipClassNamePrefix}button`);
+  //   cy.get(`.${workerOpinionClassNamePrefix}button`);
   // });
 });
 

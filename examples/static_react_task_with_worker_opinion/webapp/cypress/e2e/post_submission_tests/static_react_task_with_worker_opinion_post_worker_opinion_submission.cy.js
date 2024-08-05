@@ -4,7 +4,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { tipClassNamePrefix } from "../../helper";
+import { workerOpinionClassNamePrefix } from "../../helper";
 describe("Checking for tips", () => {
   /*
   This test is supposed to be ran after running the pre_tip_submission cypress test.
@@ -17,7 +17,7 @@ describe("Checking for tips", () => {
 
   The whole process is gone through in the cypress-end-to-end-tests.yml github actions file.
   */
-  // TODO: TODO: Fix tests for WorkerOpinion widget
+  // TODO: Fix tests for WorkerOpinion widget
   // it("Checks for recently added tip", () => {
   //   cy.visit("/");
   //   cy.get(`.${tipClassNamePrefix}button`).as("tipsButton");

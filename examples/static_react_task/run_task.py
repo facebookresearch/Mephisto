@@ -15,11 +15,11 @@ from mephisto.abstractions.blueprints.mixins.screen_task_required import (
 )
 from mephisto.data_model.unit import Unit
 from mephisto.operations.operator import Operator
-from mephisto.tools.scripts import build_custom_bundle
+from mephisto.tools.building_react_apps import examples
 from mephisto.tools.scripts import task_script
 
 
-def my_screening_unit_generator():
+def _my_screening_unit_generator() -> dict:
     while True:
         yield {
             "text": "SCREENING UNIT: Press the red button",
@@ -27,11 +27,12 @@ def my_screening_unit_generator():
         }
 
 
-def validate_screening_unit(unit: Unit):
+def _validate_screening_unit(unit: Unit) -> bool:
     agent = unit.get_assigned_agent()
     if agent is not None:
         data = agent.state.get_data()
         print(data)
+
         if (
             data["outputs"] is not None
             and "rating" in data["outputs"]
@@ -39,28 +40,23 @@ def validate_screening_unit(unit: Unit):
         ):
             # User pressed the red button
             return True
+
     return False
 
 
-def handle_onboarding(onboarding_data):
-    if onboarding_data["outputs"]["success"] == True:
+def _handle_onboarding(onboarding_data: dict) -> bool:
+    if onboarding_data["outputs"]["success"] is True:
         return True
+
     return False
-
-
-def _build_custom_bundles(cfg: DictConfig) -> None:
-    """Locally build bundles that are not available on npm repository"""
-    build_custom_bundle(
-        cfg.task_dir,
-        force_rebuild=cfg.mephisto.task.force_rebuild,
-        post_install_script=cfg.mephisto.task.post_install_script,
-    )
 
 
 @task_script(default_config_file="example_local_mock.yaml")
 def main(operator: Operator, cfg: DictConfig) -> None:
-    # Build packages
-    _build_custom_bundles(cfg)
+    examples.build_static_react_task(
+        force_rebuild=cfg.mephisto.task.force_rebuild,
+        post_install_script=cfg.mephisto.task.post_install_script,
+    )
 
     is_using_screening_units = cfg.mephisto.blueprint["use_screening_task"]
     shared_state = SharedStaticTaskState(
@@ -68,7 +64,7 @@ def main(operator: Operator, cfg: DictConfig) -> None:
             {"text": "This text is good text!"},
             {"text": "This text is bad text!"},
         ],
-        validate_onboarding=handle_onboarding,
+        validate_onboarding=_handle_onboarding,
     )
 
     if is_using_screening_units:
@@ -76,9 +72,9 @@ def main(operator: Operator, cfg: DictConfig) -> None:
         # few more properties set on shared_state
         shared_state.on_unit_submitted = ScreenTaskRequired.create_validation_function(
             cfg.mephisto,
-            validate_screening_unit,
+            _validate_screening_unit,
         )
-        shared_state.screening_data_factory = my_screening_unit_generator()
+        shared_state.screening_data_factory = _my_screening_unit_generator()
         shared_state.qualifications += ScreenTaskRequired.get_mixin_qualifications(
             cfg.mephisto, shared_state
         )

@@ -21,6 +21,7 @@ import mephisto.scripts.mturk.cleanup as cleanup_mturk
 import mephisto.scripts.mturk.identify_broken_units as identify_broken_units_mturk
 import mephisto.scripts.mturk.launch_makeup_hits as launch_makeup_hits_mturk
 import mephisto.scripts.mturk.print_outstanding_hit_status as soft_block_workers_by_mturk_id_mturk
+from mephisto.scripts import tests
 from mephisto.scripts.local_db import auto_generate_all_docs_reference_md
 from mephisto.utils.console_writer import ConsoleWriter
 
@@ -49,12 +50,18 @@ MTURK_VALID_SCRIPTS_NAMES = [
     "print_outstanding_hit_status",
     "soft_block_workers_by_mturk_id",
 ]
+TESTS_VALID_SCRIPTS_NAMES = [
+    "clean_all_mephisto_react_apps",
+    "build_all_mephisto_react_apps",
+    "rebuild_all_mephisto_react_apps",
+]
 VALID_SCRIPT_TYPES = [
-    "local_db",
+    "form_composer",
     "heroku",
+    "local_db",
     "metrics",
     "mturk",
-    "form_composer",
+    "tests",
 ]
 
 logger = ConsoleWriter()
@@ -119,6 +126,14 @@ def run_script(script_type, script_name, args: Optional[Any] = None):
             "valid_script_names": FORM_COMPOSER_VALID_SCRIPTS_NAMES,
             "scripts": {
                 FORM_COMPOSER_VALID_SCRIPTS_NAMES[0]: rebuild_all_apps_form_composer.main,
+            },
+        },
+        "tests": {
+            "valid_script_names": TESTS_VALID_SCRIPTS_NAMES,
+            "scripts": {
+                TESTS_VALID_SCRIPTS_NAMES[0]: tests.react_apps.clean,
+                TESTS_VALID_SCRIPTS_NAMES[1]: tests.react_apps.build,
+                TESTS_VALID_SCRIPTS_NAMES[2]: tests.react_apps.rebuild,
             },
         },
     }

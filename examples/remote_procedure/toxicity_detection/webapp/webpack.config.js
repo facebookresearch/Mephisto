@@ -16,6 +16,11 @@ module.exports = {
   resolve: {
     alias: {
       react: path.resolve("./node_modules/react"),
+      // Use local library with code that can submit FormData
+      "mephisto-task-multipart": path.resolve(
+        __dirname,
+        "../../../../packages/mephisto-task-multipart"
+      ),
     },
     fallback: {
       net: false,

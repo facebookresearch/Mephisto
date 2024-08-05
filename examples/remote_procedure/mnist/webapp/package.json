@@ -1,5 +1,5 @@
 {
-  "name": "parlai-mturk-task-compiler",
+  "name": "remote-procedure-mnist-example",
   "version": "1.0.1",
   "description": "",
   "main": "webpack.config.js",
