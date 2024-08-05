@@ -16,7 +16,7 @@ import {
   MephistoContext,
   useMephistoRemoteProcedureTask,
   ErrorBoundary,
-} from "mephisto-task";
+} from "mephisto-task-multipart";
 
 function RemoteProcedureApp() {
   let mephistoProps = useMephistoRemoteProcedureTask({});

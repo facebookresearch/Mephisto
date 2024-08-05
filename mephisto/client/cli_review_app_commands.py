@@ -12,8 +12,8 @@ import click
 from flask.cli import pass_script_info
 from flask.cli import ScriptInfo
 
-from mephisto.tools.scripts import build_custom_bundle
 from mephisto.utils.console_writer import ConsoleWriter
+from mephisto.tools.building_react_apps import review_app as _review_app
 
 logger = ConsoleWriter()
 
@@ -73,14 +73,7 @@ def review_app(
         if os.path.exists(os.path.join(client_path, "build", "index.html")) and not force_rebuild:
             logger.info(f"[blue]React bundle is already built.[/blue]")
         else:
-            logger.info(f"[blue]Building React bundle started.[/blue]")
-            build_custom_bundle(
-                review_app_path,
-                force_rebuild=force_rebuild,
-                webapp_name=client_dir,
-                build_command="build",
-            )
-            logger.info(f"[blue]Building React bundle finished.[/blue]")
+            _review_app.build_review_app_ui(force_rebuild=force_rebuild, verbose=True)
 
     # Set debug
     debug = debug if debug is not None else get_debug_flag()

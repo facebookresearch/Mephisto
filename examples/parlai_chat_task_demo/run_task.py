@@ -4,17 +4,19 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-
 import os
-from mephisto.operations.operator import Operator
-from mephisto.tools.scripts import task_script
-from mephisto.operations.hydra_config import build_default_task_config
+from dataclasses import dataclass
+from dataclasses import field
+
+from omegaconf import DictConfig
+
 from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import (
     SharedParlAITaskState,
 )
-
-from omegaconf import DictConfig
-from dataclasses import dataclass, field
+from mephisto.operations.hydra_config import build_default_task_config
+from mephisto.operations.operator import Operator
+from mephisto.tools.building_react_apps import examples
+from mephisto.tools.scripts import task_script
 
 
 @dataclass
@@ -33,6 +35,10 @@ class ParlAITaskConfig(build_default_task_config("example")):  # type: ignore
 
 @task_script(config=ParlAITaskConfig)
 def main(operator: "Operator", cfg: DictConfig) -> None:
+    examples.build_parlai_chat_task_demo(
+        force_rebuild=cfg.mephisto.task.force_rebuild,
+        post_install_script=cfg.mephisto.task.post_install_script,
+    )
 
     world_opt = {"num_turns": cfg.num_turns, "turn_timeout": cfg.turn_timeout}
 

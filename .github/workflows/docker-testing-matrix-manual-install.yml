@@ -41,6 +41,7 @@ jobs:
         run: |
           docker run mephisto_manual
 
-      - name: Run command that removes and rebuilds all React apps related to the FormComposer
+      # Test that all Mephisto React apps can be built
+      - name: Run command that removes and rebuilds all Mephisto React apps
         run: |
-          docker run mephisto_manual bash -c 'mephisto scripts form_composer rebuild_all_apps'
+          docker run mephisto_manual bash -c 'mephisto scripts tests rebuild_all_mephisto_react_apps'

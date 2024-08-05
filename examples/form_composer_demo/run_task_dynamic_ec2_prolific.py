@@ -19,20 +19,41 @@ from mephisto.data_model.qualification import QUAL_GREATER_EQUAL
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     create_extrapolated_config,
 )
-from mephisto.generators.form_composer.config_validation.utils import set_custom_triggers_js_env_var
-from mephisto.generators.form_composer.config_validation.utils import (
-    set_custom_validators_js_env_var,
-)
 from mephisto.operations.operator import Operator
-from mephisto.tools.scripts import build_custom_bundle
+from mephisto.tools.building_react_apps import examples
 from mephisto.tools.scripts import task_script
 from mephisto.utils.qualifications import make_qualification_dict
 
 
+def _generate_data_json_config():
+    """
+    Generate extrapolated `task_data.json` config file,
+    based on existing form and tokens values config files
+    """
+    app_path = os.path.dirname(os.path.abspath(__file__))
+    data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME, "dynamic")
+
+    form_config_path = os.path.join(data_path, FORM_COMPOSER__FORM_CONFIG_NAME)
+    token_sets_values_config_path = os.path.join(
+        data_path,
+        FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME,
+    )
+    task_data_config_path = os.path.join(data_path, FORM_COMPOSER__DATA_CONFIG_NAME)
+
+    create_extrapolated_config(
+        form_config_path=form_config_path,
+        token_sets_values_config_path=token_sets_values_config_path,
+        task_data_config_path=task_data_config_path,
+        data_path=data_path,
+    )
+
+
 @task_script(default_config_file="dynamic_example_ec2_prolific")
 def main(operator: Operator, cfg: DictConfig) -> None:
-    # Build packages
-    _build_custom_bundles(cfg)
+    examples.build_form_composer_dynamic_ec2_prolific(
+        force_rebuild=cfg.mephisto.task.force_rebuild,
+        post_install_script=cfg.mephisto.task.post_install_script,
+    )
 
     shared_state = SharedStaticTaskState()
 
@@ -55,74 +76,6 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 
-def _build_custom_bundles(cfg: DictConfig) -> None:
-    """Locally build bundles that are not available on npm repository"""
-    mephisto_packages_dir = os.path.join(
-        # Root project directory
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-        "packages",
-    )
-
-    # Build `mephisto-task-multipart` React package
-    build_custom_bundle(
-        mephisto_packages_dir,
-        force_rebuild=cfg.mephisto.task.force_rebuild,
-        webapp_name="mephisto-task-multipart",
-        build_command="build",
-    )
-
-    # Build `react-form-composer` React package
-    build_custom_bundle(
-        mephisto_packages_dir,
-        force_rebuild=cfg.mephisto.task.force_rebuild,
-        webapp_name="react-form-composer",
-        build_command="build",
-    )
-
-    # Build Review UI for the application
-    build_custom_bundle(
-        cfg.task_dir,
-        force_rebuild=cfg.mephisto.task.force_rebuild,
-        webapp_name="webapp",
-        build_command="build:review",
-    )
-
-    # Build Task UI for the application
-    build_custom_bundle(
-        cfg.task_dir,
-        force_rebuild=cfg.mephisto.task.force_rebuild,
-        post_install_script=cfg.mephisto.task.post_install_script,
-    )
-
-
-def generate_data_json_config():
-    """
-    Generate extrapolated `task_data.json` config file,
-    based on existing form and tokens values config files
-    """
-    app_path = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME, "dynamic")
-
-    form_config_path = os.path.join(data_path, FORM_COMPOSER__FORM_CONFIG_NAME)
-    token_sets_values_config_path = os.path.join(
-        data_path,
-        FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME,
-    )
-    task_data_config_path = os.path.join(data_path, FORM_COMPOSER__DATA_CONFIG_NAME)
-
-    create_extrapolated_config(
-        form_config_path=form_config_path,
-        token_sets_values_config_path=token_sets_values_config_path,
-        task_data_config_path=task_data_config_path,
-        data_path=data_path,
-    )
-
-    # Set env var for `custom_validators.js`
-    set_custom_validators_js_env_var(data_path)
-    # Set env var for `custom_triggers.js`
-    set_custom_triggers_js_env_var(data_path)
-
-
 if __name__ == "__main__":
-    generate_data_json_config()
+    _generate_data_json_config()
     main()

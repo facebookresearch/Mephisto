@@ -62,7 +62,7 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 export NVM_DIR="$HOME/.nvm" \
     && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" \
     && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" \
-    && nvm install 16 \
+    && nvm install 22 \
     && ln -s $(which node) /usr/bin/node \
     && ln -s $(which npm) /usr/bin/npm
 npm install -g yarn

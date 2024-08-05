@@ -10,24 +10,25 @@ except ImportError:
     print("Need to have detoxify to use this demo. For example: pip install detoxify")
     exit(1)
 
-from mephisto.operations.operator import Operator
-from mephisto.tools.scripts import (
-    build_custom_bundle,
-    task_script,
-)
+from typing import Any
+from typing import Dict
+from typing import List
+
+from omegaconf import DictConfig
 
 from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_blueprint import (
-    SharedRemoteProcedureTaskState,
     RemoteProcedureAgentState,
 )
-from omegaconf import DictConfig
-from typing import Any, Dict
+from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_blueprint import (
+    SharedRemoteProcedureTaskState,
+)
+from mephisto.operations.operator import Operator
+from mephisto.tools.building_react_apps import examples
+from mephisto.tools.scripts import task_script
 
 
-def build_tasks(num_tasks):
-    """
-    Create a set of tasks you want annotated
-    """
+def _build_tasks(num_tasks: int) -> List[dict]:
+    """Create a set of tasks you want annotated"""
     # NOTE These form the init_data for a task
     tasks = []
     for x in range(num_tasks):
@@ -37,38 +38,40 @@ def build_tasks(num_tasks):
                 "local_value_key": x,
             }
         )
+
     return tasks
 
 
-def determine_toxicity(text: str):
+def _determine_toxicity(text: str) -> str:
     return Detoxify("original").predict(text)["toxicity"]
+
+
+def _calculate_toxicity(
+    _request_id: str,
+    args: Dict[str, Any],
+    agent_state: RemoteProcedureAgentState,
+) -> Dict[str, Any]:
+    return {
+        "toxicity": str(_determine_toxicity(args["text"])),
+    }
 
 
 @task_script(default_config_file="example_local_mock")
 def main(operator: Operator, cfg: DictConfig) -> None:
-    tasks = build_tasks(cfg.num_tasks)
+    examples.build_remote_procedure_toxicity_detection(
+        force_rebuild=cfg.mephisto.task.force_rebuild,
+        post_install_script=cfg.mephisto.task.post_install_script,
+    )
 
-    def calculate_toxicity(
-        _request_id: str, args: Dict[str, Any], agent_state: RemoteProcedureAgentState
-    ) -> Dict[str, Any]:
-        return {
-            "toxicity": str(determine_toxicity(args["text"])),
-        }
+    tasks = _build_tasks(cfg.num_tasks)
 
     function_registry = {
-        "determine_toxicity": calculate_toxicity,
+        "determine_toxicity": _calculate_toxicity,
     }
 
     shared_state = SharedRemoteProcedureTaskState(
         static_task_data=tasks,
         function_registry=function_registry,
-    )
-
-    task_dir = cfg.task_dir
-    build_custom_bundle(
-        task_dir,
-        force_rebuild=cfg.mephisto.task.force_rebuild,
-        post_install_script=cfg.mephisto.task.post_install_script,
     )
 
     operator.launch_task_run(cfg.mephisto, shared_state)
