@@ -40,6 +40,10 @@ AVAILABLE_FORM_ATTRS: AvailableAttrsType = {
         "type": list,
         "required": True,
     },
+    "show_instructions_as_modal": {
+        "type": bool,
+        "required": False,
+    },
     "submit_button": {
         "type": dict,
         "required": True,

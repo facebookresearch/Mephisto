@@ -2,6 +2,7 @@
   "form": {
     "title": "Form example",
     "instruction": "insertions/form_instruction.html",
+    "show_instructions_as_modal": true,
     "sections": [
       {
         "name": "section_about",

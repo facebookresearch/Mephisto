@@ -44,6 +44,7 @@ Task data config file `task_data.json` specifies layout of all form versions tha
     "form": {
       "title": "Form example",
       "instruction": "Please answer all questions to the best of your ability as part of our study.",
+      "show_instructions_as_modal": false,
       "sections": [
         // Two sections
         {
@@ -159,8 +160,9 @@ TBD: Other classes and styles insertions
 `form` is a top-level config object with the following attributes:
 
 - `id` - Unique HTML id of the form, in case we need to refer to it from custom handlers code (String, Optional)
-- `classes` = Custom classes that you can use to restyle element or refer to it from custom handlers code (String, Optional)
+- `classes` - Custom classes that you can use to restyle element or refer to it from custom handlers code (String, Optional)
 - `instruction` - HTML content describing this form; it is located before all contained sections (String, Optional)
+- `show_instructions_as_modal` - Enables showing `instruction` content as a modal (opened by clicking a sticky button in top-right corner); this make lengthy task instructions available from any place of a lengthy form without scrolling the page (Boolean, Optional, Default: false)
 - `title` - HTML header of the form (String)
 - `submit_button` - Button to submit the whole form and thus finish a task (Object)
     - `id` - Unique HTML id of the button, in case we need to refer to it from custom handlers code (String, Optional)

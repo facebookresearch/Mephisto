@@ -20,6 +20,8 @@ import { SelectField } from "./fields/SelectField";
 import { TextareaField } from "./fields/TextareaField";
 import "./FormComposer.css";
 import { FormErrors } from "./FormErrors";
+import { FormInstructionsButton } from "./FormInstructionsButton";
+import { FormInstructionsModal } from "./FormInstructionsModal";
 import { SectionErrors } from "./SectionErrors";
 import { SectionErrorsCountBadge } from "./SectionErrorsCountBadge";
 import {
@@ -63,6 +65,12 @@ function FormComposer({
   // Fild list by section index for error display: { <sectionIndex>: <Array<field>> }
   const [sectionsFields, setSectionsFields] = React.useState({});
 
+  // Form instruction modal state
+  const [
+    formInstrupctionModalOpen,
+    setFormInstrupctionModalOpen,
+  ] = React.useState(false);
+
   const inReviewState = finalResults !== null;
 
   const formatStringWithTokens = inReviewState
@@ -79,6 +87,8 @@ function FormComposer({
     formComposerConfig.instruction,
     setRenderingErrors
   );
+  let showFormInstructionAsModal =
+    formComposerConfig.show_instructions_as_modal || false;
   let formSections = formComposerConfig.sections;
   let formSubmitButton = formComposerConfig.submit_button;
 
@@ -233,13 +243,38 @@ function FormComposer({
             ></h2>
           )}
 
-          {formTitle && formInstruction && <hr />}
+          {/* Show instruction or button that opens a modal with instructions */}
+          {showFormInstructionAsModal ? (
+            <>
+              {/* Instructions */}
+              {formTitle && formInstruction && <hr />}
 
-          {formInstruction && (
-            <p
-              className={`form-instruction`}
-              dangerouslySetInnerHTML={{ __html: formInstruction }}
-            ></p>
+              {formInstruction && (
+                <div>
+                  For instructions, click "Task Instruction" button in the
+                  top-right corner.
+                </div>
+              )}
+
+              {/* Button (modal in the end of the component) */}
+              <FormInstructionsButton
+                onClick={() =>
+                  setFormInstrupctionModalOpen(!formInstrupctionModalOpen)
+                }
+              />
+            </>
+          ) : (
+            <>
+              {/* Instructions */}
+              {formTitle && formInstruction && <hr />}
+
+              {formInstruction && (
+                <p
+                  className={`form-instruction`}
+                  dangerouslySetInnerHTML={{ __html: formInstruction }}
+                ></p>
+              )}
+            </>
           )}
         </div>
       )}
@@ -689,6 +724,21 @@ function FormComposer({
 
       {/* Unexpected server errors */}
       {!!submitErrors.length && <FormErrors errorMessages={submitErrors} />}
+
+      {/* Modal with form instructions */}
+      {showFormInstructionAsModal && formInstruction && (
+        <FormInstructionsModal
+          instructions={
+            <p
+              className={`form-instruction`}
+              dangerouslySetInnerHTML={{ __html: formInstruction }}
+            ></p>
+          }
+          open={formInstrupctionModalOpen}
+          setOpen={setFormInstrupctionModalOpen}
+          title={"Task Instructions"}
+        />
+      )}
     </form>
   );
 }
