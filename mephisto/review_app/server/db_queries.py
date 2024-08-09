@@ -26,7 +26,7 @@ def find_units(
         if task_id:
             params.append(nonesafe_int(task_id))
 
-        statuses_string = ",".join([f"'{s}'" for s in statuses])
+        statuses_string = ",".join([f"'{s}'" for s in statuses]) if statuses else ""
         status_query = f"status IN ({statuses_string})" if statuses else ""
 
         joined_queries = " AND ".join(list(filter(bool, [task_query, status_query])))

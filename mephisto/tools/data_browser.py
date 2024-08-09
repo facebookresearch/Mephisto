@@ -104,6 +104,7 @@ class DataBrowser:
             "task_start": agent.state.get_task_start(),
             "unit_id": unit.db_id,
             "worker_id": agent.worker_id,
+            "worker_name": agent.get_worker().worker_name,
             # TODO: Deprecated fields, removed them after removing Tips and Feedback
             "tips": agent.state.get_tips(),
             "feedback": agent.state.get_feedback(),

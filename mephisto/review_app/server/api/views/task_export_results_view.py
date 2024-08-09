@@ -14,9 +14,11 @@ from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
 
 from mephisto.abstractions.databases.local_database import StringIDRow
-from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit
+from .tasks_view import check_if_task_reviewed
 from .tasks_view import find_completed_units
+
+ENABLE_INCOMPLETE_TASK_RESULTS_EXPORT = True
 
 
 def get_results_dir() -> str:
@@ -37,9 +39,10 @@ class TaskExportResultsView(MethodView):
         app.logger.debug(f"Found Task in DB: {db_task}")
 
         db_units: List[StringIDRow] = find_completed_units(int(task_id))
-        is_reviewed = all([u["status"] != AssignmentState.COMPLETED for u in db_units])
+        is_reviewed = check_if_task_reviewed(int(task_id))
 
-        if not is_reviewed:
+        allow_export_task_resultt = ENABLE_INCOMPLETE_TASK_RESULTS_EXPORT or is_reviewed
+        if not allow_export_task_resultt:
             raise BadRequest(
                 "This task has not been fully reviewed yet. "
                 "Please review it completely before requesting the results."

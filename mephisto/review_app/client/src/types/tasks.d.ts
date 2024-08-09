@@ -10,7 +10,9 @@ declare type TaskType = {
   id: string;
   is_reviewed: boolean;
   name: string;
-  unit_count: number;
+  unit_all_count: number;
+  unit_completed_count: number;
+  unit_finished_count: number;
 };
 
 declare type TaskStatsType = {

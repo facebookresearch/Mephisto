@@ -57,7 +57,9 @@ Get all available tasks (to select one for review)
             "id": <int>,
             "is_reviewed": <bool>,
             "name": <str>,
-            "unit_count": <int>
+            "unit_all_count": <int>,
+            "unit_completed_count": <int>,
+            "unit_finished_count": <int>
         },
         ...  // more tasks
     ]

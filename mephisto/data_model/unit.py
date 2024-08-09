@@ -4,36 +4,32 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-
-from abc import ABC
+from collections import defaultdict
 from datetime import datetime
+from typing import Any
+from typing import DefaultDict
+from typing import Mapping
+from typing import Optional
+from typing import Type
+from typing import TYPE_CHECKING
 
 from dateutil.parser import parse
 from prometheus_client import Gauge  # type: ignore
-from collections import defaultdict
+
+from mephisto.data_model._db_backed_meta import MephistoDataModelComponentMixin
+from mephisto.data_model._db_backed_meta import MephistoDBBackedABCMeta
+from mephisto.data_model.agent import Agent
 from mephisto.data_model.constants.assignment_state import AssignmentState
+from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
-from mephisto.data_model.agent import Agent
-from mephisto.data_model._db_backed_meta import (
-    MephistoDBBackedABCMeta,
-    MephistoDataModelComponentMixin,
-)
-from mephisto.abstractions.blueprint import AgentState
-from mephisto.data_model.requester import Requester
-from typing import Optional, Mapping, Dict, Any, Type, DefaultDict, TYPE_CHECKING
+from mephisto.utils.logger_core import get_logger
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.worker import Worker
     from mephisto.abstractions.crowd_provider import CrowdProvider
     from mephisto.data_model.assignment import Assignment, InitializationData
-
-import os
-
-from mephisto.utils.logger_core import get_logger
-
-logger = get_logger(name=__name__)
 
 SCREENING_UNIT_INDEX = -1
 GOLD_UNIT_INDEX = -2
@@ -56,6 +52,9 @@ ACTIVE_UNIT_STATUSES = Gauge(
 for status in AssignmentState.valid_unit():
     for unit_type in INDEX_TO_TYPE_MAP.values():
         ACTIVE_UNIT_STATUSES.labels(status=status, unit_type=unit_type)
+
+
+logger = get_logger(name=__name__)
 
 
 class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):

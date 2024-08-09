@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-import json
 
 # Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import json
 from typing import Any
 from typing import cast
 from typing import List
