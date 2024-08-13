@@ -1,6 +1,6 @@
 # Using the -slim version below for minimal size. You may want to
 # remove -slim, or switch to -alpine if encountering issues
-ARG BASE_TAG=python3.9-nodejs22-slim
+ARG BASE_TAG=python3.9-nodejs20-slim
 ARG BASE_IMAGE=nikolaik/python-nodejs:$BASE_TAG
 
 FROM $BASE_IMAGE
