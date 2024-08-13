@@ -16,7 +16,7 @@ from mephisto.tools.scripts import task_script
 @task_script(default_config_file="example_local_mock")
 def main(operator: Operator, cfg: DictConfig) -> None:
     os.environ["REACT_APP__WITH_WORKER_OPINION"] = "true"
-    examples.build_form_composer_simple_with_worker_opinion(
+    examples.build_form_composer_simple(
         force_rebuild=cfg.mephisto.task.force_rebuild,
         post_install_script=cfg.mephisto.task.post_install_script,
     )

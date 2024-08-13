@@ -51,6 +51,7 @@ def build_form_composer_simple(
     post_install_script: Optional[str] = None,
 ) -> None:
     packages.build_mephisto_task_multipart_package(force_rebuild=force_rebuild, verbose=True)
+    packages.build_mephisto_task_addons_package(force_rebuild=force_rebuild, verbose=True)
     packages.build_react_form_composer_package(force_rebuild=force_rebuild, verbose=True)
 
     # Build Review UI for the application
@@ -100,36 +101,12 @@ def build_form_composer_simple_with_screening(
     )
 
 
-def build_form_composer_simple_with_worker_opinion(
-    force_rebuild: bool = False,
-    post_install_script: Optional[str] = None,
-) -> None:
-    packages.build_mephisto_task_multipart_package(force_rebuild=force_rebuild, verbose=True)
-    packages.build_mephisto_task_addons_package(force_rebuild=force_rebuild, verbose=True)
-    packages.build_react_form_composer_package(force_rebuild=force_rebuild, verbose=True)
-
-    # Build Review UI for the application
-    build_custom_bundle(
-        FORM_COMPOSER_EXAMPLE_PATH,
-        force_rebuild=force_rebuild,
-        webapp_name="webapp",
-        build_command="build:simple:review",
-    )
-
-    # Build Task UI for the application
-    build_custom_bundle(
-        FORM_COMPOSER_EXAMPLE_PATH,
-        force_rebuild=force_rebuild,
-        post_install_script=post_install_script,
-        build_command="dev:simple",
-    )
-
-
 def build_form_composer_dynamic(
     force_rebuild: bool = False,
     post_install_script: Optional[str] = None,
 ) -> None:
     packages.build_mephisto_task_multipart_package(force_rebuild=force_rebuild, verbose=True)
+    packages.build_mephisto_task_addons_package(force_rebuild=force_rebuild, verbose=True)
     packages.build_react_form_composer_package(force_rebuild=force_rebuild, verbose=True)
 
     # Set env vars for `custom_validators.js` and `custom_triggers.js`
@@ -182,6 +159,7 @@ def build_form_composer_dynamic_presigned_urls_ec2_prolific(
     post_install_script: Optional[str] = None,
 ) -> None:
     packages.build_mephisto_task_multipart_package(force_rebuild=force_rebuild, verbose=True)
+    packages.build_mephisto_task_addons_package(force_rebuild=force_rebuild, verbose=True)
     packages.build_react_form_composer_package(force_rebuild=force_rebuild, verbose=True)
 
     # Build Review UI for the application
