@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
+import shutil
 import subprocess
 from typing import Optional
 
@@ -186,12 +187,14 @@ def config(
     Note that each parameter is essentially a separate command, and they cannot be mixed.
     """
 
+    app_path = _get_form_composer_app_path()
+    default_app_data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME)
+
     # Substitute defaults for missing param values
     if directory:
         app_data_path = directory
     else:
-        app_path = _get_form_composer_app_path()
-        app_data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME)
+        app_data_path = default_app_data_path
     logger.info(f"[blue]Using config directory: {app_data_path}[/blue]")
 
     # Validate param values
@@ -266,12 +269,56 @@ def config(
         logger.info(f"[green]Finished successfully[/green]")
 
     else:
-        logger.error(
-            f"[red]"
-            f"This command must have one of following parameters:"
-            f"\n-v/--verify"
-            f"\n-f/--update-file-location-value"
-            f"\n-e/--extrapolate-token-set"
-            f"\n-p/--permutate-separate-tokens"
-            f"[/red]"
+        logger.info(f"[green]Started configuring all steps[/green]")
+
+        logger.info(f"[green]1. Started permutating separate-token values[/green]")
+        if os.path.exists(separate_token_values_config_path):
+            update_token_sets_values_config_with_premutated_data(
+                separate_token_values_config_path=separate_token_values_config_path,
+                token_sets_values_config_path=token_sets_values_config_path,
+            )
+            logger.info(f"[green]Finished permutating separate-token values[/green]")
+        else:
+            logger.info(
+                f"[green]"
+                f"Nothing to permutate. File {separate_token_values_config_path} does not exist"
+                f"[/green]"
+            )
+
+        logger.info(f"[green]2. Started extrapolating token sets values[/green]")
+        if os.path.exists(separate_token_values_config_path) and os.path.exists(
+            token_sets_values_config_path
+        ):
+            create_extrapolated_config(
+                form_config_path=form_config_path,
+                token_sets_values_config_path=token_sets_values_config_path,
+                task_data_config_path=task_data_config_path,
+                data_path=app_data_path,
+            )
+            logger.info(f"[green]Finished extrapolating token sets values[/green]")
+        else:
+            logger.info(
+                f"[green]"
+                f"Nothing to extrapolate. "
+                f"Files {separate_token_values_config_path} and {token_sets_values_config_path} "
+                f"do not exist"
+                f"[/green]"
+            )
+
+        logger.info(f"[green]3. Started verification[/green]")
+        verify_form_composer_configs(
+            task_data_config_path=task_data_config_path,
+            form_config_path=form_config_path,
+            token_sets_values_config_path=token_sets_values_config_path,
+            separate_token_values_config_path=separate_token_values_config_path,
+            task_data_config_only=False,
+            data_path=app_data_path,
         )
+        logger.info(f"[green]Finished verification[/green]")
+
+        logger.info(f"[green]Finished configuring all steps[/green]")
+
+    # Move generated configs to default configs dir if user specified `--directory` option.
+    # This is needed to start a generator with these new configs
+    if directory:
+        shutil.copytree(app_data_path, default_app_data_path, dirs_exist_ok=True)

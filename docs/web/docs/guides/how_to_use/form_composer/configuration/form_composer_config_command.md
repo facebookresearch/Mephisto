@@ -12,6 +12,7 @@ The `form_composer config` utility command helps auto-generate FormComposer conf
 
 ```shell
 # Sample launching commands
+mephisto form_composer config
 mephisto form_composer config --update-file-location-values "https://s3.amazonaws.com/..." --use_presigned_urls
 mephisto form_composer config --update-file-location-values "https://s3.amazonaws.com/..."
 mephisto form_composer config --permutate-separate-tokens
@@ -30,3 +31,12 @@ where
 - `-f/--update-file-location-values S3_FOLDER_URL` - generates token values based on file names found within the specified S3 folder (see a separate section about this mode of running FormComposer)
 - `-e/--extrapolate-token-sets` - if truthy, generates Task data config based on provided form config and takon sets values
 - `-u/--use-presigned-urls` - a **modifier** for `--update-file-location-values` command that converts S3 URLs into short-lived rtemporary ones (for more detailes see "Presigned URLs" section)
+
+## Shortcut commands
+
+- `mephisto form_composer config` executes the following commands in one step:
+```shell
+mephisto form_composer config --permutate-separate-tokens
+mephisto form_composer config --extrapolate-token-sets
+mephisto form_composer config --verify
+```
