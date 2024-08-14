@@ -15,6 +15,7 @@ from mephisto.abstractions.databases.local_database import StringIDRow
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
+from mephisto.generators.form_composer.constants import FORM_COMPOSER_TASK_TAG
 from mephisto.review_app.server.db_queries import find_units
 
 
@@ -67,7 +68,7 @@ def _check_task_has_stats(task_id: str) -> bool:
     last_task_run: TaskRun = task_runs[-1]
     last_task_run_config: DictConfig = last_task_run.get_task_args()
 
-    if "form-composer" in last_task_run_config.task_tags:
+    if FORM_COMPOSER_TASK_TAG in last_task_run_config.task_tags:
         from mephisto.generators.form_composer.stats import check_task_has_fields_for_stats
 
         return check_task_has_fields_for_stats(task)

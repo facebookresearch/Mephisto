@@ -12,6 +12,7 @@ from typing import Mapping
 from typing import Optional
 from typing import Type
 from typing import TYPE_CHECKING
+from typing import Union
 
 from dateutil.parser import parse
 from prometheus_client import Gauge  # type: ignore
@@ -23,11 +24,11 @@ from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
+from mephisto.data_model.worker import Worker
 from mephisto.utils.logger_core import get_logger
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
-    from mephisto.data_model.worker import Worker
     from mephisto.abstractions.crowd_provider import CrowdProvider
     from mephisto.data_model.assignment import Assignment, InitializationData
 
@@ -268,6 +269,19 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         if self.agent_id is not None:
             return Agent.get(self.db, self.agent_id)
         return None
+
+    def get_worker(self) -> Union["Worker", None]:
+        """Return the worker that started this Unit"""
+        agent = self.get_assigned_agent()
+
+        if self.__worker is None:
+            if agent is not None:
+                self.__worker = agent.get_worker()
+            else:
+                if self.worker_id:
+                    self.__worker = Worker.get(self.db, self.worker_id)
+
+        return self.__worker
 
     @staticmethod
     def _register_unit(

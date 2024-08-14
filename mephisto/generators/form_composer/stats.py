@@ -14,7 +14,8 @@ FIELD_TYPES_FOR_HISTOGRAM = ["radio", "checkbox", "select"]
 
 
 def _get_unit_data(data_browser: DataBrowser, unit: Unit) -> dict:
-    unit_data = data_browser.get_data_from_unit(unit)
+    # We need to propogate raising an exception and return all what we know about this unit
+    unit_data = data_browser.get_data_from_unit(unit, raise_exception=False)
 
     unit_inputs = unit_data.get("data", {}).get("inputs") or {}
     unit_outputs = unit_data.get("data", {}).get("outputs") or {}
@@ -26,13 +27,17 @@ def _get_unit_data(data_browser: DataBrowser, unit: Unit) -> dict:
         unit_outputs = unit_outputs["final_submission"]
 
     return {
-        "unit_inputs": unit_inputs,
-        "unit_outputs": unit_outputs,
+        "unit_inputs": unit_inputs or {},
+        "unit_outputs": unit_outputs or {},
     }
 
 
 def _get_unit_fields_for_histogram(unit_inputs: dict) -> dict:
     fields = {}
+
+    if "form" not in unit_inputs:
+        return fields
+
     form_data = unit_inputs["form"]
     for section in form_data["sections"]:
         for fieldset in section["fieldsets"]:
@@ -40,6 +45,7 @@ def _get_unit_fields_for_histogram(unit_inputs: dict) -> dict:
                 for field in row["fields"]:
                     if field["type"] in FIELD_TYPES_FOR_HISTOGRAM:
                         fields[field["name"]] = field
+
     return fields
 
 

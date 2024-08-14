@@ -147,7 +147,7 @@ AVAILABLE_FIELDSET_ATTRS: AvailableAttrsType = {
     },
     "title": {
         "type": str,
-        "required": True,
+        "required": False,
     },
 }
 

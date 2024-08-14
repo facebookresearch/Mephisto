@@ -423,7 +423,7 @@ function FormComposer({
                       className={`fieldset container ${fieldset.classes || ""}`}
                       id={fieldset.id}
                     >
-                      {(fieldsetTitle || fieldsetInstruction) && (
+                      {(fieldsetTitle || fieldsetInstruction) ? (
                         <div
                           className={`fieldset-header alert alert-secondary`}
                           role={"alert"}
@@ -448,6 +448,8 @@ function FormComposer({
                             ></p>
                           )}
                         </div>
+                      ) : (
+                        <hr />
                       )}
 
                       {rows.map((row, rowIndex) => {

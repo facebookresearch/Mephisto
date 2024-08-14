@@ -13,6 +13,7 @@ from werkzeug.exceptions import BadRequest
 
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
+from mephisto.generators.form_composer.constants import FORM_COMPOSER_TASK_TAG
 
 
 class TaskStatsResultsView(MethodView):
@@ -31,7 +32,7 @@ class TaskStatsResultsView(MethodView):
         last_task_run_config: DictConfig = last_task_run.get_task_args()
 
         collect_task_stats_func = None
-        if "form-composer" in last_task_run_config.task_tags:
+        if FORM_COMPOSER_TASK_TAG in last_task_run_config.task_tags:
             from mephisto.generators.form_composer.stats import collect_task_stats
 
             collect_task_stats_func = collect_task_stats
