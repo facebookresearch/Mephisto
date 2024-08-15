@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-sidebar_position: 4
+sidebar_position: 5
 ---
 
 # TaskReview app API
@@ -57,7 +57,9 @@ Get all available tasks (to select one for review)
             "id": <int>,
             "is_reviewed": <bool>,
             "name": <str>,
-            "unit_count": <int>
+            "unit_all_count": <int>,
+            "unit_completed_count": <int>,
+            "unit_finished_count": <int>
         },
         ...  // more tasks
     ]

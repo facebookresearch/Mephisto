@@ -161,14 +161,15 @@ def register_provider(args):
         logger.error("[red]No name was specified for the requester.[/red]")
 
     db = LocalMephistoDB()
-    requesters = db.find_requesters(requester_name=parsed_options.name)
+    requester_name = parsed_options.name
+    requesters = db.find_requesters(requester_name=requester_name)
     if len(requesters) == 0:
-        requester = RequesterClass.new(db, parsed_options.name)
+        requester = RequesterClass.new(db, requester_name)
     else:
         requester = requesters[0]
     try:
         requester.register(parsed_options)
-        logger.info("[green]Registered successfully.[/green]")
+        logger.info(f'[green]Registered requester "{requester_name}" successfully.[/green]')
     except Exception as e:
         click.echo(str(e))
 

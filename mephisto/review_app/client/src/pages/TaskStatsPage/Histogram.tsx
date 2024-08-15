@@ -8,6 +8,14 @@ const BAR_PADDING = 0.2;
 
 const TRUNCATE_LABEL_LENGTH = 20;
 
+// Somehow it's 3px if value `1` and the minimum is still 2px even if value less than `1`.
+// Changing `strokeWidth` does not help
+const ZERO_LINE_WIDTH_PX = 0.1;
+
+const LINE_HEIGHT_PX = 20;
+
+const VERTICAL_GAP_BETWEEN_LINES_PX = 4;
+
 function truncateLabel(text: string, n: number): string {
   return text.length > n ? text.slice(0, n - 1) + "..." : text;
 }
@@ -52,7 +60,7 @@ export function Histogram(props: HistogramPropsType) {
   const allShapes = data.map((d: HistogramData, i: number) => {
     const truncatedLabel = truncateLabel(d.label, TRUNCATE_LABEL_LENGTH);
 
-    const y = yScale(truncatedLabel);
+    const y = i * (LINE_HEIGHT_PX + VERTICAL_GAP_BETWEEN_LINES_PX);
     if (y === undefined) {
       return null;
     }
@@ -61,9 +69,9 @@ export function Histogram(props: HistogramPropsType) {
       <g key={i}>
         <rect
           x={xScale(0)}
-          y={yScale(truncatedLabel)}
-          width={xScale(d.value)}
-          height={yScale.bandwidth()}
+          y={y}
+          width={xScale(d.value) || ZERO_LINE_WIDTH_PX}
+          height={LINE_HEIGHT_PX}
           opacity={1}
           stroke="#cbedec"
           fill="#cbedec"
@@ -73,7 +81,8 @@ export function Histogram(props: HistogramPropsType) {
         />
         <text
           x={xScale(d.value) + 8}
-          y={y + yScale.bandwidth() / 2}
+          y={y + LINE_HEIGHT_PX / 2}
+          height={LINE_HEIGHT_PX}
           textAnchor="start"
           alignmentBaseline="central"
           fontSize={12}
@@ -84,7 +93,8 @@ export function Histogram(props: HistogramPropsType) {
         <text
           className={"label"}
           x={xScale(0) - 8}
-          y={y + yScale.bandwidth() / 2}
+          y={y + LINE_HEIGHT_PX / 2}
+          height={LINE_HEIGHT_PX}
           textAnchor="end"
           alignmentBaseline="central"
           fontSize={12}

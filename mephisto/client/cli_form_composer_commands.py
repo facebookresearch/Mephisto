@@ -65,7 +65,18 @@ def _get_form_composer_app_path() -> str:
     is_flag=True,
     help="Validate only final data config",
 )
-def form_composer_cli(ctx: click.Context, task_data_config_only: bool = True):
+@click.option(
+    "-c",
+    "--conf",
+    type=str,
+    default=None,
+    help="YAML config name (analog of `conf` option in raw python run script)",
+)
+def form_composer_cli(
+    ctx: click.Context,
+    task_data_config_only: bool = True,
+    conf: Optional[str] = None,
+):
     """
     Generator of form-based Tasks with clean cross-platform Bootstrap forms
     with client-side form validation.
@@ -99,7 +110,8 @@ def form_composer_cli(ctx: click.Context, task_data_config_only: bool = True):
     )
 
     # Start the process
-    process = subprocess.Popen("python ./run.py", shell=True, cwd=app_path)
+    conf_param_str = f" conf={conf}" if conf else ""
+    process = subprocess.Popen(f"python ./run.py{conf_param_str}", shell=True, cwd=app_path)
 
     # Kill subprocess when we interrupt the main process
     try:

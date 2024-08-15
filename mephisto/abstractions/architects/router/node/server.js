@@ -26,7 +26,7 @@ const PORT = process.env.PORT || 3000;
 function uuidv4() {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
     var r = (Math.random() * 16) | 0,
-      v = c == "x" ? r : (r & 0x3) | 0x8;
+      v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }
@@ -144,7 +144,7 @@ function _send_message(socket, packet) {
     return;
   }
 
-  if (socket.readyState == 3) {
+  if (socket.readyState === 3) {
     // Socket has already closed
     return;
   }
@@ -190,7 +190,7 @@ function clear_agent(agent_id) {
 // Open connections send alives to identify who they are,
 // register them correctly here
 function handle_alive(socket, alive_packet) {
-  if (alive_packet.subject_id == SYSTEM_SOCKET_ID) {
+  if (alive_packet.subject_id === SYSTEM_SOCKET_ID) {
     mephisto_socket = socket;
     console.log("System socket attached:");
     console.log(socket._socket.remoteAddress);
@@ -212,7 +212,7 @@ function handle_alive(socket, alive_packet) {
 function ensure_live_connection(agent) {
   let curr_status = agent.status;
   let last_ping = agent.last_ping;
-  if (last_ping == 0) {
+  if (last_ping === 0) {
     return; // Not a live task, nothing to check
   }
   if (
@@ -248,7 +248,7 @@ function handle_get_agent_status(status_packet) {
 function handle_update_local_status(status_packet) {
   let agent_id = status_packet.subject_id;
   let agent = find_or_create_agent(agent_id);
-  if (status_packet.data.status != undefined) {
+  if (status_packet.data.status !== undefined) {
     agent.status = status_packet.data.status;
   }
 }
@@ -319,29 +319,29 @@ wss.on("connection", function (socket) {
     try {
       packet = JSON.parse(packet);
       packet["router_incoming_timestamp"] = pythonTime();
-      if (packet["packet_type"] == PACKET_TYPE_REQUEST_STATUSES) {
+      if (packet["packet_type"] === PACKET_TYPE_REQUEST_STATUSES) {
         debug_log("Mephisto requesting status");
         handle_get_agent_status(packet);
       } else if (
-        packet["packet_type"] == PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE
+        packet["packet_type"] === PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE
       ) {
         debug_log("Mephisto-bound action: ", packet);
         mephisto_message_queue.push(packet);
       } else if (
-        packet["packet_type"] == PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE
+        packet["packet_type"] === PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE
       ) {
         debug_log("Client-bound action: ", packet);
         forward_to_agent(packet);
-      } else if (packet["packet_type"] == PACKET_TYPE_ERROR) {
+      } else if (packet["packet_type"] === PACKET_TYPE_ERROR) {
         mephisto_message_queue.push(packet);
-      } else if (packet["packet_type"] == PACKET_TYPE_ALIVE) {
+      } else if (packet["packet_type"] === PACKET_TYPE_ALIVE) {
         debug_log("Agent alive: ", packet);
         handle_alive(socket, packet);
-      } else if (packet["packet_type"] == PACKET_TYPE_UPDATE_STATUS) {
+      } else if (packet["packet_type"] === PACKET_TYPE_UPDATE_STATUS) {
         debug_log("Update agent status", packet);
         handle_update_local_status(packet);
         forward_to_agent(packet);
-      } else if (packet["packet_type"] == PACKET_TYPE_AGENT_DETAILS) {
+      } else if (packet["packet_type"] === PACKET_TYPE_AGENT_DETAILS) {
         let request_id = packet["data"]["request_id"];
         if (request_id === undefined) {
           request_id = packet["subject_id"];
@@ -351,7 +351,7 @@ wss.on("connection", function (socket) {
           res_obj.json(packet);
           delete pending_agent_requests[request_id];
         }
-      } else if (packet["packet_type"] == PACKET_TYPE_HEARTBEAT) {
+      } else if (packet["packet_type"] === PACKET_TYPE_HEARTBEAT) {
         packet["data"] = { last_mephisto_ping: last_mephisto_ping };
         let agent_id = packet["subject_id"];
         let agent = agent_id_to_agent[agent_id];
@@ -360,8 +360,8 @@ wss.on("connection", function (socket) {
           agent.last_ping = Date.now();
           packet.data.status = agent.status;
           if (
-            agent_id_to_socket[agent.agent_id] != socket &&
-            agent_id_to_socket[agent.agent_id] != undefined
+            agent_id_to_socket[agent.agent_id] !== socket &&
+            agent_id_to_socket[agent.agent_id] !== undefined
           ) {
             // Not communicating to the _correct_ socket, update
             debug_log("Updating socket for ", agent);
@@ -632,7 +632,7 @@ app.get("/get_timestamp", function (req, res) {
 
 app.get("/task_index", function (req, res) {
   // TODO how do we pass the task config to the frontend?
-  res.render("index.html");
+  res.sendFile(path.resolve(__dirname, "./static/index.html"));
 });
 
 app.get("/download_file/:file", function (req, res) {
@@ -659,6 +659,10 @@ app.get("/download_file/:file", function (req, res) {
     // TODO only return the files for requests from the origin
     // res.status(403).end();
   }
+});
+
+app.get("/welcome", function (req, res) {
+  res.sendFile(path.resolve(__dirname, "./static/index.html"));
 });
 
 app.use(express.static("static"));

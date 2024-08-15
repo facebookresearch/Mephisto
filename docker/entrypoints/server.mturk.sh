@@ -14,6 +14,7 @@ mkdir -p "data" && chmod 777 "data"
 # Directory for Cypress testing
 mkdir -p "/root/.cache/Cypress" && chmod 777 "/root/.cache/Cypress"
 
+mephisto register inhouse name=inhouse
 mephisto register mturk_sandbox \
     name=$MTURK_SANDBOX_NAME \
     access_key_id=$MTURK_SANDBOX_ACCESS_KEY_ID \

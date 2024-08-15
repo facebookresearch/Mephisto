@@ -85,7 +85,6 @@ def _build():
     review_app.build_review_app_ui(force_rebuild=force_rebuild, verbose=verbose)
 
     examples.build_form_composer_simple(force_rebuild=force_rebuild)
-    examples.build_form_composer_simple_with_worker_opinion(force_rebuild=force_rebuild)
     examples.build_form_composer_dynamic(force_rebuild=force_rebuild)
     examples.build_form_composer_dynamic_presigned_urls_ec2_prolific(force_rebuild=force_rebuild)
     examples.build_parlai_chat_task_demo(force_rebuild=force_rebuild)

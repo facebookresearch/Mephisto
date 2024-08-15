@@ -7,6 +7,7 @@
 from typing import Any
 from typing import Dict
 from typing import List
+from typing import Union
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.constants.assignment_state import AssignmentState
@@ -83,7 +84,7 @@ class DataBrowser:
         return self._get_units_for_task_runs([task_run])
 
     @staticmethod
-    def get_data_from_unit(unit: Unit) -> Dict[str, Any]:
+    def get_data_from_unit(unit: Unit, raise_exception: bool = True) -> Dict[str, Any]:
         """
         Return a dict containing all data associated with the given
         unit, including its status, data, and start and end time.
@@ -93,20 +94,24 @@ class DataBrowser:
         """
         agent = unit.get_assigned_agent()
 
-        assert agent is not None, f"Trying to get completed data from unassigned unit {unit}"
+        if raise_exception:
+            assert agent is not None, f"Trying to get completed data from unassigned unit {unit}"
+
+        worker: Union[Worker, None] = agent.get_worker() if agent else unit.get_worker()
 
         return {
             "assignment_id": unit.assignment_id,
-            "data": agent.state.get_parsed_data(),
-            "metadata": agent.state.get_metadata(),
-            "status": agent.db_status,
-            "task_end": agent.state.get_task_end(),
-            "task_start": agent.state.get_task_start(),
+            "data": agent.state.get_parsed_data() if agent else {},
+            "metadata": agent.state.get_metadata() if agent else {},
+            "status": agent.db_status if agent else None,
+            "task_end": agent.state.get_task_end() if agent else None,
+            "task_start": agent.state.get_task_start() if agent else None,
             "unit_id": unit.db_id,
-            "worker_id": agent.worker_id,
-            # TODO: Deprecated fields, removed them after removing Tips and Feedback
-            "tips": agent.state.get_tips(),
-            "feedback": agent.state.get_feedback(),
+            "worker_id": worker.db_id if worker else None,
+            "worker_name": worker.worker_name if worker else None,
+            # TODO: Deprecated fields, remove them after removing Tips and Feedback React components
+            "tips": agent.state.get_tips() if agent else None,
+            "feedback": agent.state.get_feedback() if agent else None,
         }
 
     def get_workers_with_qualification(self, qualification_name: str) -> List[Worker]:

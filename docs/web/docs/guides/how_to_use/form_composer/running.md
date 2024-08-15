@@ -48,7 +48,15 @@ First ensure that mephisto package is installed locally - please refer to [Mephi
 Once that is done, run [`form_composer config` command](/docs/guides/how_to_use/form_composer/configuration/form_composer_config_command/) if needed, followed by `form_composer` command:
 
 ```shell
+# Configure command (for details, see "form_composer config command" page)
 mephisto form_composer config --extrapolate-token-sets
+
+# Run commands
 mephisto form_composer
 mephisto form_composer --task-data-config-only
+mephisto form_composer --conf my-yaml-config
 ```
+
+where
+- `-o/--task-data-config-only` - validate only final data config
+- `-c/--conf` - YAML config name (analog of `conf` option in raw python run script)

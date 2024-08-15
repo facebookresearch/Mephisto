@@ -272,7 +272,7 @@ def get_default_dashboard_url() -> str:
     """
     headers_dict = {"Accept": "application/json"}
     grafana_url = get_grafana_url()
-    url = urljoin(grafana_url, "/api/search?query=Default%20Mephisto%20Monitorin")
+    url = urljoin(grafana_url, "/api/search?query=Default%20Mephisto%20Monitoring")
 
     r = requests.get(
         url,

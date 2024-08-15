@@ -14,6 +14,7 @@ mkdir -p "data" && chmod 777 "data"
 # Directory for Cypress testing
 mkdir -p "/root/.cache/Cypress" && chmod 777 "/root/.cache/Cypress"
 
+mephisto register inhouse name=inhouse
 mephisto register prolific name=prolific api_key=$PROLIFIC_API_KEY
 
 exec "$@"

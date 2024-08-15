@@ -15,6 +15,7 @@ import urls from "urls";
 import "./TasksPage.css";
 
 const STORAGE_TASK_ID_KEY: string = "selectedTaskID";
+const ENABLE_INCOMPLETE_TASK_RESULTS_EXPORT = true;
 
 interface PropsType {
   setErrors: Function;
@@ -28,7 +29,7 @@ function TasksPage(props: PropsType) {
   const [taskIdExportResults, setTaskIdExportResults] = React.useState(null);
   const [loadingExportResults, setLoadingExportResults] = React.useState(false);
 
-  const onTaskRowClick = (id: string) => {
+  function onTaskRowClick(id: string) {
     localStorage.setItem(STORAGE_TASK_ID_KEY, String(id));
 
     // Create a pseudo new link and click it to open a task in new tab (not window)
@@ -36,18 +37,24 @@ function TasksPage(props: PropsType) {
     pseudoLink.setAttribute("href", urls.client.task(id));
     pseudoLink.setAttribute("target", "_blank");
     pseudoLink.click();
-  };
+  }
 
-  const onError = (errorResponse: ErrorResponseType | null) => {
+  function onError(errorResponse: ErrorResponseType | null) {
     if (errorResponse) {
       props.setErrors((oldErrors) => [...oldErrors, ...[errorResponse.error]]);
     }
-  };
+  }
 
-  const requestTaskResults = (taskId: string, nUnits: number) => {
+  function requestTaskResults(
+    e: React.MouseEvent<HTMLElement>,
+    taskId: string,
+    nUnits: number
+  ) {
+    e.stopPropagation();
+
     setTaskIdExportResults(taskId);
 
-    const onSuccessExportResults = (data) => {
+    function onSuccessExportResults(data) {
       setTaskIdExportResults(null);
 
       if (data.file_created) {
@@ -61,7 +68,7 @@ function TasksPage(props: PropsType) {
         link.click();
         link.remove();
       }
-    };
+    }
 
     exportTaskResults(
       taskId,
@@ -69,7 +76,7 @@ function TasksPage(props: PropsType) {
       setLoadingExportResults,
       onError
     );
-  };
+  }
 
   useEffect(() => {
     document.title = "Mephisto - Task Review - All Tasks";
@@ -119,7 +126,10 @@ function TasksPage(props: PropsType) {
           {tasks &&
             tasks.map((task: TaskType, index) => {
               const date = moment(task.created_at).format("MMM D, YYYY");
-              const nonClickable = task.is_reviewed || task.unit_count === 0;
+              const nonClickable =
+                task.is_reviewed || task.unit_all_count === 0;
+              const allowTaskResultsDownload =
+                ENABLE_INCOMPLETE_TASK_RESULTS_EXPORT || task.is_reviewed;
 
               return (
                 <tr
@@ -137,7 +147,9 @@ function TasksPage(props: PropsType) {
                   <td className={"reviewed"}>
                     {task.is_reviewed ? <span>&#x2611;</span> : ""}
                   </td>
-                  <td className={"units"}>{task.unit_count}</td>
+                  <td className={"units"}>
+                    {task.unit_finished_count}/{task.unit_all_count}
+                  </td>
                   <td className={"date"}>{date}</td>
                   <td className={"stats"}>
                     {task.has_stats && (
@@ -166,19 +178,24 @@ function TasksPage(props: PropsType) {
                     </Link>
                   </td>
                   <td className={"export"}>
-                    {task.is_reviewed &&
+                    {allowTaskResultsDownload &&
                       !(
                         loadingExportResults && taskIdExportResults === task.id
                       ) && (
                         <span
                           className={"text-primary download-button"}
-                          onClick={() =>
-                            requestTaskResults(task.id, task.unit_count)
+                          onClick={(e: React.MouseEvent<HTMLElement>) =>
+                            requestTaskResults(
+                              e,
+                              task.id,
+                              task.unit_completed_count
+                            )
                           }
                         >
                           Download
                         </span>
                       )}
+
                     {taskIdExportResults === task.id && loadingExportResults && (
                       <div className={"export-loading"}>
                         <Spinner

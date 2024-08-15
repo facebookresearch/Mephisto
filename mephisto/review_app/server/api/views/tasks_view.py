@@ -15,6 +15,7 @@ from mephisto.abstractions.databases.local_database import StringIDRow
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
+from mephisto.generators.form_composer.constants import FORM_COMPOSER_TASK_TAG
 from mephisto.review_app.server.db_queries import find_units
 
 
@@ -33,6 +34,10 @@ def _find_tasks(db, debug: bool = False) -> List[StringIDRow]:
         return rows
 
 
+def find_all_units(task_id: int) -> List[StringIDRow]:
+    return find_units(app.db, task_id, debug=app.debug)
+
+
 def find_completed_units(task_id: int) -> List[StringIDRow]:
     return find_units(
         app.db,
@@ -40,6 +45,17 @@ def find_completed_units(task_id: int) -> List[StringIDRow]:
         statuses=AssignmentState.completed(),
         debug=app.debug,
     )
+
+
+def check_if_task_reviewed(task_id: int) -> bool:
+    # As we can review only completed Units,
+    # Task can be considered reviewed, if we count only these Units
+    db_units: List[StringIDRow] = find_completed_units(task_id)
+    unit_count = len(db_units)
+    is_reviewed = unit_count > 0 and all(
+        [u["status"] != AssignmentState.COMPLETED for u in db_units]
+    )
+    return is_reviewed
 
 
 def _check_task_has_stats(task_id: str) -> bool:
@@ -52,7 +68,7 @@ def _check_task_has_stats(task_id: str) -> bool:
     last_task_run: TaskRun = task_runs[-1]
     last_task_run_config: DictConfig = last_task_run.get_task_args()
 
-    if "form-composer" in last_task_run_config.task_tags:
+    if FORM_COMPOSER_TASK_TAG in last_task_run_config.task_tags:
         from mephisto.generators.form_composer.stats import check_task_has_fields_for_stats
 
         return check_task_has_fields_for_stats(task)
@@ -69,13 +85,15 @@ class TasksView(MethodView):
 
         tasks = []
         for t in db_tasks:
-            db_units: List[StringIDRow] = find_completed_units(int(t["task_id"]))
-            app.logger.debug(f"All completed units: {[u['unit_id'] for u in db_units]}")
+            db_units: List[StringIDRow] = find_all_units(int(t["task_id"]))
+            app.logger.debug(f"All found units: {[u['unit_id'] for u in db_units]}")
 
-            unit_count = len(db_units)
-            is_reviewed = unit_count > 0 and all(
-                [u["status"] != AssignmentState.COMPLETED for u in db_units]
+            unit_all_count = len(db_units)
+            unit_completed_count = len(find_completed_units(int(t["task_id"])))
+            unit_finished_count = len(
+                [u for u in db_units if u["status"] in AssignmentState.final_agent()]
             )
+            is_reviewed = check_if_task_reviewed(task_id=t["task_id"])
             has_stats = _check_task_has_stats(task_id=t["task_id"])
 
             tasks.append(
@@ -85,7 +103,12 @@ class TasksView(MethodView):
                     "id": t["task_id"],
                     "is_reviewed": is_reviewed,
                     "name": t["task_name"],
-                    "unit_count": unit_count,
+                    # To show how many Units Task has
+                    "unit_all_count": unit_all_count,
+                    # To download results file (we use it in URL)
+                    "unit_completed_count": unit_completed_count,
+                    # To show how many Units were finished among all
+                    "unit_finished_count": unit_finished_count,
                 }
             )
 

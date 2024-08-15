@@ -25,6 +25,8 @@ CONTENTTYPE_BY_EXTENSION = {
     "webm": "video/webm",
 }
 
+FORM_COMPOSER_TASK_TAG = "form-composer"
+
 JSON_IDENTATION = 2
 
 S3_URL_EXPIRATION_MINUTES = int(os.environ.get("S3_URL_EXPIRATION_MINUTES", 60))
