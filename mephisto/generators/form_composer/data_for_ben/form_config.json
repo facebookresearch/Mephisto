@@ -1,0 +1,177 @@
+{
+  "form": {
+    "title": "Form example",
+    "instruction": "insertions/form_instruction.html",
+    "show_instructions_as_modal": false,
+    "sections": [
+      {
+        "name": "section_questions",
+        "title": "Characterize the video",
+        "collapsable": false,
+        "fieldsets": [
+          {
+            "title": "Video quality",
+            "rows": [
+              {
+                "fields": [
+                  {
+                    "label": "Were you able to understand both participants for the duration of the video?",
+                    "name": "can_understand",
+                    "type": "radio",
+                    "validators": {
+                      "required": true
+                    },
+                    "options": [
+                      {
+                        "label": "Yes",
+                        "value": "yes"
+                      },
+                      {
+                        "label": "No",
+                        "value": "no"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "fields": [
+                  {
+                    "label": "Were you able to clearly make out the faces / bodies of both of the participants?",
+                    "name": "can_see",
+                    "type": "radio",
+                    "validators": {
+                      "required": true
+                    },
+                    "options": [
+                      {
+                        "label": "Yes",
+                        "value": "yes"
+                      },
+                      {
+                        "label": "No",
+                        "value": "no"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "fields": [
+                  {
+                    "label": "Were there any other people present in the video other than the participants?",
+                    "name": "other_people",
+                    "type": "radio",
+                    "validators": {
+                      "required": true
+                    },
+                    "options": [
+                      {
+                        "label": "Yes",
+                        "value": "yes"
+                      },
+                      {
+                        "label": "No",
+                        "value": "no"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "fields": [
+                  {
+                    "label": "Was the audio and video synchronized - the timing of the speech and lip-movements / behaviors?",
+                    "name": "audio_video_in_sync",
+                    "type": "radio",
+                    "validators": {
+                      "required": true
+                    },
+                    "options": [
+                      {
+                        "label": "Yes",
+                        "value": "yes"
+                      },
+                      {
+                        "label": "No",
+                        "value": "no"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Video Content",
+            "rows": [
+              {
+                "fields": [
+                  {
+                    "label": "Do you observe any offensive material (profanity, aggressive behavior) from either of the participants?",
+                    "name": "is_offensive",
+                    "type": "radio",
+                    "validators": {
+                      "required": true
+                    },
+                    "options": [
+                      {
+                        "label": "Yes",
+                        "value": "yes"
+                      },
+                      {
+                        "label": "No",
+                        "value": "no"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "fields": [
+                  {
+                    "label": "Did you observe either participant share any information related to the following categories?",
+                    "multiple": false,
+                    "name": "has_info",
+                    "type": "select",
+                    "options": [
+                      {
+                        "label": "---",
+                        "value": ""
+                      },
+                      {
+                        "label": "Category 1",
+                        "value": "category_1"
+                      },
+                      {
+                        "label": "Category 2",
+                        "value": "category_2"
+                      },
+                      {
+                        "label": "Category 3",
+                        "value": "category_4"
+                      },
+                      {
+                        "label": "None of the above",
+                        "value": "category_none"
+                      }
+                    ],
+                    "validators": {
+                      "required": true
+                    },
+                    "value": ""
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "submit_button": {
+      "instruction": "",
+      "text": "Submit",
+      "tooltip": "Submit review"
+    }
+  }
+}

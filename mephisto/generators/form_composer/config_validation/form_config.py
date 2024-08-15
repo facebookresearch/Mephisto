@@ -68,7 +68,9 @@ def validate_form_config(
         is_valid = False
         errors.append("Form config must be a key/value JSON Object.")
 
-    elif config_data.keys() != AVAILABLE_CONFIG_ATTRS.keys():
+    elif not validate_config_dict_item(
+        config_data, "form", AVAILABLE_CONFIG_ATTRS, errors=errors, data_path=data_path
+    ):
         is_valid = False
         errors.append(
             f"Form config must contain only these attributes: "
