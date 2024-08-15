@@ -15,11 +15,16 @@ CUSTOM_VALIDATORS_JS_FILE_NAME = "custom_validators.js"
 CUSTOM_TRIGGERS_JS_FILE_NAME = "custom_triggers.js"
 CUSTOM_VALIDATORS_JS_FILE_NAME_ENV_KEY = "WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS"
 CUSTOM_TRIGGERS_JS_FILE_NAME_ENV_KEY = "WEBAPP__FORM_COMPOSER__CUSTOM_TRIGGERS"
+METADATA_FORM_KEY = "form_metadata"
 
 AVAILABLE_CONFIG_ATTRS: AvailableAttrsType = {
     "form": {
         "type": dict,
         "required": True,
+    },
+    METADATA_FORM_KEY: {
+        "type": dict,
+        "required": False,
     },
 }
 

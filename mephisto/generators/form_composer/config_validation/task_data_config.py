@@ -18,6 +18,7 @@ from mephisto.generators.form_composer.constants import TOKEN_START_REGEX
 from mephisto.generators.form_composer.remote_procedures import ProcedureName
 from .common_validation import replace_path_to_file_with_its_content
 from .config_validation_constants import ATTRS_SUPPORTING_TOKENS
+from .config_validation_constants import METADATA_FORM_KEY
 from .config_validation_constants import TOKENS_VALUES_KEY
 from .form_config import validate_form_config
 from .separate_token_values_config import validate_separate_token_values_config
@@ -252,6 +253,12 @@ def _combine_extrapolated_form_configs(
                     token_sets_values[TOKENS_VALUES_KEY],
                     data_path=data_path,
                 )
+
+                # Add token values into metadata
+                prev_metadata = form_config_data_with_tokens.get(METADATA_FORM_KEY, {})
+                prev_metadata.update(token_sets_values)
+                form_config_data_with_tokens[METADATA_FORM_KEY] = prev_metadata
+
                 combined_config.append(form_config_data_with_tokens)
     else:
         # If no config with tokens values was added than
