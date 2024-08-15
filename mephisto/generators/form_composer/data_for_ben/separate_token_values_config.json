@@ -1,0 +1,4 @@
+{
+  "video_path": ["https://my-bucket.s3.amazonaws.com/my-folder/"],
+  "video_file": ["video1.mp4", "video2.mp4"]
+}
