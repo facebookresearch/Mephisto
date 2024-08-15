@@ -91,7 +91,7 @@ class TasksView(MethodView):
             unit_all_count = len(db_units)
             unit_completed_count = len(find_completed_units(int(t["task_id"])))
             unit_finished_count = len(
-                [u["status"] in AssignmentState.final_agent() for u in db_units]
+                [u for u in db_units if u["status"] in AssignmentState.final_agent()]
             )
             is_reviewed = check_if_task_reviewed(task_id=t["task_id"])
             has_stats = _check_task_has_stats(task_id=t["task_id"])
