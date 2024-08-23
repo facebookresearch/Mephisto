@@ -6,21 +6,18 @@
 
 import os
 import shutil
-import subprocess
 from typing import Optional
 
 import click
 from rich_click import RichCommand
 from rich_click import RichGroup
 
+from mephisto.client.cli_form_composer_commands import start_generator_process
 from mephisto.generators.form_composer.config_validation.separate_token_values_config import (
     update_separate_token_values_config_with_file_urls,
 )
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     create_extrapolated_config,
-)
-from mephisto.generators.form_composer.config_validation.task_data_config import (
-    verify_form_composer_configs,
 )
 from mephisto.generators.form_composer.config_validation.token_sets_values_config import (
     update_token_sets_values_config_with_premutated_data,
@@ -30,43 +27,31 @@ from mephisto.generators.form_composer.config_validation.utils import set_custom
 from mephisto.generators.form_composer.config_validation.utils import (
     set_custom_validators_js_env_var,
 )
+from mephisto.generators.video_annotator.config_validation.task_data_config import (
+    verify_video_annotator_configs,
+)
 from mephisto.utils.console_writer import ConsoleWriter
 
-FORM_COMPOSER__DATA_DIR_NAME = "data"
-FORM_COMPOSER__DATA_CONFIG_NAME = "task_data.json"
-FORM_COMPOSER__FORM_CONFIG_NAME = "form_config.json"
-FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME = "token_sets_values_config.json"
-FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME = "separate_token_values_config.json"
+VIDEO_ANNOTATOR__DATA_DIR_NAME = "data"
+VIDEO_ANNOTATOR__DATA_CONFIG_NAME = "task_data.json"
+VIDEO_ANNOTATOR__ASSIGNMENT_CONFIG_NAME = "assignment_config.json"
+VIDEO_ANNOTATOR__TOKEN_SETS_VALUES_CONFIG_NAME = "token_sets_values_config.json"
+VIDEO_ANNOTATOR__SEPARATE_TOKEN_VALUES_CONFIG_NAME = "separate_token_values_config.json"
 
 logger = ConsoleWriter()
 
 
-def start_generator_process(app_path: str, conf: Optional[str] = None):
-    conf_param_str = f" conf={conf}" if conf else ""
-    process = subprocess.Popen(f"python ./run.py{conf_param_str}", shell=True, cwd=app_path)
-
-    # Kill subprocess when we interrupt the main process
-    try:
-        process.wait()
-    except (KeyboardInterrupt, Exception):
-        try:
-            process.terminate()
-        except OSError:
-            pass
-        process.wait()
-
-
-def _get_form_composer_app_path() -> str:
+def _get_video_annotator_app_path() -> str:
     app_path = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
         "generators",
-        "form_composer",
+        "video_annotator",
     )
     return app_path
 
 
 @click.group(
-    name="form_composer",
+    name="video_annotator",
     context_settings=dict(help_option_names=["-h", "--help"]),
     cls=RichGroup,
     invoke_without_command=True,
@@ -87,15 +72,12 @@ def _get_form_composer_app_path() -> str:
     default=None,
     help="YAML config name (analog of `conf` option in raw python run script)",
 )
-def form_composer_cli(
+def video_annotator_cli(
     ctx: click.Context,
     task_data_config_only: bool = True,
     conf: Optional[str] = None,
 ):
-    """
-    Generator of form-based Tasks with clean cross-platform Bootstrap forms
-    with client-side form validation.
-    """
+    """Generator of Tasks to annotate videos."""
 
     if ctx.invoked_subcommand is not None:
         # It's needed to add the ability to run `config` command,
@@ -106,10 +88,10 @@ def form_composer_cli(
     # This is necessary, because the whole infrastructure is built relative to the location
     # of the called command-line script.
     # The other parts of the logic are inside `form_composer/run***.py` script
-    app_path = _get_form_composer_app_path()
-    app_data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME)
+    app_path = _get_video_annotator_app_path()
+    app_data_path = os.path.join(app_path, VIDEO_ANNOTATOR__DATA_DIR_NAME)
 
-    task_data_config_path = os.path.join(app_data_path, FORM_COMPOSER__DATA_CONFIG_NAME)
+    task_data_config_path = os.path.join(app_data_path, VIDEO_ANNOTATOR__DATA_CONFIG_NAME)
 
     # Change dir to app dir
     os.chdir(app_path)
@@ -119,17 +101,17 @@ def form_composer_cli(
     # Set env var for `custom_triggers.js`
     set_custom_triggers_js_env_var(app_data_path)
 
-    verify_form_composer_configs(
-        task_data_config_path=task_data_config_path,
-        task_data_config_only=task_data_config_only,
-        force_exit=True,
-    )
+    # verify_video_annotator_configs(
+    #     task_data_config_path=task_data_config_path,
+    #     task_data_config_only=task_data_config_only,
+    #     force_exit=True,
+    # )
 
     # Start the process
     start_generator_process(app_path, conf)
 
 
-@form_composer_cli.command("config", cls=RichCommand)
+@video_annotator_cli.command("config", cls=RichCommand)
 @click.pass_context
 @click.option(
     "-v",
@@ -137,7 +119,7 @@ def form_composer_cli(
     type=bool,
     default=False,
     is_flag=True,
-    help="Validate all JSON configs currently present in the form builder config directory",
+    help="Validate all JSON configs currently present in the video annotator config directory",
 )
 @click.option(
     "-f",
@@ -155,7 +137,7 @@ def form_composer_cli(
     type=bool,
     default=False,
     is_flag=True,
-    help="Generate form versions based on extrapolated values of token sets",
+    help="Generate assignment versions based on extrapolated values of token sets",
 )
 @click.option(
     "-p",
@@ -174,8 +156,8 @@ def form_composer_cli(
     type=str,
     default=None,
     help=(
-        "Path to the directory where form and token configs are located. "
-        "By default, it's the `data` directory of `form_composer` generator"
+        "Path to the directory where assignment and token configs are located. "
+        "By default, it's the `data` directory of `video_annotator` generator"
     ),
 )
 @click.option(
@@ -186,8 +168,8 @@ def form_composer_cli(
     is_flag=True,
     help=(
         "A modifier for `--update_file_location_values` parameter. "
-        "Wraps every S3 URL with a standard handler that presigns these URLs during form rendering "
-        "when we use `--update_file_location_values` command"
+        "Wraps every S3 URL with a standard handler that presigns these URLs during assignment "
+        "rendering when we use `--update_file_location_values` command"
     ),
 )
 def config(
@@ -200,12 +182,12 @@ def config(
     use_presigned_urls: Optional[bool] = False,
 ):
     """
-    Prepare (parts of) config for the `form_composer` command.
+    Prepare (parts of) config for the `video_annotator` command.
     Note that each parameter is essentially a separate command, and they cannot be mixed.
     """
 
-    app_path = _get_form_composer_app_path()
-    default_app_data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME)
+    app_path = _get_video_annotator_app_path()
+    default_app_data_path = os.path.join(app_path, VIDEO_ANNOTATOR__DATA_DIR_NAME)
 
     # Substitute defaults for missing param values
     if directory:
@@ -228,17 +210,18 @@ def config(
 
     # Check files and create `data.json` config with tokens data before running a task
     full_path = lambda data_file: os.path.join(app_data_path, data_file)
-    task_data_config_path = full_path(FORM_COMPOSER__DATA_CONFIG_NAME)
-    form_config_path = full_path(FORM_COMPOSER__FORM_CONFIG_NAME)
-    token_sets_values_config_path = full_path(FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME)
-    separate_token_values_config_path = full_path(FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME)
+    task_data_config_path = full_path(VIDEO_ANNOTATOR__DATA_CONFIG_NAME)
+    assignment_config_path = full_path(VIDEO_ANNOTATOR__ASSIGNMENT_CONFIG_NAME)
+    token_sets_values_config_path = full_path(VIDEO_ANNOTATOR__TOKEN_SETS_VALUES_CONFIG_NAME)
+    separate_token_values_config_path = full_path(
+        VIDEO_ANNOTATOR__SEPARATE_TOKEN_VALUES_CONFIG_NAME
+    )
 
     # Run the command
     if verify:
         logger.info(f"Started configs verification")
-        verify_form_composer_configs(
+        verify_video_annotator_configs(
             task_data_config_path=task_data_config_path,
-            form_config_path=form_config_path,
             token_sets_values_config_path=token_sets_values_config_path,
             separate_token_values_config_path=separate_token_values_config_path,
             task_data_config_only=False,
@@ -248,7 +231,7 @@ def config(
 
     elif update_file_location_values:
         logger.info(
-            f"[green]Started updating '{FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME}' "
+            f"[green]Started updating '{VIDEO_ANNOTATOR__SEPARATE_TOKEN_VALUES_CONFIG_NAME}' "
             f"with file URLs from '{update_file_location_values}'[/green]"
         )
         if is_s3_url(update_file_location_values):
@@ -263,7 +246,7 @@ def config(
 
     elif permutate_separate_tokens:
         logger.info(
-            f"[green]Started updating '{FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME}' "
+            f"[green]Started updating '{VIDEO_ANNOTATOR__TOKEN_SETS_VALUES_CONFIG_NAME}' "
             f"with permutated separate-token values[/green]"
         )
         update_token_sets_values_config_with_premutated_data(
@@ -275,10 +258,10 @@ def config(
     elif extrapolate_token_sets:
         logger.info(
             f"[green]Started extrapolating token sets values "
-            f"from '{FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME}' [/green]"
+            f"from '{VIDEO_ANNOTATOR__TOKEN_SETS_VALUES_CONFIG_NAME}' [/green]"
         )
         create_extrapolated_config(
-            form_config_path=form_config_path,
+            form_config_path=assignment_config_path,
             token_sets_values_config_path=token_sets_values_config_path,
             task_data_config_path=task_data_config_path,
             data_path=app_data_path,
@@ -307,7 +290,7 @@ def config(
             token_sets_values_config_path
         ):
             create_extrapolated_config(
-                form_config_path=form_config_path,
+                form_config_path=assignment_config_path,
                 token_sets_values_config_path=token_sets_values_config_path,
                 task_data_config_path=task_data_config_path,
                 data_path=app_data_path,
@@ -323,9 +306,8 @@ def config(
             )
 
         logger.info(f"[green]3. Started verification[/green]")
-        verify_form_composer_configs(
+        verify_video_annotator_configs(
             task_data_config_path=task_data_config_path,
-            form_config_path=form_config_path,
             token_sets_values_config_path=token_sets_values_config_path,
             separate_token_values_config_path=separate_token_values_config_path,
             task_data_config_only=False,

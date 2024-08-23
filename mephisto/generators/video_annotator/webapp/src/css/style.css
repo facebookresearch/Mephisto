@@ -1,0 +1,357 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.video-annotation {
+  --segments-padding-left: initial;
+  --segments-padding-right: initial;
+
+  --blue-color: #439acb;
+  --brown-color: #9f4f33;
+  --green-color: #64b943;
+  --orange-color: #f18800;
+  --purple-color: #9e5aba;
+  --red-color: #da4a4a;
+  --yellow-color: #eadb37;
+
+  width: 700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.video-annotation .title {
+  margin-bottom: 20px;
+}
+
+.video-annotation .instruction {
+  margin-bottom: 20px;
+}
+
+.video-annotation .video-player {
+  margin-bottom: 20px;
+}
+
+.video-annotation .annotator-buttons-separator {
+  margin-bottom: 40px;
+  width: 70%;
+  border: 1px solid black;
+  opacity: 0.2;
+}
+
+.video-annotation .annotator-buttons {
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+/* --- Chapters --- */
+/*.video-annotation .chapters {*/
+/*  width: 1200px;*/
+/*}*/
+
+/*.video-annotation .chapters .chapters-saved {*/
+/*  display: flex;*/
+/*  flex-direction: column;*/
+/*  gap: 10px;*/
+/*}*/
+
+/*.video-annotation .chapters .chapters-saved .chapter-item {*/
+/*  display: flex;*/
+/*  flex-direction: row;*/
+/*  gap: 5px;*/
+/*}*/
+
+/*.video-annotation .new-chapter {*/
+/*  display: none;*/
+/*}*/
+
+/*.video-annotation .new-chapter.open {*/
+/*  display: flex;*/
+/*}*/
+
+/* --- Sections --- */
+.video-annotation .annotation-tracks {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-bottom: 60px;
+}
+
+.video-annotation .annotation-tracks .tracks-buttons {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.video-annotation .annotation-tracks .annotation-track {
+  position: relative;
+  width: 100%;
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  background-color: #666666;
+  cursor: pointer;
+}
+
+.video-annotation .annotation-tracks .annotation-track:hover {
+  background-color: #777777;
+}
+
+.video-annotation .annotation-tracks .annotation-track.active {
+  background-color: #dddddd;
+}
+
+.video-annotation .annotation-tracks .annotation-track .track-name-small {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 8px;
+  color: #ffffff;
+}
+
+.video-annotation .annotation-tracks .annotation-track .track-info {
+  position: relative;
+  height: 40px;
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  align-items: center;
+  padding: 0 150px 0 10px;
+}
+
+.video-annotation
+  .annotation-tracks
+  .annotation-track
+  .track-info
+  .track-name-label {
+  font-size: 14px;
+  margin-right: 6px;
+}
+
+.video-annotation .annotation-tracks .annotation-track .track-info .track-name {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.video-annotation .annotation-tracks .annotation-track .track-info .buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  margin-left: 6px;
+}
+
+.video-annotation
+  .annotation-tracks
+  .annotation-track
+  .track-info
+  .buttons
+  .btn {
+  width: 32px;
+}
+
+.video-annotation
+  .annotation-tracks
+  .annotation-track
+  .track-info
+  .track-buttons {
+  position: absolute;
+  right: 10px;
+  display: none;
+  gap: 4px;
+}
+
+.video-annotation
+  .annotation-tracks
+  .annotation-track.active
+  .track-info
+  .track-buttons {
+  display: flex;
+}
+
+.video-annotation .annotation-tracks .annotation-track .segments {
+  position: relative;
+  width: 100%;
+  height: 40px;
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  align-items: center;
+  padding-left: var(--segments-padding-left);
+  padding-right: var(--segments-padding-right);
+}
+
+.video-annotation .annotation-tracks .annotation-track .segments .segment {
+  position: absolute;
+  width: 40px;
+  height: 8px;
+  background-color: #ffffff;
+  border-radius: 4px;
+  border: 1px solid #dddddd;
+  box-sizing: border-box;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.video-annotation
+  .annotation-tracks
+  .annotation-track
+  .segments
+  .segment:hover {
+  height: 14px;
+  opacity: 1;
+}
+
+.video-annotation
+  .annotation-tracks
+  .annotation-track
+  .segments
+  .segment.active {
+  height: 14px;
+  opacity: 1;
+}
+
+.video-annotation .annotation-tracks .annotation-track .segment-info {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+}
+
+.video-annotation .annotation-tracks .annotation-track .segment-info .time {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+.video-annotation
+  .annotation-tracks
+  .annotation-track
+  .segment-info
+  .time
+  span {
+  font-size: 14px;
+  /*color: #ffffff;*/
+}
+
+.video-annotation
+  .annotation-tracks
+  .annotation-track
+  .segment-info
+  .time
+  input {
+  width: 60px;
+}
+
+.video-annotation .annotation-tracks .annotation-track .segment-info textarea {
+  resize: vertical;
+  min-height: 45px;
+  max-height: 200px;
+}
+
+.video-annotation
+  .annotation-tracks
+  .annotation-track
+  .segment-info
+  .segment-buttons {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 4px;
+}
+
+/* --- VideoJS --- */
+.vjs-control-bar {
+  display: flex !important;
+}
+
+.vjs-tech {
+  margin: initial !important;
+  max-height: initial !important;
+}
+
+/* --- Floating labels --- */
+:root {
+  --input-padding-x: 0.75rem;
+  --input-padding-y: 0.65rem;
+  --label-color: #777777;
+}
+
+.form-label-group {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.form-label-group > input,
+.form-label-group > textarea,
+.form-label-group > label {
+  padding: var(--input-padding-y) var(--input-padding-x);
+  min-height: 45px;
+}
+
+.form-label-group > label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  margin-bottom: 0; /* Override default `<label>` margin */
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--label-color);
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+  transition: all 0.1s ease-in-out;
+  -moz-transition: all 0.1s ease-in-out;
+  -o-transition: all 0.1s ease-in-out;
+  -webkit-transition: all 0.1s ease-in-out;
+  -ms-transition: all 0.1s ease-in-out;
+}
+
+.form-label-group textarea::-webkit-input-placeholder,
+.form-label-group input::-webkit-input-placeholder {
+  color: transparent;
+}
+
+.form-label-group textarea:-ms-input-placeholder,
+.form-label-group input:-ms-input-placeholder {
+  color: transparent;
+}
+
+.form-label-group textarea::-ms-input-placeholder,
+.form-label-group input::-ms-input-placeholder {
+  color: transparent;
+}
+
+.form-label-group textarea::-moz-placeholder,
+.form-label-group input::-moz-placeholder {
+  color: transparent;
+}
+
+.form-label-group textarea::placeholder,
+.form-label-group input::placeholder {
+  color: transparent;
+}
+
+.form-label-group textarea:not(:placeholder-shown),
+.form-label-group input:not(:placeholder-shown) {
+  padding-top: calc(var(--input-padding-y) + var(--input-padding-y) * (2 / 3));
+  padding-bottom: calc(var(--input-padding-y) / 3);
+}
+
+.form-label-group textarea:not(:placeholder-shown) ~ label,
+.form-label-group input:not(:placeholder-shown) ~ label {
+  padding-top: calc(var(--input-padding-y) / 3);
+  padding-bottom: calc(var(--input-padding-y) / 3);
+  font-size: 12px;
+  color: var(--label-color);
+}

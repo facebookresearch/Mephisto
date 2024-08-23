@@ -354,6 +354,7 @@ def verify_form_composer_configs(
     separate_token_values_config_path: Optional[str] = None,
     task_data_config_only: bool = False,
     data_path: Optional[str] = None,
+    force_exit: bool = False,
 ):
     errors = []
 
@@ -475,6 +476,9 @@ def verify_form_composer_configs(
 
     except ValueError as e:
         print(f"\n[red]Provided Form Composer config files are invalid:[/red] {e}\n")
+
+        if force_exit:
+            exit()
 
 
 def prepare_task_config_for_review_app(config_data: dict) -> dict:

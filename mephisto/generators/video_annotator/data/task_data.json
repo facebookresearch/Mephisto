@@ -1,0 +1,20 @@
+[
+  {
+    "annotator": {
+      "title": "Form example",
+      "instruction": "<div class=\"instruction\"> Please annotate everything you think is necessary.</div><style> .instruction { font-style: italic; }</style>",
+      "video": "https://d2zihajmogu5jn.cloudfront.net/elephantsdream/ed_hd.mp4",
+      "submit_button": {
+        "instruction": "If you are ready and think that you described everything, submit the results.",
+        "text": "Submit",
+        "tooltip": "Submit annotations"
+      }
+    },
+    "annotator_metadata": {
+      "tokens_values": {
+        "video_path": "https://d2zihajmogu5jn.cloudfront.net/elephantsdream/",
+        "video_file": "ed_hd.mp4"
+      }
+    }
+  }
+]

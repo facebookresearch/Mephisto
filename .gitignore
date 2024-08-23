@@ -38,6 +38,13 @@ mephisto/generators/form_composer/data/*
 mephisto/generators/form_composer/hydra_configs/conf/*.yaml
 !mephisto/generators/form_composer/hydra_configs/conf/default.yaml
 
+# Video Annotator
+mephisto/generators/video_annotator/data/*
+!mephisto/generators/video_annotator/data/insertions/custom_validators.js
+!mephisto/generators/video_annotator/data/insertions/custom_triggers.js
+mephisto/generators/video_annotator/hydra_configs/conf/*.yaml
+!mephisto/generators/video_annotator/hydra_configs/conf/default.yaml
+
 # PyCharm
 .idea
 
