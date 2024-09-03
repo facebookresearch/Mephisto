@@ -210,22 +210,22 @@ During development of your form config, you can use a few available helper funct
 
   Example of use:
 
-  1. Add `react-form-composer` in webpack config
+  1. Add `mephisto-task-addons` in webpack config
 
   ```js
   resolve: {
     alias: {
       ...
-      "react-form-composer": path.resolve(
+      "mephisto-task-addons": path.resolve(
         __dirname,
-        "<relativePath>/packages/react-form-composer"
+        "<relativePath>/packages/mephisto-task-addons"
       ),
     },
   }
   ```
   2. Add import
   ```js
-  import { validateFieldValue } from "react-form-composer";
+  import { validateFieldValue } from "mephisto-task-addons";
   ```
   3. Validate a value before assigning it to form field
   ```js

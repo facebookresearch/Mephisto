@@ -52,7 +52,6 @@ def build_form_composer_simple(
 ) -> None:
     packages.build_mephisto_task_multipart_package(force_rebuild=force_rebuild, verbose=True)
     packages.build_mephisto_task_addons_package(force_rebuild=force_rebuild, verbose=True)
-    packages.build_react_form_composer_package(force_rebuild=force_rebuild, verbose=True)
 
     # Build Review UI for the application
     build_custom_bundle(
@@ -107,7 +106,6 @@ def build_form_composer_dynamic(
 ) -> None:
     packages.build_mephisto_task_multipart_package(force_rebuild=force_rebuild, verbose=True)
     packages.build_mephisto_task_addons_package(force_rebuild=force_rebuild, verbose=True)
-    packages.build_react_form_composer_package(force_rebuild=force_rebuild, verbose=True)
 
     # Set env vars for `custom_validators.js` and `custom_triggers.js`
     from mephisto.client.cli_form_composer_commands import FORM_COMPOSER__DATA_DIR_NAME
@@ -160,7 +158,6 @@ def build_form_composer_dynamic_presigned_urls_ec2_prolific(
 ) -> None:
     packages.build_mephisto_task_multipart_package(force_rebuild=force_rebuild, verbose=True)
     packages.build_mephisto_task_addons_package(force_rebuild=force_rebuild, verbose=True)
-    packages.build_react_form_composer_package(force_rebuild=force_rebuild, verbose=True)
 
     # Build Review UI for the application
     build_custom_bundle(

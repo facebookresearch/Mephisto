@@ -82,11 +82,6 @@ def clean_mephisto_worker_addons_package(remove_package_locks: bool, verbose: bo
     clean_single_react_app(webapp_path, remove_package_locks=remove_package_locks, verbose=verbose)
 
 
-def clean_react_form_composer_package(remove_package_locks: bool, verbose: bool = False):
-    webapp_path = os.path.join(PACKAGES_PATH, "react-form-composer")
-    clean_single_react_app(webapp_path, remove_package_locks=remove_package_locks, verbose=verbose)
-
-
 # --- BUILD ---
 
 
@@ -230,17 +225,5 @@ def build_mephisto_worker_addons_package(force_rebuild: bool = False, verbose: b
         PACKAGES_PATH,
         force_rebuild=force_rebuild,
         webapp_name="mephisto-worker-addons",
-        build_command="build",
-    )
-
-
-def build_react_form_composer_package(force_rebuild: bool = False, verbose: bool = False):
-    if verbose:
-        logger.info(f"[blue]Building '{PACKAGES_PATH}/react-form-composer'[/blue]")
-
-    build_custom_bundle(
-        PACKAGES_PATH,
-        force_rebuild=force_rebuild,
-        webapp_name="react-form-composer",
         build_command="build",
     )

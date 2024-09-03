@@ -35,15 +35,17 @@ function TrackSegment({
     segmentWidthPx = MIN_SEGMENT_WIDTH_PX;
   }
 
+  const segmentId = `id-segment-${segmentIndex}`;
+
   React.useEffect(() => {
     const popovers = [
-      ...document.querySelectorAll('.segment[data-toggle="popover"]'),
+      ...document.querySelectorAll(`#${segmentId}[data-toggle="popover"]`),
     ].map((el) => new Popover(el));
 
     return () => {
       popovers.map((p) => p.dispose());
     };
-  }, [segment]);
+  }, []);
 
   return (
     <div
@@ -51,6 +53,7 @@ function TrackSegment({
         segment
         ${isSelectedSegment ? "active" : ""}
       `}
+      id={segmentId}
       style={{
         width: `${segmentWidthPx}px`,
         left: `${leftPositionPx}px`,
@@ -69,6 +72,9 @@ function TrackSegment({
       data-title={segment.title}
       data-toggle={"popover"}
       data-trigger={"hover"}
+      // HACK to pass values into event listeners as them cannot read updated React states
+      data-startsec={segment.start_sec}
+      data-endsec={segment.end_sec}
     />
   );
 }

@@ -5,7 +5,12 @@
  */
 
 import React from "react";
-import { prepareFormData, prepareRemoteProcedures } from "react-form-composer";
+import {
+  prepareFormData,
+  prepareRemoteProcedures,
+  TaskInstructionButton,
+  TaskInstructionModal,
+} from "mephisto-task-addons";
 import * as customValidators from "custom-validators";
 import * as customTriggers from "custom-triggers";
 import AnnotationTracks from "./AnnotationTracks.jsx";
@@ -68,6 +73,12 @@ function VideoAnnotatorBaseFrontend({
   // State to hide submit button
   const [onSubmitLoading, setOnSubmitLoading] = React.useState(false);
 
+  // Annotator instruction modal state
+  const [
+    annotatorInstrupctionModalOpen,
+    setAnnotatorInstrupctionModalOpen,
+  ] = React.useState(false);
+
   const inReviewState = finalResults !== null;
   const initialConfigAnnotatorData = taskData.annotator;
 
@@ -81,6 +92,8 @@ function VideoAnnotatorBaseFrontend({
 
   const [annotationTracksData, setAnnotationTracksData] = React.useState([]);
 
+  const [segmentValidation, setSegmentValidation] = React.useState({});
+
   const initialAnnotationTracksData = finalResults || [];
 
   const [playerSizes, setPlayerSizes] = React.useState({
@@ -90,6 +103,13 @@ function VideoAnnotatorBaseFrontend({
   const [duration, setDuration] = React.useState(0);
 
   let annotatorSubmitButton = initialConfigAnnotatorData.submit_button;
+
+  let showTaskInstructionAsModal =
+    initialConfigAnnotatorData.show_instructions_as_modal || false;
+
+  let annotatorTitle = annotatorData?.title || "";
+  let annotatorInstruction = annotatorData?.instruction || "";
+  const segmentIsValid = Object.keys(segmentValidation).length === 0;
 
   const videoJsOptions = {
     autoplay: false,
@@ -136,8 +156,39 @@ function VideoAnnotatorBaseFrontend({
     // because some elements on the right side are still loading
     setTimeout(() => updatePlayerSizes(), DELAY_PROGRESSBAR_RESIZING_MSEC);
 
+    // Set video duration
     player.on("loadedmetadata", () => {
       setDuration(player.duration());
+    });
+
+    // Stop playing the video at the end of the selected segment
+    player.on("timeupdate", () => {
+      // HACK to pass values into event listeners as them cannot read updated React states
+      const sectionElement = document.querySelectorAll(`.segment.active`)[0];
+      if (!sectionElement) {
+        return;
+      }
+      const endSec = Number.parseFloat(sectionElement.dataset.endsec) || null;
+      if (endSec === null) {
+        return;
+      }
+
+      // Check for end only if video is playing
+      const isVideoPlaying = !!(
+        player.currentTime() > 0 &&
+        !player.paused() &&
+        !player.ended() &&
+        player.readyState() > 2
+      );
+      if (isVideoPlaying) {
+        if (player.currentTime() >= endSec) {
+          player.pause();
+          // HACK: setting exact end value on progress bar,
+          // because this event is being fired every 15-250 milliseconds,
+          // and it can be further than real value
+          player.currentTime(endSec);
+        }
+      }
     });
 
     // Resize track segment if progress bar changes its width
@@ -153,7 +204,10 @@ function VideoAnnotatorBaseFrontend({
 
   function onSelectSegment(segment) {
     const player = playerRef.current;
-    player.currentTime(segment.start_sec);
+
+    // Set start
+    const startTime = segment?.start_sec || 0;
+    player.currentTime(startTime);
   }
 
   function onChangeAnnotationTracks(data) {
@@ -203,10 +257,39 @@ function VideoAnnotatorBaseFrontend({
       {/* Task info */}
       <h2 className={`title`}>{annotatorData?.title}</h2>
 
-      <div
-        className={`instruction`}
-        dangerouslySetInnerHTML={{ __html: annotatorData?.instruction || "" }}
-      ></div>
+      {/* Show instruction or button that opens a modal with instructions */}
+      {showTaskInstructionAsModal ? (
+        <>
+          {/* Instructions */}
+          {annotatorTitle && annotatorInstruction && <hr />}
+
+          {annotatorInstruction && (
+            <div className={`instruction-hint`}>
+              For instructions, click "Task Instruction" button in the top-right
+              corner.
+            </div>
+          )}
+
+          {/* Button (modal in the end of the component) */}
+          <TaskInstructionButton
+            onClick={() =>
+              setAnnotatorInstrupctionModalOpen(!annotatorInstrupctionModalOpen)
+            }
+          />
+        </>
+      ) : (
+        <>
+          {/* Instructions */}
+          {annotatorTitle && annotatorInstruction && <hr />}
+
+          {annotatorInstruction && (
+            <div
+              className={`instruction`}
+              dangerouslySetInnerHTML={{ __html: annotatorInstruction || "" }}
+            ></div>
+          )}
+        </>
+      )}
 
       {/* Video Player */}
       <div className={"video-player"}>
@@ -225,6 +308,9 @@ function VideoAnnotatorBaseFrontend({
         onSelectSegment={onSelectSegment}
         player={playerRef.current}
         playerSizes={playerSizes}
+        segmentIsValid={segmentIsValid}
+        segmentValidation={segmentValidation}
+        setSegmentValidation={setSegmentValidation}
         setVideoPlayerChapters={setVideoPlayerChapters}
         tracks={initialAnnotationTracksData}
       />
@@ -264,7 +350,8 @@ function VideoAnnotatorBaseFrontend({
                   className={`button-submit btn btn-success`}
                   type={"submit"}
                   title={annotatorSubmitButton.tooltip}
-                  onClick={onSubmitAnnotation}
+                  onClick={(e) => segmentIsValid && onSubmitAnnotation(e)}
+                  disabled={!segmentIsValid}
                 >
                   {annotatorSubmitButton.text}
                 </button>
@@ -272,6 +359,19 @@ function VideoAnnotatorBaseFrontend({
             </>
           )}
         </div>
+      )}
+
+      {/* Modal with task instructions */}
+      {showTaskInstructionAsModal && annotatorInstruction && (
+        <TaskInstructionModal
+          classNameDialog={`annotator-instruction-dialog`}
+          instructions={
+            <p dangerouslySetInnerHTML={{ __html: annotatorInstruction }}></p>
+          }
+          open={annotatorInstrupctionModalOpen}
+          setOpen={setAnnotatorInstrupctionModalOpen}
+          title={"Task Instructions"}
+        />
       )}
     </div>
   );

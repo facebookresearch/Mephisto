@@ -5,6 +5,8 @@
  */
 
 import React from "react";
+import TaskInstructionButton from "../TaskInstructionModal/TaskInstructionButton";
+import TaskInstructionModal from "../TaskInstructionModal/TaskInstructionModal";
 import {
   DEFAULT_COLLAPSABLE,
   DEFAULT_INITIALLY_COLLAPSED,
@@ -20,8 +22,6 @@ import { SelectField } from "./fields/SelectField";
 import { TextareaField } from "./fields/TextareaField";
 import "./FormComposer.css";
 import { FormErrors } from "./FormErrors";
-import { FormInstructionsButton } from "./FormInstructionsButton";
-import { FormInstructionsModal } from "./FormInstructionsModal";
 import { SectionErrors } from "./SectionErrors";
 import { SectionErrorsCountBadge } from "./SectionErrorsCountBadge";
 import {
@@ -257,7 +257,7 @@ function FormComposer({
               )}
 
               {/* Button (modal in the end of the component) */}
-              <FormInstructionsButton
+              <TaskInstructionButton
                 onClick={() =>
                   setFormInstrupctionModalOpen(!formInstrupctionModalOpen)
                 }
@@ -729,7 +729,8 @@ function FormComposer({
 
       {/* Modal with form instructions */}
       {showFormInstructionAsModal && formInstruction && (
-        <FormInstructionsModal
+        <TaskInstructionModal
+          classNameDialog={`form-instruction-dialog`}
           instructions={
             <p
               className={`form-instruction`}

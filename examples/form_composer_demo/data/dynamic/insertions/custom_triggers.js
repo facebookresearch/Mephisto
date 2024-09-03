@@ -1,5 +1,5 @@
-// NOTE: that `react-form-composer` library must be set in webpack config as an alias.
-import { validateFieldValue } from "react-form-composer";
+// NOTE: that `mephisto-task-addons` library must be set in webpack config as an alias.
+import { validateFieldValue } from "mephisto-task-addons";
 
 export function onChangeCountry(
   formData, // React state for the entire form

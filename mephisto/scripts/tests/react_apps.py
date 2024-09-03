@@ -35,7 +35,6 @@ def _clean(remove_package_locks: bool):
     packages.clean_mephisto_task_multipart_package(remove_package_locks, verbose=verbose)
     packages.clean_mephisto_task_addons_package(remove_package_locks, verbose=verbose)
     packages.clean_mephisto_worker_addons_package(remove_package_locks, verbose=verbose)
-    packages.clean_react_form_composer_package(remove_package_locks, verbose=verbose)
 
     generators.clean_form_composer_generator(remove_package_locks, verbose=verbose)
     generators.clean_video_annotator_generator(remove_package_locks, verbose=verbose)
@@ -79,7 +78,6 @@ def _build():
     packages.build_mephisto_task_multipart_package(force_rebuild=force_rebuild, verbose=verbose)
     packages.build_mephisto_task_addons_package(force_rebuild=force_rebuild, verbose=verbose)
     packages.build_mephisto_worker_addons_package(force_rebuild=force_rebuild, verbose=verbose)
-    packages.build_react_form_composer_package(force_rebuild=force_rebuild, verbose=verbose)
 
     generators.build_form_composer_generator(force_rebuild=force_rebuild, verbose=verbose)
     generators.build_video_annotator_generator(force_rebuild=force_rebuild, verbose=verbose)

@@ -8,6 +8,7 @@ import { cloneDeep } from "lodash";
 import React from "react";
 import { secontsToTime } from "./helpers.jsx";
 import TrackSegment from "./TrackSegment.jsx";
+import { ListErrors } from "mephisto-task-addons";
 
 // When we click on segment, we simulate clicking on track as well, and it must be first,
 // but setting states is async
@@ -32,14 +33,18 @@ function AnnotationTrack({
   onSelectSegment,
   player,
   playerSizes,
+  segmentIsValid,
+  segmentValidation,
   selectedAnnotationTrack,
   setAnnotationTracks,
+  setSegmentValidation,
   trackIndex,
 }) {
   const [trackTitle, setTrackTitle] = React.useState(annotationTrack.title);
 
   const [inEditState, setInEditState] = React.useState(false);
   const [selectedSegment, setSelectedSegment] = React.useState(null);
+  const [segmentToChangeErrors, setSegmentToChangeErrors] = React.useState([]);
   const [segmentToChange, setSegmentToChange] = React.useState(null);
 
   const isSelectedAnnotationTrack = selectedAnnotationTrack === trackIndex;
@@ -124,6 +129,15 @@ function AnnotationTrack({
       newSegment.start_sec =
         latestSegment.end_sec + START_NEXT_SECTION_PLUS_SEC;
       newSegment.end_sec = newSegment.start_sec;
+
+      // Prevent creating empty duplicates
+      if (latestSegment.start_sec === newSegment.start_sec) {
+        alert(
+          "You already have unfinished segment.\n\n" +
+            "Change it or remove to created another new one."
+        );
+        return;
+      }
     }
 
     const newSegmentIndex = segmentsCount;
@@ -140,10 +154,12 @@ function AnnotationTrack({
 
   function validateTimeFieldsOnSave() {
     const errors = [];
+    const validation = {};
 
     // If start is greater than end
     if (segmentToChange.start_sec > segmentToChange.end_sec) {
       errors.push(`Start of the section cannot be greater than end of it.`);
+      validation.end_sec = false;
     }
 
     // If segment is inside another segment
@@ -163,6 +179,7 @@ function AnnotationTrack({
               segment.start_sec
             )} - ${secontsToTime(segment.end_sec)}`
         );
+        validation.start_sec = false;
       }
 
       if (
@@ -175,39 +192,13 @@ function AnnotationTrack({
               segment.start_sec
             )} - ${secontsToTime(segment.end_sec)}`
         );
+        validation.end_sec = false;
       }
     });
 
+    setSegmentValidation(validation);
+
     return errors;
-  }
-
-  function onClickSaveSegmentData(e) {
-    const errors = validateTimeFieldsOnSave();
-
-    if (errors.length) {
-      // Show alert with errors
-      const errorMessage =
-        `You cannot save this segment, according to the following errors:\n\n` +
-        `${errors.join("\n")}\n\n` +
-        `Fix errors and try again.\n\n` +
-        `Note that, if you need to create segments in parallel, create a new track and continue work there.`;
-      window.alert(errorMessage);
-    } else {
-      // Save  a segment
-      setAnnotationTracks((prevState) => {
-        const prevAnnotationTrack = cloneDeep(prevState[trackIndex]);
-        prevAnnotationTrack.segments[selectedSegment] = segmentToChange;
-        return {
-          ...prevState,
-          ...{ [trackIndex]: prevAnnotationTrack },
-        };
-      });
-    }
-  }
-
-  function onClickRestoreOldSegmentData(e) {
-    const oldSegmentData = annotationTrack.segments[selectedSegment];
-    setSegmentToChange(oldSegmentData);
   }
 
   function onClickSegment(e, segmentIndex) {
@@ -240,12 +231,35 @@ function AnnotationTrack({
   }, [selectedAnnotationTrack]);
 
   React.useEffect(() => {
+    let _segmentToChange = null;
+
     if (selectedSegment !== null) {
-      const _segmentToChange = annotationTrack.segments[selectedSegment];
+      _segmentToChange = annotationTrack.segments[selectedSegment];
       setSegmentToChange(_segmentToChange);
-      onSelectSegment && onSelectSegment(_segmentToChange);
     }
+
+    onSelectSegment && onSelectSegment(_segmentToChange);
   }, [selectedSegment]);
+
+  React.useEffect(() => {
+    if (!segmentToChange) {
+      return;
+    }
+
+    // Validate current segment
+    const errors = validateTimeFieldsOnSave();
+    setSegmentToChangeErrors(errors);
+
+    // Save current segment
+    setAnnotationTracks((prevState) => {
+      const prevAnnotationTrack = cloneDeep(prevState[trackIndex]);
+      prevAnnotationTrack.segments[selectedSegment] = segmentToChange;
+      return {
+        ...prevState,
+        ...{ [trackIndex]: prevAnnotationTrack },
+      };
+    });
+  }, [segmentToChange]);
 
   return (
     <div
@@ -321,7 +335,8 @@ function AnnotationTrack({
                 <button
                   className={`btn btn-sm btn-primary`}
                   type={"button"}
-                  onClick={(e) => onClickAddSegment(e)}
+                  onClick={(e) => segmentIsValid && onClickAddSegment(e)}
+                  disabled={!segmentIsValid}
                 >
                   <i className={`las la-plus`} /> Segment
                 </button>
@@ -361,7 +376,12 @@ function AnnotationTrack({
       )}
 
       {showSegmentToChangeInfo && (
-        <div className={`segment-info`}>
+        <div
+          className={`
+            segment-info
+            ${segmentToChangeErrors.length ? "is-invalid" : ""}
+          `}
+        >
           <div className={`time`}>
             <span>Time:</span>
 
@@ -451,26 +471,10 @@ function AnnotationTrack({
               >
                 <i className={`las la-trash`} />
               </button>
-
-              <button
-                className={`btn btn-sm btn-outline-dark`}
-                type={"button"}
-                onClick={(e) => onClickRestoreOldSegmentData(e)}
-                title={"Restore all fields from previous saving"}
-              >
-                <i className={`las la-redo-alt`} />
-              </button>
-
-              <button
-                className={`btn btn-sm btn-success`}
-                type={"button"}
-                onClick={(e) => onClickSaveSegmentData(e)}
-                title={"Save current data"}
-              >
-                <i className={`las la-save`} />
-              </button>
             </div>
           )}
+
+          <ListErrors messages={segmentToChangeErrors} />
         </div>
       )}
     </div>

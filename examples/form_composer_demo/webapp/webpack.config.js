@@ -38,15 +38,10 @@ module.exports = {
         __dirname,
         "../../../packages/mephisto-task-multipart"
       ),
-      // Use local library with code that can submit Worker Opinion
+      // Use local library with code that can use FormComposer and  submit Worker Opinion
       "mephisto-task-addons": path.resolve(
         __dirname,
         "../../../packages/mephisto-task-addons"
-      ),
-      // Use local library with FormComposer component
-      "react-form-composer": path.resolve(
-        __dirname,
-        "../../../packages/react-form-composer"
       ),
       ...dynamicAliases,
     },

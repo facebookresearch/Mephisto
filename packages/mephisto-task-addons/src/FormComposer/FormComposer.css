@@ -39,12 +39,6 @@ video {
 .form-composer .form-header .form-instruction {
 }
 
-.form-composer .form-header .form-instruction-button {
-  position: fixed;
-  right: 10px;
-  top: 10px;
-}
-
 /* --- Section --- */
 .form-composer .section {
 }
@@ -318,56 +312,8 @@ video {
 .form-composer .form-buttons .button-submit {
 }
 
-/* --- Form instruction modal --- */
-.form-composer .form-instruction-modal {
-  padding: 10px 0;
-  background-color: #ffffff;
-}
-
-.form-composer .form-instruction-modal .modal-dialog {
-  width: initial;
+.form-composer .form-instruction-dialog {
   max-width: var(--form-max-width);
-  max-height: 100%;
-  margin: 0 auto;
-}
-
-.form-composer .form-instruction-modal .modal-dialog .modal-content {
-  box-shadow: 0 10px 20px 10px rgba(0, 0, 0, 0.5);
-  -webkit-box-shadow: 0 10px 20px 10px rgba(0, 0, 0, 0.5);
-}
-
-.form-composer
-  .form-instruction-modal
-  .modal-dialog
-  .modal-content
-  .modal-header {
-  padding: 10px 20px;
-  align-items: center;
-  background-color: #cce5ff;
-}
-
-.form-composer
-  .form-instruction-modal
-  .modal-dialog
-  .modal-content
-  .modal-header
-  .modal-title {
-  font-size: 21px;
-  font-weight: 500;
-  line-height: initial;
-}
-
-.form-composer
-  .form-instruction-modal
-  .modal-dialog
-  .modal-content
-  .modal-header
-  .close {
-  margin: 0 0 0 auto;
-  font-size: 30px;
-  width: 40px;
-  height: 40px;
-  line-height: 0;
 }
 
 /* --- Bootstrap overriding --- */

@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import { FormComposer } from "react-form-composer";
+import { FormComposer } from "mephisto-task-addons";
 
 function LoadingScreen() {
   return <Directions>Loading...</Directions>;

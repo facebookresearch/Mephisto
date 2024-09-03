@@ -9,7 +9,7 @@ import {
   FormComposer,
   prepareFormData,
   prepareRemoteProcedures,
-} from "react-form-composer";
+} from "mephisto-task-addons";
 
 function LoadingScreen() {
   return <Directions>Loading...</Directions>;

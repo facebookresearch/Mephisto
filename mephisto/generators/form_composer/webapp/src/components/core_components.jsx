@@ -9,7 +9,7 @@ import {
   FormComposer,
   prepareFormData,
   prepareRemoteProcedures,
-} from "react-form-composer";
+} from "mephisto-task-addons";
 import * as customValidators from "custom-validators";
 import * as customTriggers from "custom-triggers";
 

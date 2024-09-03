@@ -21,7 +21,10 @@ REPO_PATH = os.path.dirname(
 )
 GENERATOR_FORM_COMPOSER_PATH = os.path.join(REPO_PATH, "mephisto", "generators", "form_composer")
 GENERATOR_VIDEO_ANNOTATOR_PATH = os.path.join(
-    REPO_PATH, "mephisto", "generators", "video_annotator",
+    REPO_PATH,
+    "mephisto",
+    "generators",
+    "video_annotator",
 )
 
 logger = ConsoleWriter()
@@ -82,7 +85,7 @@ def build_form_composer_generator_with_packages(
     verbose: bool = False,
 ) -> None:
     packages.build_mephisto_task_multipart_package(force_rebuild=force_rebuild, verbose=verbose)
-    packages.build_react_form_composer_package(force_rebuild=force_rebuild, verbose=verbose)
+    packages.build_mephisto_task_addons_package(force_rebuild=force_rebuild, verbose=verbose)
     build_form_composer_generator(
         force_rebuild=force_rebuild,
         post_install_script=post_install_script,
@@ -129,7 +132,7 @@ def build_video_annotator_generator_with_packages(
     verbose: bool = False,
 ) -> None:
     packages.build_mephisto_task_multipart_package(force_rebuild=force_rebuild, verbose=verbose)
-    packages.build_react_form_composer_package(force_rebuild=force_rebuild, verbose=verbose)
+    packages.build_mephisto_task_addons_package(force_rebuild=force_rebuild, verbose=verbose)
     build_video_annotator_generator(
         force_rebuild=force_rebuild,
         post_install_script=post_install_script,

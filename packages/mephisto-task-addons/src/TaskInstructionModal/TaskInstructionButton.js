@@ -5,8 +5,9 @@
  */
 
 import React from "react";
+import "./TaskInstructionButton.css";
 
-export function FormInstructionsButton({ onClick }) {
+export default function TaskInstructionButton({ onClick }) {
   return (
     // bootstrap classes:
     //  - btn
@@ -14,8 +15,8 @@ export function FormInstructionsButton({ onClick }) {
     //  - btn-sm
 
     <button
-      className={`form-instruction-button btn btn-primary btn-sm`}
-      data-target={"#id-form-instruction-modal"}
+      className={`task-instruction-button btn btn-primary btn-sm`}
+      data-target={"#id-task-instruction-modal"}
       data-toggle={"modal"}
       onClick={onClick}
       type={"button"}

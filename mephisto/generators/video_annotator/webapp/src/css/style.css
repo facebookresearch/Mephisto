@@ -5,6 +5,8 @@
  */
 
 .video-annotation {
+  --annotator-width: 700px;
+
   --segments-padding-left: initial;
   --segments-padding-right: initial;
 
@@ -16,11 +18,16 @@
   --red-color: #da4a4a;
   --yellow-color: #eadb37;
 
-  width: 700px;
+  width: var(--annotator-width);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+
+.video-annotation hr {
+  width: 100%;
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .video-annotation .title {
@@ -28,6 +35,10 @@
 }
 
 .video-annotation .instruction {
+  margin-bottom: 20px;
+}
+
+.video-annotation .instruction-hint {
   margin-bottom: 20px;
 }
 
@@ -47,31 +58,6 @@
   display: flex;
   justify-content: center;
 }
-
-/* --- Chapters --- */
-/*.video-annotation .chapters {*/
-/*  width: 1200px;*/
-/*}*/
-
-/*.video-annotation .chapters .chapters-saved {*/
-/*  display: flex;*/
-/*  flex-direction: column;*/
-/*  gap: 10px;*/
-/*}*/
-
-/*.video-annotation .chapters .chapters-saved .chapter-item {*/
-/*  display: flex;*/
-/*  flex-direction: row;*/
-/*  gap: 5px;*/
-/*}*/
-
-/*.video-annotation .new-chapter {*/
-/*  display: none;*/
-/*}*/
-
-/*.video-annotation .new-chapter.open {*/
-/*  display: flex;*/
-/*}*/
 
 /* --- Sections --- */
 .video-annotation .annotation-tracks {
@@ -239,7 +225,6 @@
   .time
   span {
   font-size: 14px;
-  /*color: #ffffff;*/
 }
 
 .video-annotation
@@ -269,6 +254,18 @@
   gap: 4px;
 }
 
+.video-annotation
+  .annotation-tracks
+  .annotation-track
+  .segment-info.is-invalid
+  .invalid-feedback {
+  display: block;
+}
+
+.video-annotation .annotator-instruction-dialog {
+  max-width: var(--annotator-width);
+}
+
 /* --- VideoJS --- */
 .vjs-control-bar {
   display: flex !important;
@@ -288,7 +285,6 @@
 
 .form-label-group {
   position: relative;
-  margin-bottom: 1rem;
 }
 
 .form-label-group > input,

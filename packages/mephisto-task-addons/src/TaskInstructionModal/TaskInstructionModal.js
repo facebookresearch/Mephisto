@@ -5,8 +5,16 @@
  */
 
 import React from "react";
+import "./TaskInstructionModal.css";
 
-export function FormInstructionsModal({ instructions, open, setOpen, title }) {
+export default function TaskInstructionModal({
+  className,
+  classNameDialog,
+  instructions,
+  open,
+  setOpen,
+  title,
+}) {
   const modalContentRef = React.useRef(null);
 
   const [modalContentTopPosition, setModalContentTopPosition] = React.useState(
@@ -39,15 +47,21 @@ export function FormInstructionsModal({ instructions, open, setOpen, title }) {
     //  - modal-body
 
     <div
-      className={"form-instruction-modal modal"}
-      id={"id-form-instruction-modal"}
+      className={`task-instruction-modal modal ${className || ""}`}
+      id={"id-task-instruction-modal"}
       data-backdrop={"static"}
       data-keyboard={"false"}
       tabIndex={"-1"}
       aria-labelledby={"id-modal-title"}
       aria-hidden={"true"}
     >
-      <div className={"modal-dialog modal-dialog-scrollable"}>
+      <div
+        className={`
+          modal-dialog
+          modal-dialog-scrollable
+          ${classNameDialog || ""}
+        `}
+      >
         <div className={"modal-content"}>
           <div className={"modal-header"}>
             <div className={"modal-title"} id={"id-modal-title"}>

@@ -25,6 +25,9 @@ function AnnotationTracks({
   onSelectSegment,
   player,
   playerSizes,
+  segmentIsValid,
+  segmentValidation,
+  setSegmentValidation,
   setVideoPlayerChapters,
   tracks,
 }) {
@@ -76,7 +79,8 @@ function AnnotationTracks({
           <button
             className={`btn btn-sm btn-primary`}
             type={"button"}
-            onClick={(e) => onClickAddAnnotationTrack(e)}
+            onClick={(e) => segmentIsValid && onClickAddAnnotationTrack(e)}
+            disabled={!segmentIsValid}
           >
             <i className={`las la-plus`} /> Track
           </button>
@@ -94,8 +98,11 @@ function AnnotationTracks({
             onSelectSegment={onSelectSegment}
             player={player}
             playerSizes={playerSizes}
+            segmentIsValid={segmentIsValid}
+            segmentValidation={segmentValidation}
             selectedAnnotationTrack={selectedAnnotationTrack}
             setAnnotationTracks={setAnnotationTracks}
+            setSegmentValidation={setSegmentValidation}
             trackIndex={trackIndex}
           />
         );
