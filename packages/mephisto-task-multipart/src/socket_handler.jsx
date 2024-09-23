@@ -95,7 +95,7 @@ function log(data, level) {
 function uuidv4() {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
     var r = (Math.random() * 16) | 0,
-      v = c == "x" ? r : (r & 0x3) | 0x8;
+      v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }
@@ -200,7 +200,7 @@ function useMephistoSocket({
   // Returns: true if the packet was sent successfully
   //          false if there was an issue and a socket restart was initiated
   function resilientPacketSend(event) {
-    if (socket.current.readyState == 0) {
+    if (socket.current.readyState === 0) {
       return false;
     } else if (socket.current.readyState > 1) {
       log("Socket not in ready state, restarting if possible", 2);
@@ -277,7 +277,7 @@ function useMephistoSocket({
     let browserUrl = window.location;
 
     // Inherit socket protocol from web address protocol
-    let socketProtocol = browserUrl.protocol == "https:" ? "wss://" : "ws://";
+    let socketProtocol = browserUrl.protocol === "https:" ? "wss://" : "ws://";
     let socketUrl =
       socketProtocol + browserUrl.hostname + ":" + browserUrl.port;
     socket.current = new WebSocket(socketUrl);
@@ -318,7 +318,6 @@ function useMephistoSocket({
     };
 
     socket.current.onerror = (event) => {
-      console.error(event);
       attemptSocketRestart();
     };
 
@@ -329,7 +328,7 @@ function useMephistoSocket({
   }
 
   function parseSocketMessage(packet) {
-    if (packet.packet_type == PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE) {
+    if (packet.packet_type === PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE) {
       let c_used_update_ids = used_update_ids.current;
 
       if (c_used_update_ids.includes(packet.data.update_id)) {
@@ -340,9 +339,9 @@ function useMephistoSocket({
         used_update_ids.current = [...c_used_update_ids, packet.data.update_id];
       }
       onLiveUpdate(packet.data);
-    } else if (packet.packet_type == PACKET_TYPE_UPDATE_STATUS) {
+    } else if (packet.packet_type === PACKET_TYPE_UPDATE_STATUS) {
       onStatusUpdate(packet.data); // packet.data looks like - {status: "<>"}
-    } else if (packet.packet_type == PACKET_TYPE_HEARTBEAT) {
+    } else if (packet.packet_type === PACKET_TYPE_HEARTBEAT) {
       setState({
         last_mephisto_ping: packet.data["last_mephisto_ping"],
         heartbeats_without_response: 0,

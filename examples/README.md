@@ -215,7 +215,7 @@ This example builds further upon the Dynamic form example. Here we use presigned
 Putting it altogether, let's prepare and launch a task featuring a form containing one embedded file plus a few other fields. Here we'll assume working in directory `/mephisto/examples/form_composer_demo/data/dynamic_presigned_urls`.
 
 - Adjust `dynamic_presigned_urls_example_ec2_prolific.yaml` task config as needed
-- Create `form_config.json` file to define your form fields and layout
+- Create `unit_config.json` file to define your form fields and layout
     - it should contain a token named `file_location`
     - for more details see `mephisto/generators/form_composer/README.md`
 - Create `separate_token_values_config.json` with desired token values

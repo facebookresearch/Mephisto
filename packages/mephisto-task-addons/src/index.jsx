@@ -10,8 +10,9 @@ import {
   TOKEN_START_REGEX,
   TOKEN_START_SYMBOLS,
 } from "./FormComposer/constants";
-import { FormComposer } from "./FormComposer/FormComposer";
+import * as FormComposerFields from "./FormComposer/fields";
 import { Errors as ListErrors } from "./FormComposer/fields/Errors";
+import { FormComposer } from "./FormComposer/FormComposer";
 import {
   prepareFormData,
   prepareRemoteProcedures,
@@ -20,10 +21,14 @@ import {
 } from "./FormComposer/utils";
 import TaskInstructionButton from "./TaskInstructionModal/TaskInstructionButton";
 import TaskInstructionModal from "./TaskInstructionModal/TaskInstructionModal";
+import VideoAnnotator from "./VideoAnnotator/VideoAnnotator.jsx";
+import VideoPlayer from "./VideoAnnotator/VideoPlayer.jsx";
 import WorkerOpinion from "./WorkerOpinion/WorkerOpinion";
+import { prepareVideoAnnotatorData } from "./VideoAnnotator/utils";
 
 export {
   FormComposer,
+  FormComposerFields,
   ListErrors,
   TOKEN_END_REGEX,
   TOKEN_END_SYMBOLS,
@@ -31,9 +36,12 @@ export {
   TOKEN_START_SYMBOLS,
   TaskInstructionButton,
   TaskInstructionModal,
+  VideoAnnotator,
+  VideoPlayer,
   WorkerOpinion,
   prepareFormData,
   prepareRemoteProcedures,
+  prepareVideoAnnotatorData,
   procedureTokenRegex,
   validateFieldValue,
 };

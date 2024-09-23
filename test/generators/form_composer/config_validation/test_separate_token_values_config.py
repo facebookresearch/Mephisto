@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 import json
 import os
 import shutil
@@ -10,10 +15,11 @@ from botocore.exceptions import NoCredentialsError
 from mephisto.client.cli_form_composer_commands import (
     FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
 )
-from mephisto.generators.form_composer.config_validation.separate_token_values_config import (
+from mephisto.client.cli_form_composer_commands import set_form_composer_env_vars
+from mephisto.generators.generators_utils.config_validation.separate_token_values_config import (
     update_separate_token_values_config_with_file_urls,
 )
-from mephisto.generators.form_composer.config_validation.separate_token_values_config import (
+from mephisto.generators.generators_utils.config_validation.separate_token_values_config import (
     validate_separate_token_values_config,
 )
 
@@ -21,6 +27,7 @@ from mephisto.generators.form_composer.config_validation.separate_token_values_c
 class TestSeparateTokenValuesConfig(unittest.TestCase):
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()
+        set_form_composer_env_vars()
 
     def tearDown(self):
         shutil.rmtree(self.data_dir, ignore_errors=True)
@@ -62,11 +69,11 @@ class TestSeparateTokenValuesConfig(unittest.TestCase):
         )
 
     @patch(
-        "mephisto.generators.form_composer.config_validation.separate_token_values_config."
+        "mephisto.generators.generators_utils.config_validation.separate_token_values_config."
         "read_config_file"
     )
     @patch(
-        "mephisto.generators.form_composer.config_validation.separate_token_values_config."
+        "mephisto.generators.generators_utils.config_validation.separate_token_values_config."
         "get_file_urls_from_s3_storage"
     )
     def test_update_separate_token_values_config_with_file_urls_credentials_error(
@@ -93,11 +100,11 @@ class TestSeparateTokenValuesConfig(unittest.TestCase):
         mock_read_config_file.assert_not_called()
 
     @patch(
-        "mephisto.generators.form_composer.config_validation.separate_token_values_config."
+        "mephisto.generators.generators_utils.config_validation.separate_token_values_config."
         "read_config_file"
     )
     @patch(
-        "mephisto.generators.form_composer.config_validation.separate_token_values_config."
+        "mephisto.generators.generators_utils.config_validation.separate_token_values_config."
         "get_file_urls_from_s3_storage"
     )
     def test_update_separate_token_values_config_with_file_urls_no_file_locations(
@@ -124,7 +131,7 @@ class TestSeparateTokenValuesConfig(unittest.TestCase):
         mock_read_config_file.assert_not_called()
 
     @patch(
-        "mephisto.generators.form_composer.config_validation.separate_token_values_config."
+        "mephisto.generators.generators_utils.config_validation.separate_token_values_config."
         "get_file_urls_from_s3_storage"
     )
     def test_update_separate_token_values_config_with_file_urls_success_new_config_file(
@@ -163,7 +170,7 @@ class TestSeparateTokenValuesConfig(unittest.TestCase):
         )
 
     @patch(
-        "mephisto.generators.form_composer.config_validation.separate_token_values_config."
+        "mephisto.generators.generators_utils.config_validation.separate_token_values_config."
         "get_file_urls_from_s3_storage"
     )
     def test_update_separate_token_values_config_with_file_urls_success_updated_config_file(
@@ -209,7 +216,7 @@ class TestSeparateTokenValuesConfig(unittest.TestCase):
         self.assertEqual(result_config_data, expected_config_data)
 
     @patch(
-        "mephisto.generators.form_composer.config_validation.separate_token_values_config."
+        "mephisto.generators.generators_utils.config_validation.separate_token_values_config."
         "get_file_urls_from_s3_storage"
     )
     def test_update_separate_token_values_config_with_file_urls_success_new_config_file_presigned(

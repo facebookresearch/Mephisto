@@ -7,6 +7,7 @@
 import React from "react";
 import { runCustomTrigger } from "../utils";
 import { Errors } from "./Errors";
+import "./RadioField.css";
 
 const DEFAULT_VALUE = "";
 
@@ -21,6 +22,7 @@ function RadioField({
   validationErrors,
   formFields,
   customTriggers,
+  cleanErrorsOnChange,
 }) {
   const [value, setValue] = React.useState(DEFAULT_VALUE);
 
@@ -76,7 +78,7 @@ function RadioField({
     //  - form-check-input
     //  - form-check-label
 
-    <div name={field.name} onClick={onClick}>
+    <div className={`fc-radio-field`} name={field.name} onClick={onClick}>
       {field.options.map((option, index) => {
         const checked = value === option.value;
 
@@ -91,8 +93,10 @@ function RadioField({
             `}
             onClick={(e) => {
               !disabled && onChange(e, option.value);
-              setInvalidField(false);
-              setErrors([]);
+              if (cleanErrorsOnChange) {
+                setInvalidField(false);
+                setErrors([]);
+              }
             }}
           >
             <span

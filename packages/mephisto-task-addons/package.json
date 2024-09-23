@@ -22,13 +22,15 @@
     "bootstrap": "^4.6.2",
     "bootstrap-select": "^1.13.18",
     "jquery": "^3.6.0",
+    "lodash": "^4.17.21",
     "mephisto-task": "2.0.4",
     "prop-types": "^15.8.1",
     "raw-loader": "^4.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-popper-tooltip": "^4.4.2",
-    "react-shadow": "^20.4.0"
+    "react-shadow": "^20.4.0",
+    "video.js": "^8.17.3"
   },
   "devDependencies": {
     "@babel/cli": "^7.19.0",

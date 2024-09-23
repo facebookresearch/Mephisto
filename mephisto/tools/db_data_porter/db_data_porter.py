@@ -17,7 +17,7 @@ from rich.console import Console
 
 from mephisto.abstractions.database import MephistoDB
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
-from mephisto.generators.form_composer.config_validation.utils import make_error_message
+from mephisto.generators.generators_utils.config_validation.utils import make_error_message
 from mephisto.tools.db_data_porter import backups
 from mephisto.tools.db_data_porter import dumps
 from mephisto.tools.db_data_porter import export_dump

@@ -13,20 +13,22 @@ import {
   FieldType,
   MESSAGES_IN_REVIEW_FILE_DATA_KEY,
 } from "./constants";
-import { CheckboxField } from "./fields/CheckboxField";
-import { FileField } from "./fields/FileField";
-import { HiddenField } from "./fields/HiddenField";
-import { InputField } from "./fields/InputField";
-import { RadioField } from "./fields/RadioField";
-import { SelectField } from "./fields/SelectField";
-import { TextareaField } from "./fields/TextareaField";
+import {
+  CheckboxField,
+  FileField,
+  HiddenField,
+  InputField,
+  RadioField,
+  SelectField,
+  TextareaField,
+} from "./fields";
 import "./FormComposer.css";
 import { FormErrors } from "./FormErrors";
 import { SectionErrors } from "./SectionErrors";
 import { SectionErrorsCountBadge } from "./SectionErrorsCountBadge";
 import {
-  formatStringWithProcedureTokens,
   getDefaultFormFieldValue,
+  getFormatStringWithTokensFunction,
   runCustomTrigger,
   setPageTitle,
 } from "./utils";
@@ -72,12 +74,9 @@ function FormComposer({
   ] = React.useState(false);
 
   const inReviewState = finalResults !== null;
-
-  const formatStringWithTokens = inReviewState
-    ? (v, _) => {
-        return v;
-      } // Return value as is, ignoring whole formatting
-    : formatStringWithProcedureTokens;
+  const formatStringWithTokens = getFormatStringWithTokensFunction(
+    inReviewState
+  );
 
   let formTitle = formatStringWithTokens(
     formComposerConfig.title,
@@ -475,6 +474,11 @@ function FormComposer({
                                 setRenderingErrors
                               );
                               const fieldHelp = field.help;
+                              const isInvalid = !!(
+                                invalidFormFields[field.name] || []
+                              ).length;
+                              const validationErrors =
+                                invalidFormFields[field.name] || [];
 
                               return (
                                 <div
@@ -513,15 +517,11 @@ function FormComposer({
                                       disabled={inReviewState}
                                       initialFormData={finalResults}
                                       inReviewState={inReviewState}
-                                      invalid={
-                                        (invalidFormFields[field.name] || [])
-                                          .length
-                                      }
-                                      validationErrors={
-                                        invalidFormFields[field.name] || []
-                                      }
+                                      invalid={isInvalid}
+                                      validationErrors={validationErrors}
                                       formFields={formFields}
                                       customTriggers={customTriggers}
+                                      cleanErrorsOnChange={true}
                                     />
                                   )}
 
@@ -533,15 +533,11 @@ function FormComposer({
                                       disabled={inReviewState}
                                       initialFormData={finalResults}
                                       inReviewState={inReviewState}
-                                      invalid={
-                                        (invalidFormFields[field.name] || [])
-                                          .length
-                                      }
-                                      validationErrors={
-                                        invalidFormFields[field.name] || []
-                                      }
+                                      invalid={isInvalid}
+                                      validationErrors={validationErrors}
                                       formFields={formFields}
                                       customTriggers={customTriggers}
+                                      cleanErrorsOnChange={true}
                                     />
                                   )}
 
@@ -553,15 +549,11 @@ function FormComposer({
                                       disabled={inReviewState}
                                       initialFormData={finalResults}
                                       inReviewState={inReviewState}
-                                      invalid={
-                                        (invalidFormFields[field.name] || [])
-                                          .length
-                                      }
-                                      validationErrors={
-                                        invalidFormFields[field.name] || []
-                                      }
+                                      invalid={isInvalid}
+                                      validationErrors={validationErrors}
                                       formFields={formFields}
                                       customTriggers={customTriggers}
+                                      cleanErrorsOnChange={true}
                                     />
                                   )}
 
@@ -573,15 +565,11 @@ function FormComposer({
                                       disabled={inReviewState}
                                       initialFormData={finalResults}
                                       inReviewState={inReviewState}
-                                      invalid={
-                                        (invalidFormFields[field.name] || [])
-                                          .length
-                                      }
-                                      validationErrors={
-                                        invalidFormFields[field.name] || []
-                                      }
+                                      invalid={isInvalid}
+                                      validationErrors={validationErrors}
                                       formFields={formFields}
                                       customTriggers={customTriggers}
+                                      cleanErrorsOnChange={true}
                                     />
                                   )}
 
@@ -593,15 +581,11 @@ function FormComposer({
                                       disabled={inReviewState}
                                       initialFormData={finalResults}
                                       inReviewState={inReviewState}
-                                      invalid={
-                                        (invalidFormFields[field.name] || [])
-                                          .length
-                                      }
-                                      validationErrors={
-                                        invalidFormFields[field.name] || []
-                                      }
+                                      invalid={isInvalid}
+                                      validationErrors={validationErrors}
                                       formFields={formFields}
                                       customTriggers={customTriggers}
+                                      cleanErrorsOnChange={true}
                                     />
                                   )}
 
@@ -613,18 +597,14 @@ function FormComposer({
                                       disabled={inReviewState}
                                       initialFormData={finalResults}
                                       inReviewState={inReviewState}
-                                      invalid={
-                                        (invalidFormFields[field.name] || [])
-                                          .length
-                                      }
-                                      validationErrors={
-                                        invalidFormFields[field.name] || []
-                                      }
+                                      invalid={isInvalid}
+                                      validationErrors={validationErrors}
                                       onReviewFileButtonClick={
                                         sendMessageToReviewAppWithFileInfo
                                       }
                                       formFields={formFields}
                                       customTriggers={customTriggers}
+                                      cleanErrorsOnChange={true}
                                     />
                                   )}
 

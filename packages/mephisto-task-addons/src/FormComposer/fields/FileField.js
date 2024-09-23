@@ -14,6 +14,7 @@ import {
 import { runCustomTrigger } from "../utils";
 import { checkFieldRequiredness } from "../validation/helpers";
 import { Errors } from "./Errors";
+import "./FileField.css";
 
 const DEFAULT_VALUE = "";
 
@@ -28,6 +29,7 @@ function FileField({
   validationErrors,
   formFields,
   customTriggers,
+  cleanErrorsOnChange,
   onReviewFileButtonClick,
 }) {
   const [value, setValue] = React.useState(DEFAULT_VALUE);
@@ -132,7 +134,7 @@ function FileField({
 
     <div
       className={`
-      file-field
+      fc-file-field
       custom-file
       ${invalidField ? "is-invalid" : ""}
     `}
@@ -150,8 +152,10 @@ function FileField({
         required={checkFieldRequiredness(field)}
         onChange={(e) => {
           !disabled && onChange(e, field.name);
-          setInvalidField(false);
-          setErrors([]);
+          if (cleanErrorsOnChange) {
+            setInvalidField(false);
+            setErrors([]);
+          }
         }}
         onBlur={onBlur}
         onFocus={onFocus}

@@ -1,13 +1,39 @@
+#!/usr/bin/env python3
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 import os.path
 import shutil
 import tempfile
 import unittest
 
-from mephisto.generators.form_composer.config_validation import config_validation_constants
-from mephisto.generators.form_composer.config_validation.common_validation import (
+from mephisto.client.cli_form_composer_commands import set_form_composer_env_vars
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    AVAILABLE_CONFIG_ATTRS,
+)
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    AVAILABLE_FIELDSET_ATTRS,
+)
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    AVAILABLE_FORM_ATTRS,
+)
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    AVAILABLE_ROW_ATTRS,
+)
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    AVAILABLE_SECTION_ATTRS,
+)
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    AVAILABLE_SUBMIT_BUTTON_ATTRS,
+)
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    COMMON_AVAILABLE_FIELD_ATTRS,
+)
+from mephisto.generators.generators_utils.config_validation.common_validation import (
     replace_path_to_file_with_its_content,
 )
-from mephisto.generators.form_composer.config_validation.common_validation import (
+from mephisto.generators.generators_utils.config_validation.common_validation import (
     validate_config_dict_item,
 )
 
@@ -15,6 +41,7 @@ from mephisto.generators.form_composer.config_validation.common_validation impor
 class TestCommonValidation(unittest.TestCase):
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()
+        set_form_composer_env_vars()
 
     def tearDown(self):
         shutil.rmtree(self.data_dir, ignore_errors=True)
@@ -30,7 +57,7 @@ class TestCommonValidation(unittest.TestCase):
         result = validate_config_dict_item(
             item=config_item,
             item_log_name="config",
-            available_attrs=config_validation_constants.AVAILABLE_CONFIG_ATTRS,
+            available_attrs=AVAILABLE_CONFIG_ATTRS,
             errors=errors,
         )
 
@@ -45,7 +72,7 @@ class TestCommonValidation(unittest.TestCase):
         result = validate_config_dict_item(
             item=config_item,
             item_log_name="config",
-            available_attrs=config_validation_constants.AVAILABLE_CONFIG_ATTRS,
+            available_attrs=AVAILABLE_CONFIG_ATTRS,
             errors=errors,
         )
 
@@ -78,7 +105,7 @@ class TestCommonValidation(unittest.TestCase):
         result = validate_config_dict_item(
             item=form_item,
             item_log_name="form",
-            available_attrs=config_validation_constants.AVAILABLE_FORM_ATTRS,
+            available_attrs=AVAILABLE_FORM_ATTRS,
             errors=errors,
         )
 
@@ -96,7 +123,7 @@ class TestCommonValidation(unittest.TestCase):
         result = validate_config_dict_item(
             item=form_item,
             item_log_name="form",
-            available_attrs=config_validation_constants.AVAILABLE_FORM_ATTRS,
+            available_attrs=AVAILABLE_FORM_ATTRS,
             errors=errors,
         )
 
@@ -127,7 +154,7 @@ class TestCommonValidation(unittest.TestCase):
         result = validate_config_dict_item(
             item=submit_button_item,
             item_log_name="submit_button",
-            available_attrs=config_validation_constants.AVAILABLE_SUBMIT_BUTTON_ATTRS,
+            available_attrs=AVAILABLE_SUBMIT_BUTTON_ATTRS,
             errors=errors,
         )
 
@@ -142,7 +169,7 @@ class TestCommonValidation(unittest.TestCase):
         result = validate_config_dict_item(
             item=submit_button_item,
             item_log_name="submit_button",
-            available_attrs=config_validation_constants.AVAILABLE_SUBMIT_BUTTON_ATTRS,
+            available_attrs=AVAILABLE_SUBMIT_BUTTON_ATTRS,
             errors=errors,
         )
 
@@ -173,7 +200,7 @@ class TestCommonValidation(unittest.TestCase):
         result = validate_config_dict_item(
             item=section_item,
             item_log_name="section",
-            available_attrs=config_validation_constants.AVAILABLE_SECTION_ATTRS,
+            available_attrs=AVAILABLE_SECTION_ATTRS,
             errors=errors,
         )
 
@@ -191,7 +218,7 @@ class TestCommonValidation(unittest.TestCase):
         result = validate_config_dict_item(
             item=section_item,
             item_log_name="section",
-            available_attrs=config_validation_constants.AVAILABLE_SECTION_ATTRS,
+            available_attrs=AVAILABLE_SECTION_ATTRS,
             errors=errors,
         )
 
@@ -223,7 +250,7 @@ class TestCommonValidation(unittest.TestCase):
         result = validate_config_dict_item(
             item=fieldset_item,
             item_log_name="fieldset",
-            available_attrs=config_validation_constants.AVAILABLE_FIELDSET_ATTRS,
+            available_attrs=AVAILABLE_FIELDSET_ATTRS,
             errors=errors,
         )
 
@@ -241,7 +268,7 @@ class TestCommonValidation(unittest.TestCase):
         result = validate_config_dict_item(
             item=fieldset_item,
             item_log_name="fieldset",
-            available_attrs=config_validation_constants.AVAILABLE_FIELDSET_ATTRS,
+            available_attrs=AVAILABLE_FIELDSET_ATTRS,
             errors=errors,
         )
 
@@ -251,7 +278,7 @@ class TestCommonValidation(unittest.TestCase):
             [
                 (
                     "Object `fieldset`. Not all required attributes were specified. "
-                    "Required attributes: rows, title. Passed attributes: title, instruction."
+                    "Required attributes: rows. Passed attributes: title, instruction."
                 ),
                 "Attribute `title` in object `fieldset` must be `String`.",
                 "Attribute `instruction` in object `fieldset` must be `String`.",
@@ -270,7 +297,7 @@ class TestCommonValidation(unittest.TestCase):
         result = validate_config_dict_item(
             item=row_item,
             item_log_name="row",
-            available_attrs=config_validation_constants.AVAILABLE_ROW_ATTRS,
+            available_attrs=AVAILABLE_ROW_ATTRS,
             errors=errors,
         )
 
@@ -285,7 +312,7 @@ class TestCommonValidation(unittest.TestCase):
         result = validate_config_dict_item(
             item=row_item,
             item_log_name="row",
-            available_attrs=config_validation_constants.AVAILABLE_ROW_ATTRS,
+            available_attrs=AVAILABLE_ROW_ATTRS,
             errors=errors,
         )
 
@@ -324,7 +351,7 @@ class TestCommonValidation(unittest.TestCase):
         result = validate_config_dict_item(
             item=field_item,
             item_log_name="field",
-            available_attrs=config_validation_constants.COMMON_AVAILABLE_FIELD_ATTRS,
+            available_attrs=COMMON_AVAILABLE_FIELD_ATTRS,
             errors=errors,
         )
 
@@ -344,7 +371,7 @@ class TestCommonValidation(unittest.TestCase):
         result = validate_config_dict_item(
             item=field_item,
             item_log_name="field",
-            available_attrs=config_validation_constants.COMMON_AVAILABLE_FIELD_ATTRS,
+            available_attrs=COMMON_AVAILABLE_FIELD_ATTRS,
             errors=errors,
         )
 

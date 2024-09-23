@@ -8,7 +8,7 @@ from typing import List
 from typing import Optional
 
 from mephisto.abstractions.database import MephistoDB
-from mephisto.generators.form_composer.config_validation.utils import make_error_message
+from mephisto.generators.generators_utils.config_validation.utils import make_error_message
 from mephisto.tools.db_data_porter.constants import AVAILABLE_PROVIDER_TYPES
 from mephisto.tools.db_data_porter.constants import MEPHISTO_DUMP_KEY
 from mephisto.tools.db_data_porter.constants import METADATA_DUMP_KEY

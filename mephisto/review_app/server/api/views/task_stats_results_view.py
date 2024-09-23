@@ -13,7 +13,9 @@ from werkzeug.exceptions import BadRequest
 
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
-from mephisto.generators.form_composer.constants import FORM_COMPOSER_TASK_TAG
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    FORM_COMPOSER_TASK_TAG,
+)
 
 
 class TaskStatsResultsView(MethodView):

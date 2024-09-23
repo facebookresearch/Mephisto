@@ -7,8 +7,10 @@
 import os
 from typing import Optional
 
-from mephisto.generators.form_composer.config_validation.utils import set_custom_triggers_js_env_var
-from mephisto.generators.form_composer.config_validation.utils import (
+from mephisto.generators.generators_utils.config_validation.utils import (
+    set_custom_triggers_js_env_var,
+)
+from mephisto.generators.generators_utils.config_validation.utils import (
     set_custom_validators_js_env_var,
 )
 from mephisto.tools.scripts import build_custom_bundle
@@ -21,6 +23,7 @@ REPO_PATH = os.path.dirname(
 )
 EXAMPLES_PATH = os.path.join(REPO_PATH, "examples")
 FORM_COMPOSER_EXAMPLE_PATH = os.path.join(EXAMPLES_PATH, "form_composer_demo")
+VIDEO_ANNOTATOR_EXAMPLE_PATH = os.path.join(EXAMPLES_PATH, "video_annotator_demo")
 PARLAI_CHAT_TASK_EXAMPLE_PATH = os.path.join(EXAMPLES_PATH, "parlai_chat_task_demo")
 REMOTE_PROCEDURE_MNIST_EXAMPLE_PATH = os.path.join(EXAMPLES_PATH, "remote_procedure", "mnist")
 REMOTE_PROCEDURE_TEMPLATE_EXAMPLE_PATH = os.path.join(EXAMPLES_PATH, "remote_procedure", "template")
@@ -173,6 +176,72 @@ def build_form_composer_dynamic_presigned_urls_ec2_prolific(
         force_rebuild=force_rebuild,
         post_install_script=post_install_script,
         build_command="build:presigned_urls",
+    )
+
+
+# --- Video Annotator ---
+
+
+def clean_video_annotator_demo(remove_package_locks: bool, verbose: bool = False):
+    webapp_path = os.path.join(VIDEO_ANNOTATOR_EXAMPLE_PATH, "webapp")
+    clean_single_react_app(webapp_path, remove_package_locks=remove_package_locks, verbose=verbose)
+
+
+def build_video_annotator_simple(
+    force_rebuild: bool = False,
+    post_install_script: Optional[str] = None,
+) -> None:
+    packages.build_mephisto_task_multipart_package(force_rebuild=force_rebuild, verbose=True)
+    packages.build_mephisto_task_addons_package(force_rebuild=force_rebuild, verbose=True)
+
+    # Build Review UI for the application
+    build_custom_bundle(
+        VIDEO_ANNOTATOR_EXAMPLE_PATH,
+        force_rebuild=force_rebuild,
+        webapp_name="webapp",
+        build_command="build:simple:review",
+    )
+
+    # Build Task UI for the application
+    build_custom_bundle(
+        VIDEO_ANNOTATOR_EXAMPLE_PATH,
+        force_rebuild=force_rebuild,
+        post_install_script=post_install_script,
+        build_command="dev:simple",
+    )
+
+
+def build_video_annotator_dynamic(
+    force_rebuild: bool = False,
+    post_install_script: Optional[str] = None,
+) -> None:
+    packages.build_mephisto_task_multipart_package(force_rebuild=force_rebuild, verbose=True)
+    packages.build_mephisto_task_addons_package(force_rebuild=force_rebuild, verbose=True)
+
+    # Set env vars for `custom_validators.js` and `custom_triggers.js`
+    from mephisto.client.cli_video_annotator_commands import VIDEO_ANNOTATOR__DATA_DIR_NAME
+
+    data_path = os.path.join(
+        VIDEO_ANNOTATOR_EXAMPLE_PATH, VIDEO_ANNOTATOR__DATA_DIR_NAME, "dynamic"
+    )
+    set_custom_validators_js_env_var(data_path)
+    set_custom_triggers_js_env_var(data_path)
+
+    # Build Review UI for the application
+    build_custom_bundle(
+        VIDEO_ANNOTATOR_EXAMPLE_PATH,
+        force_rebuild=force_rebuild,
+        webapp_name="webapp",
+        build_command="build:review",
+    )
+
+    # Build Task UI for the application
+    build_custom_bundle(
+        VIDEO_ANNOTATOR_EXAMPLE_PATH,
+        force_rebuild=force_rebuild,
+        webapp_name="webapp",
+        post_install_script=post_install_script,
+        build_command="dev",
     )
 
 

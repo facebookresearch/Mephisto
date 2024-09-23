@@ -12,7 +12,9 @@ import TaskPage from "pages/TaskPage/TaskPage";
 import TasksPage from "pages/TasksPage/TasksPage";
 import TaskStatsPage from "pages/TaskStatsPage/TaskStatsPage";
 import TaskTimelinePage from "pages/TaskTimelinePage/TaskTimelinePage";
+import TaskUnitsPage from "pages/TaskUnitsPage/TaskUnitsPage";
 import TaskWorkerOpinionsPage from "pages/TaskWorkerOpinionsPage/TaskWorkerOpinionsPage";
+import UnitPage from "pages/UnitPage/UnitPage";
 import * as React from "react";
 import { Route, Routes } from "react-router-dom";
 import urls from "urls";
@@ -39,6 +41,14 @@ function App() {
         <Route
           path={urls.client.taskStats(":id")}
           element={<TaskStatsPage setErrors={setErrors} />}
+        />
+        <Route
+          path={urls.client.taskUnits(":id")}
+          element={<TaskUnitsPage setErrors={setErrors} />}
+        />
+        <Route
+          path={urls.client.taskUnit(":taskId", ":unitId")}
+          element={<UnitPage setErrors={setErrors} />}
         />
         <Route
           path={urls.client.taskWorkerOpinions(":id")}

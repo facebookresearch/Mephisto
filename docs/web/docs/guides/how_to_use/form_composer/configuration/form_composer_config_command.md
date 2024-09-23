@@ -29,7 +29,7 @@ where
 - `-v/--verify` - if truthy, validates all JSON configs currently present in the form builder config directory
 - `-p/--permutate-sepatate-tokens` - if truthy, generates token sets values as all possible combinations of values of individual tokens
 - `-f/--update-file-location-values S3_FOLDER_URL` - generates token values based on file names found within the specified S3 folder (see a separate section about this mode of running FormComposer)
-- `-e/--extrapolate-token-sets` - if truthy, generates Task data config based on provided form config and takon sets values
+- `-e/--extrapolate-token-sets` - if truthy, generates Task data config based on provided form config and token sets values
 - `-u/--use-presigned-urls` - a **modifier** for `--update-file-location-values` command that converts S3 URLs into short-lived rtemporary ones (for more detailes see "Presigned URLs" section)
 
 ## Shortcut commands

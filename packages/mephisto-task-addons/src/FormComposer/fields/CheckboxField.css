@@ -1,0 +1,49 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.fc-checkbox-field .form-check.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.fc-checkbox-field .form-check.checkbox {
+  display: flex;
+  align-items: center;
+}
+
+.fc-checkbox-field .form-check.checkbox .form-check-input {
+  margin-top: 0;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ced4da;
+  background-color: transparent;
+}
+
+.fc-checkbox-field .form-check.checkbox .form-check-input {
+  border-radius: 4px;
+}
+
+.fc-checkbox-field .form-check.checkbox .form-check-label {
+  margin-left: 10px;
+}
+
+.fc-checkbox-field .form-check.checkbox .form-check-input.checked {
+  background-color: #495057;
+}
+
+.fc-checkbox-field .form-check.checkbox.is-invalid .form-check-input {
+  border-color: var(--error-color);
+}
+
+.fc-checkbox-field .form-check:not(.disabled):hover .form-check-input {
+  border-color: #495057;
+  cursor: pointer;
+}
+
+.fc-checkbox-field .form-check:not(.disabled):hover .form-check-label {
+  opacity: 0.8;
+  cursor: pointer;
+}

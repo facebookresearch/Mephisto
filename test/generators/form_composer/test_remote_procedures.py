@@ -1,11 +1,16 @@
+#!/usr/bin/env python3
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 import unittest
 from unittest.mock import patch
 from urllib.parse import quote
 
-from mephisto.generators.form_composer.constants import CONTENTTYPE_BY_EXTENSION
-from mephisto.generators.form_composer.remote_procedures import _get_multiple_presigned_urls
-from mephisto.generators.form_composer.remote_procedures import _get_presigned_url
-from mephisto.generators.form_composer.remote_procedures import _get_presigned_url_for_thread
+from mephisto.generators.generators_utils.constants import CONTENTTYPE_BY_EXTENSION
+from mephisto.generators.generators_utils.remote_procedures import _get_multiple_presigned_urls
+from mephisto.generators.generators_utils.remote_procedures import _get_presigned_url
+from mephisto.generators.generators_utils.remote_procedures import _get_presigned_url_for_thread
 
 
 class TestRemoteProcedures(unittest.TestCase):
@@ -75,7 +80,7 @@ class TestRemoteProcedures(unittest.TestCase):
         self.assertIsNone(presigned_url)
         self.assertEqual(error, f"Not a valid S3 URL: '{test_url}'")
 
-    @patch("mephisto.generators.form_composer.remote_procedures.get_s3_presigned_url")
+    @patch("mephisto.generators.generators_utils.remote_procedures.get_s3_presigned_url")
     def test__get_presigned_url_for_thread_exception(
         self,
         mock_get_s3_presigned_url,
@@ -92,7 +97,7 @@ class TestRemoteProcedures(unittest.TestCase):
         self.assertIsNone(presigned_url)
         self.assertEqual(error, "Error")
 
-    @patch("mephisto.generators.form_composer.remote_procedures.get_s3_presigned_url")
+    @patch("mephisto.generators.generators_utils.remote_procedures.get_s3_presigned_url")
     def test__get_presigned_url_for_thread_success(
         self,
         mock_get_s3_presigned_url,
@@ -110,7 +115,7 @@ class TestRemoteProcedures(unittest.TestCase):
         self.assertEqual(presigned_url, presigned_url_expected)
         self.assertIsNone(error)
 
-    @patch("mephisto.generators.form_composer.remote_procedures.get_s3_presigned_url")
+    @patch("mephisto.generators.generators_utils.remote_procedures.get_s3_presigned_url")
     def test__get_multiple_presigned_urls_errors(
         self,
         mock_get_s3_presigned_url,
@@ -129,7 +134,7 @@ class TestRemoteProcedures(unittest.TestCase):
             f"Could not presign URL '{test_url}' because of error: Error.",
         )
 
-    @patch("mephisto.generators.form_composer.remote_procedures.get_s3_presigned_url")
+    @patch("mephisto.generators.generators_utils.remote_procedures.get_s3_presigned_url")
     def test__get_multiple_presigned_urls_success(
         self,
         mock_get_s3_presigned_url,

@@ -11,6 +11,7 @@ import React from "react";
 import { runCustomTrigger } from "../utils";
 import { checkFieldRequiredness } from "../validation/helpers";
 import { Errors } from "./Errors";
+import "./SelectField.css";
 
 function SelectField({
   field,
@@ -23,6 +24,7 @@ function SelectField({
   validationErrors,
   formFields,
   customTriggers,
+  cleanErrorsOnChange,
 }) {
   const defaultValue = field.multiple ? [] : "";
   const [value, setValue] = React.useState(defaultValue);
@@ -126,6 +128,7 @@ function SelectField({
       <select
         className={`
           form-control
+          fc-select-field
           selectpicker
           select-${field.name}
           ${invalidField ? "is-invalid" : ""}
@@ -138,8 +141,10 @@ function SelectField({
         value={value}
         onChange={(e) => {
           !disabled && onChange(e, field.name);
-          setInvalidField(false);
-          setErrors([]);
+          if (cleanErrorsOnChange) {
+            setInvalidField(false);
+            setErrors([]);
+          }
         }}
         onBlur={onBlur}
         onFocus={onFocus}

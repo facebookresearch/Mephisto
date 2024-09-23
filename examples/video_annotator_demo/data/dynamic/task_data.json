@@ -1,0 +1,113 @@
+[
+  {
+    "annotator": {
+      "title": "Video Annotator example",
+      "instruction": "<div class=\"instruction\">\n  Please annotate everything you think is necessary.\n</div>\n\n<style>\n  .instruction {\n    font-style: italic;\n  }\n</style>\n",
+      "video": "https://d2zihajmogu5jn.cloudfront.net/elephantsdream/ed_hd.mp4",
+      "segment_fields": [
+        {
+          "id": "id_title",
+          "label": "Segment name",
+          "name": "title",
+          "type": "input",
+          "validators": {
+            "required": true,
+            "minLength": 1,
+            "maxLength": 40
+          }
+        },
+        {
+          "id": "id_description",
+          "label": "Describe what you see in this segment",
+          "name": "description",
+          "type": "textarea",
+          "validators": {
+            "minLength": 2,
+            "maxLength": 500,
+            "checkForbiddenWords": true
+          },
+          "triggers": {
+            "onFocus": [
+              "onFocusDescription",
+              "\"Describe what you see in this segment\""
+            ]
+          }
+        },
+        {
+          "id": "id_can_understand",
+          "label": "Was that easy to understand?",
+          "name": "can_understand",
+          "type": "radio",
+          "options": [
+            {
+              "label": "Yes",
+              "value": "yes"
+            },
+            {
+              "label": "No",
+              "value": "no"
+            }
+          ]
+        },
+        {
+          "id": "id_person_name",
+          "label": "Person name",
+          "help": "The name of talking person",
+          "multiple": false,
+          "name": "person_name",
+          "type": "select",
+          "options": [
+            {
+              "label": "---",
+              "value": ""
+            },
+            {
+              "label": "Jack",
+              "value": "jack"
+            },
+            {
+              "label": "Anna",
+              "value": "anna"
+            },
+            {
+              "label": "Peter",
+              "value": "peter"
+            }
+          ],
+          "value": ""
+        },
+        {
+          "help": "",
+          "id": "id_skills",
+          "label": "Discussion topic",
+          "name": "skills",
+          "options": [
+            {
+              "checked": false,
+              "label": "React",
+              "value": "react"
+            },
+            {
+              "checked": false,
+              "label": "JavaScript",
+              "value": "javascript"
+            }
+          ],
+          "type": "checkbox"
+        }
+      ],
+      "show_instructions_as_modal": true,
+      "submit_button": {
+        "instruction": "If you are ready and think that you described everything, submit the results.",
+        "text": "Submit",
+        "tooltip": "Submit annotations"
+      }
+    },
+    "annotator_metadata": {
+      "tokens_values": {
+        "video_path": "https://d2zihajmogu5jn.cloudfront.net/elephantsdream/",
+        "video_file": "ed_hd.mp4"
+      }
+    }
+  }
+]

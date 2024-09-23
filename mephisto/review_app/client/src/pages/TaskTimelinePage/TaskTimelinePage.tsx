@@ -5,7 +5,7 @@
  */
 
 import TasksHeader from "components/TasksHeader/TasksHeader";
-import { setPageTitle } from "pages/TaskPage/helpers";
+import { setPageTitle } from "helpers";
 import * as React from "react";
 import { useEffect } from "react";
 import { Spinner } from "react-bootstrap";

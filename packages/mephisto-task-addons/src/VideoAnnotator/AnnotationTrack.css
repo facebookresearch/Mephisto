@@ -1,0 +1,134 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.annotation-track {
+  position: relative;
+  width: 100%;
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  background-color: #666666;
+  cursor: pointer;
+}
+
+.annotation-track:hover {
+  background-color: #777777;
+}
+
+.annotation-track.active {
+  background-color: #dddddd;
+}
+
+.annotation-track .track-name-small {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 8px;
+  color: #ffffff;
+}
+
+.annotation-track .track-info {
+  position: relative;
+  height: 40px;
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  align-items: center;
+  padding: 0 150px 0 10px;
+}
+
+.annotation-track .track-info .track-name-label {
+  font-size: 14px;
+  margin-right: 6px;
+}
+
+.annotation-track .track-info .track-name {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.annotation-track .track-info .buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  margin-left: 6px;
+}
+
+.annotation-track .track-info .buttons .btn {
+  width: 32px;
+}
+
+.annotation-track .track-info .track-buttons {
+  position: absolute;
+  right: 10px;
+  display: none;
+  gap: 4px;
+}
+
+.annotation-track.active .track-info .track-buttons {
+  display: flex;
+}
+
+.annotation-track .segments {
+  position: relative;
+  width: 100%;
+  height: 40px;
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  align-items: center;
+  padding-left: var(--segments-padding-left);
+  padding-right: var(--segments-padding-right);
+}
+
+.annotation-track .segment-info {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+}
+
+.annotation-track .segment-info .time {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+.annotation-track .segment-info .time span {
+  font-size: 14px;
+}
+
+.annotation-track .segment-info .time input {
+  width: 60px;
+}
+
+.annotation-track .segment-info textarea {
+  resize: vertical;
+  min-height: 45px;
+  max-height: 200px;
+}
+
+.annotation-track .segment-info .field-label {
+  font-size: 14px;
+}
+
+.annotation-track .segment-info .field-help {
+  font-size: 10px;
+}
+
+.annotation-track .segment-info .segment-buttons {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 4px;
+}
+
+.annotation-track .segment-info.is-invalid .invalid-feedback {
+  display: block;
+}

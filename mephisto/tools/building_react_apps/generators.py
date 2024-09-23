@@ -7,8 +7,10 @@
 import os
 from typing import Optional
 
-from mephisto.generators.form_composer.config_validation.utils import set_custom_triggers_js_env_var
-from mephisto.generators.form_composer.config_validation.utils import (
+from mephisto.generators.generators_utils.config_validation.utils import (
+    set_custom_triggers_js_env_var,
+)
+from mephisto.generators.generators_utils.config_validation.utils import (
     set_custom_validators_js_env_var,
 )
 from mephisto.tools.scripts import build_custom_bundle

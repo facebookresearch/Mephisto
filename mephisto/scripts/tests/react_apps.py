@@ -42,6 +42,7 @@ def _clean(remove_package_locks: bool):
     review_app.clean_review_app(remove_package_locks, verbose=verbose)
 
     examples.clean_form_composer_demo(remove_package_locks, verbose=verbose)
+    examples.clean_video_annotator_demo(remove_package_locks, verbose=verbose)
     examples.clean_parlai_chat_task_demo(remove_package_locks, verbose=verbose)
     examples.clean_remote_procedure_mnist(remove_package_locks, verbose=verbose)
     examples.clean_remote_procedure_template(remove_package_locks, verbose=verbose)
@@ -87,6 +88,7 @@ def _build():
     examples.build_form_composer_simple(force_rebuild=force_rebuild)
     examples.build_form_composer_dynamic(force_rebuild=force_rebuild)
     examples.build_form_composer_dynamic_presigned_urls_ec2_prolific(force_rebuild=force_rebuild)
+    examples.build_video_annotator_simple(force_rebuild=force_rebuild)
     examples.build_parlai_chat_task_demo(force_rebuild=force_rebuild)
     examples.build_remote_procedure_mnist(force_rebuild=force_rebuild)
     examples.build_remote_procedure_template(force_rebuild=force_rebuild)

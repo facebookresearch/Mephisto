@@ -70,15 +70,14 @@ class UnitsView(MethodView):
 
             bonus = unit_data.get("bonus")
             review_note = unit_data.get("review_note")
+            is_reviewed = unit.db_status in AssignmentState.reviewed()
 
             units.append(
                 {
-                    "id": unit.db_id,
-                    "worker_id": unit.worker_id or None,
-                    "task_id": unit.task_id or None,
-                    "pay_amount": unit.pay_amount,
-                    "status": unit.db_status,
                     "creation_date": unit.creation_date.isoformat(),
+                    "id": unit.db_id,
+                    "is_reviewed": is_reviewed,
+                    "pay_amount": unit.pay_amount,
                     "results": {
                         "start": unit_data.get("task_start"),
                         "end": unit_data.get("task_end"),
@@ -89,6 +88,9 @@ class UnitsView(MethodView):
                         "bonus": int(bonus) if bonus else None,
                         "review_note": review_note if review_note else None,
                     },
+                    "status": unit.db_status,
+                    "task_id": unit.task_id or None,
+                    "worker_id": unit.worker_id or None,
                 }
             )
 

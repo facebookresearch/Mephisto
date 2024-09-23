@@ -10,11 +10,11 @@ import { useNavigate } from "react-router-dom";
 import urls from "urls";
 import "./HomePage.css";
 
-interface PropsType {
+interface HomePagePropsType {
   setErrors: Function;
 }
 
-function HomePage(props: PropsType) {
+function HomePage(props: HomePagePropsType) {
   const navigate = useNavigate();
   const { localStorage } = window;
 

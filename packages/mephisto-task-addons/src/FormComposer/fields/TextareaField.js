@@ -8,6 +8,7 @@ import React from "react";
 import { runCustomTrigger } from "../utils";
 import { checkFieldRequiredness } from "../validation/helpers";
 import { Errors } from "./Errors";
+import "./TextareaField.css";
 
 const DEFAULT_VALUE = "";
 
@@ -22,6 +23,9 @@ function TextareaField({
   validationErrors,
   formFields,
   customTriggers,
+  className,
+  cleanErrorsOnChange,
+  rows,
 }) {
   const [value, setValue] = React.useState(DEFAULT_VALUE);
 
@@ -86,6 +90,8 @@ function TextareaField({
       <textarea
         className={`
           form-control
+          fc-textarea-field
+          ${className || ""}
           ${invalidField ? "is-invalid" : ""}
         `}
         id={field.id}
@@ -96,13 +102,16 @@ function TextareaField({
         value={value}
         onChange={(e) => {
           !disabled && onChange(e);
-          setInvalidField(false);
-          setErrors([]);
+          if (cleanErrorsOnChange) {
+            setInvalidField(false);
+            setErrors([]);
+          }
         }}
         onBlur={onBlur}
         onFocus={onFocus}
         onClick={onClick}
         disabled={disabled}
+        rows={rows}
       />
 
       <Errors messages={errors} />

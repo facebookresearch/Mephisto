@@ -8,6 +8,7 @@ import React from "react";
 import { runCustomTrigger } from "../utils";
 import { checkFieldRequiredness } from "../validation/helpers";
 import { Errors } from "./Errors";
+import "./InputField.css";
 
 const DEFAULT_VALUE = "";
 
@@ -22,6 +23,8 @@ function InputField({
   validationErrors,
   formFields,
   customTriggers,
+  className,
+  cleanErrorsOnChange,
 }) {
   const [value, setValue] = React.useState(DEFAULT_VALUE);
 
@@ -86,6 +89,8 @@ function InputField({
       <input
         className={`
           form-control
+          fc-input-field
+          ${className || ""}
           ${invalidField ? "is-invalid" : ""}
         `}
         id={field.id}
@@ -97,8 +102,10 @@ function InputField({
         value={value}
         onChange={(e) => {
           !disabled && onChange(e);
-          setInvalidField(false);
-          setErrors([]);
+          if (cleanErrorsOnChange) {
+            setInvalidField(false);
+            setErrors([]);
+          }
         }}
         onBlur={onBlur}
         onFocus={onFocus}

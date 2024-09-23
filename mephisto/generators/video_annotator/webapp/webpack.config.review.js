@@ -28,11 +28,11 @@ module.exports = {
       ),
       // Required for custom validators
       "custom-validators": path.resolve(
-        process.env.WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS
+        process.env.WEBAPP__GENERATOR__CUSTOM_VALIDATORS
       ),
       // Required for custom triggers
       "custom-triggers": path.resolve(
-        process.env.WEBAPP__FORM_COMPOSER__CUSTOM_TRIGGERS
+        process.env.WEBAPP__GENERATOR__CUSTOM_TRIGGERS
       ),
     },
     fallback: {

@@ -15,7 +15,9 @@ from mephisto.abstractions.databases.local_database import StringIDRow
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
-from mephisto.generators.form_composer.constants import FORM_COMPOSER_TASK_TAG
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    FORM_COMPOSER_TASK_TAG,
+)
 from mephisto.review_app.server.db_queries import find_units
 
 

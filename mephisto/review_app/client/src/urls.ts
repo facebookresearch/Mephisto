@@ -12,6 +12,8 @@ const urls = {
     task: (id) => `/tasks/${id}`,
     taskStats: (id) => `/tasks/${id}/stats`,
     taskTimeline: (id) => `/tasks/${id}/timeline`,
+    taskUnit: (id, unitId) => `/tasks/${id}/units/${unitId}`,
+    taskUnits: (id) => `/tasks/${id}/units`,
     taskWorkerOpinions: (id) => `/tasks/${id}/worker-opinions`,
     tasks: "/tasks",
   },

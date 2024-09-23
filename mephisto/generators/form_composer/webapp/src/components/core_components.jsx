@@ -21,7 +21,7 @@ function LoadingPresignedUrlsScreen() {
   return <Directions>Please wait, rendering form...</Directions>;
 }
 
-function NoFormDataErrorsMessage() {
+function NoDataErrorsMessage() {
   return (
     <div>
       Could not render the form due to invalid configuration. We're sorry,
@@ -58,12 +58,9 @@ function FormComposerBaseFrontend({
   finalResults = null,
   remoteProcedure,
 }) {
-  const [loadingFormData, setLoadingFormData] = React.useState(false);
+  const [loadingData, setLoadingData] = React.useState(false);
+  const [renderingErrors, setRenderingErrors] = React.useState(null);
   const [formData, setFormData] = React.useState(null);
-  const [
-    formComposerRenderingErrors,
-    setFormComposerRenderingErrors,
-  ] = React.useState(null);
 
   const inReviewState = finalResults !== null;
   const initialConfigFormData = taskData.form;
@@ -72,6 +69,8 @@ function FormComposerBaseFrontend({
     prepareRemoteProcedures(remoteProcedure);
   }
 
+  // ----- Effects -----
+
   React.useEffect(() => {
     if (inReviewState) {
       setFormData(initialConfigFormData);
@@ -79,21 +78,21 @@ function FormComposerBaseFrontend({
       prepareFormData(
         taskData,
         setFormData,
-        setLoadingFormData,
-        setFormComposerRenderingErrors
+        setLoadingData,
+        setRenderingErrors
       );
     }
   }, [taskData.form]);
 
   if (!initialConfigFormData) {
-    return <NoFormDataErrorsMessage />;
+    return <NoDataErrorsMessage />;
   }
 
-  if (loadingFormData) {
+  if (loadingData) {
     return <LoadingPresignedUrlsScreen />;
   }
 
-  if (formComposerRenderingErrors) {
+  if (renderingErrors) {
     return <RenderingErrorsMessage />;
   }
 
@@ -104,7 +103,7 @@ function FormComposerBaseFrontend({
           data={formData}
           onSubmit={onSubmit}
           finalResults={finalResults}
-          setRenderingErrors={setFormComposerRenderingErrors}
+          setRenderingErrors={setRenderingErrors}
           customValidators={customValidators}
           customTriggers={customTriggers}
         />

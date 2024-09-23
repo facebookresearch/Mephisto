@@ -5,7 +5,7 @@
  */
 
 import TasksHeader from "components/TasksHeader/TasksHeader";
-import { setPageTitle } from "pages/TaskPage/helpers";
+import { setPageTitle } from "helpers";
 import * as React from "react";
 import { useEffect } from "react";
 import { Spinner } from "react-bootstrap";
@@ -20,11 +20,11 @@ type ParamsType = {
   id: string;
 };
 
-interface PropsType {
+interface TaskStatsPagePropsType {
   setErrors: Function;
 }
 
-function TaskStatsPage(props: PropsType) {
+function TaskStatsPage(props: TaskStatsPagePropsType) {
   const params = useParams<ParamsType>();
 
   const [taskStats, setTaskStats] = React.useState<TaskRusultStatsType>(null);

@@ -6,7 +6,7 @@ export function onChangeCountry(
   updateFormData, // callback to set the React state
   element, // "field", "section", or "submit button" element that invoked this trigger
   fieldValue, // (optional) current field value, if the `element` is a form field
-  formFields, // Object containing all form fields as defined in 'form_config.json'
+  formFields, // Object containing all form fields as defined in 'unit_config.json'
   ...args // Arguments for this trigger (taken from form config)
 ) {
   // By default, `id_section_second` section is collapsed, and `id_region` field is hidden.
@@ -47,7 +47,7 @@ export function onClickSectionHeader(
   updateFormData, // callback to set the React state
   element, // "field", "section", or "submit button" element that invoked this trigger
   fieldValue, // (optional) current field value, if the `element` is a form field
-  formFields, // Object containing all form fields as defined in 'form_config.json'
+  formFields, // Object containing all form fields as defined in 'unit_config.json'
   sectionName // Argument for this trigger (taken from form config)
 ) {
   // Do something when header is clicked (toggle a section content)

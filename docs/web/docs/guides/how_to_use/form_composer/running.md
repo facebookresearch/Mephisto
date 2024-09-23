@@ -13,7 +13,7 @@ and then run the below commands.
 
 Once your Task launches, your console will display you URLs like this: `http://<YOUR_DOMAIN>/?worker_id=x&assignment_id=1`.
 
-- If you're doing local testing with `local` architect and `mock` provider, your URLs will start with `http://localhost:3000/`. To access your Task units as a worker, just paste one of these URLs into your browser.
+- If you're doing local testing with `local` architect and `inhouse` provider, your URLs will start with `http://localhost:3000/`. To access your Task units as a worker, just paste one of these URLs into your browser.
     - _If running with Docker, you will need to replace port `3000` in the console URLs with the remapped port (e.g. for `3001:3000` it will be `3001`)._
 - If you're running with a "real" provider, to access your Task units you will need to log into the provider's platform as a worker, and find them there.
 

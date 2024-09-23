@@ -23,7 +23,7 @@ const ACCEPTED_SCALAR_TRIGGER_ARGUMENT_TYPES = [
 
 // TODO: Remove this after finding out what is the problem
 //  with not sending `agent_id` under `subject_id` field in websocket message
-const WAIT_FOR_AGENT_ID_MSEC = 1000;
+export const WAIT_FOR_AGENT_ID_MSEC = 1000;
 
 let tokenProcedureResultMapping = {};
 
@@ -42,12 +42,12 @@ export const procedureTokenRegex = new RegExp(
   "gi"
 );
 
-const ProcedureName = {
+export const ProcedureName = {
   GET_MULTIPLE_PRESIGNED_URLS: "getMultiplePresignedUrls",
   GET_PRESIGNED_URL: "getPresignedUrl",
 };
 
-let urlTotokenProcedureMapping = {};
+let urlToTokenProcedureMapping = {};
 
 export function formatStringWithProcedureTokens(string, errorCallback) {
   if (!string || typeof string !== "string") {
@@ -110,7 +110,17 @@ export function formatStringWithProcedureTokens(string, errorCallback) {
   return string;
 }
 
-function _getUrlsFromString(string) {
+export function getFormatStringWithTokensFunction(inReviewState) {
+  const func = inReviewState
+    ? (v, _) => {
+        return v;
+      } // Return value as is, ignoring whole formatting
+    : formatStringWithProcedureTokens;
+
+  return func;
+}
+
+export function getUrlsFromString(string, mapping) {
   let urls = [];
 
   if (
@@ -130,7 +140,7 @@ function _getUrlsFromString(string) {
         ) {
           const procedureCodeUrl = procedureCodeWithUrlMatches[0][1];
           urls.push(procedureCodeUrl);
-          urlTotokenProcedureMapping[procedureCodeUrl] = token;
+          mapping[procedureCodeUrl] = token;
         }
       }
     });
@@ -145,7 +155,7 @@ export function _getAllUrlsToPresign(formConfig) {
   function _extractUrlsToPresignFromConfigItem(configItem) {
     Object.values(configItem).forEach((value) => {
       if (typeof value === "string") {
-        const valueUrls = _getUrlsFromString(value);
+        const valueUrls = getUrlsFromString(value, urlToTokenProcedureMapping);
         if (valueUrls.length) {
           urls = new Set([...urls, ...valueUrls]);
         }
@@ -187,7 +197,7 @@ export function _replaceUrlsWithPresignedUrlsInFormData(
   ) {
     Object.entries(configItem).forEach(([key, value]) => {
       if (typeof value === "string") {
-        const token = urlTotokenProcedureMapping[originalUrl];
+        const token = urlToTokenProcedureMapping[originalUrl];
         if (token) {
           configItem[key] = value.replaceAll(token, presignedUrl);
         }
@@ -314,15 +324,15 @@ export function isObjectEmpty(_object) {
 
 export function runCustomTrigger(
   // Args used in this util
-  elementTriggersConfig, // 'triggers' value defined in 'form_config.json' file
+  elementTriggersConfig, // 'triggers' value defined in 'unit_config.json' file
   elementTriggerName,
   customTriggers,
   // Args passed directly into the trigger function
   formData, // React state for the entire form
   updateFormData, // callback to set the React state
   element, // "field", "section", or "submit button" element that invoked this trigger
-  fieldValue, // Current field value, if the `element` is a form field (otherwise it's null)
-  formFields // Object containing all form fields as defined in 'form_config.json'
+  fieldValue, // (optional) Current field value, if the `element` is a form field
+  formFields // (optional) Object containing all form fields as defined in 'unit_config.json'
 ) {
   // Exit if the element that doesn't have any triggers defined (no logs required)
   if (!elementTriggersConfig || isObjectEmpty(elementTriggersConfig)) {
@@ -376,7 +386,7 @@ export function runCustomTrigger(
     console.error(
       `Function not found for trigger "${elementTriggerName}". ` +
         `Please ensure a functionwith that name is defined in 'custom_triggers.js' file ` +
-        `and 'form_config.json' indicates correct custom function name for this trigger config.`
+        `and 'unit_config.json' indicates correct custom function name for this trigger config.`
     );
     return;
   }

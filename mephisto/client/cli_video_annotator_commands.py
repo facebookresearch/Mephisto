@@ -13,18 +13,20 @@ from rich_click import RichCommand
 from rich_click import RichGroup
 
 from mephisto.client.cli_form_composer_commands import start_generator_process
-from mephisto.generators.form_composer.config_validation.separate_token_values_config import (
+from mephisto.generators.generators_utils.config_validation.separate_token_values_config import (
     update_separate_token_values_config_with_file_urls,
 )
-from mephisto.generators.form_composer.config_validation.task_data_config import (
+from mephisto.generators.generators_utils.config_validation.task_data_config import (
     create_extrapolated_config,
 )
-from mephisto.generators.form_composer.config_validation.token_sets_values_config import (
+from mephisto.generators.generators_utils.config_validation.token_sets_values_config import (
     update_token_sets_values_config_with_premutated_data,
 )
-from mephisto.generators.form_composer.config_validation.utils import is_s3_url
-from mephisto.generators.form_composer.config_validation.utils import set_custom_triggers_js_env_var
-from mephisto.generators.form_composer.config_validation.utils import (
+from mephisto.generators.generators_utils.config_validation.utils import is_s3_url
+from mephisto.generators.generators_utils.config_validation.utils import (
+    set_custom_triggers_js_env_var,
+)
+from mephisto.generators.generators_utils.config_validation.utils import (
     set_custom_validators_js_env_var,
 )
 from mephisto.generators.video_annotator.config_validation.task_data_config import (
@@ -34,11 +36,21 @@ from mephisto.utils.console_writer import ConsoleWriter
 
 VIDEO_ANNOTATOR__DATA_DIR_NAME = "data"
 VIDEO_ANNOTATOR__DATA_CONFIG_NAME = "task_data.json"
-VIDEO_ANNOTATOR__ASSIGNMENT_CONFIG_NAME = "assignment_config.json"
+VIDEO_ANNOTATOR__UNIT_CONFIG_NAME = "unit_config.json"
 VIDEO_ANNOTATOR__TOKEN_SETS_VALUES_CONFIG_NAME = "token_sets_values_config.json"
 VIDEO_ANNOTATOR__SEPARATE_TOKEN_VALUES_CONFIG_NAME = "separate_token_values_config.json"
 
 logger = ConsoleWriter()
+
+
+def set_video_annotator_env_vars(use_validation_mapping_cache: bool = True):
+    os.environ["VALIDATION_MAPPING"] = (
+        "mephisto.generators.video_annotator.config_validation.config_validation_constants."
+        "VALIDATION_MAPPING"
+    )
+
+    if use_validation_mapping_cache:
+        os.environ["VALIDATION_MAPPING_USE_CACHE"] = "true"
 
 
 def _get_video_annotator_app_path() -> str:
@@ -79,6 +91,8 @@ def video_annotator_cli(
 ):
     """Generator of Tasks to annotate videos."""
 
+    set_video_annotator_env_vars()
+
     if ctx.invoked_subcommand is not None:
         # It's needed to add the ability to run `config` command,
         # run default code only if there's no other command after `form_composer`
@@ -101,11 +115,11 @@ def video_annotator_cli(
     # Set env var for `custom_triggers.js`
     set_custom_triggers_js_env_var(app_data_path)
 
-    # verify_video_annotator_configs(
-    #     task_data_config_path=task_data_config_path,
-    #     task_data_config_only=task_data_config_only,
-    #     force_exit=True,
-    # )
+    verify_video_annotator_configs(
+        task_data_config_path=task_data_config_path,
+        task_data_config_only=task_data_config_only,
+        force_exit=True,
+    )
 
     # Start the process
     start_generator_process(app_path, conf)
@@ -211,7 +225,7 @@ def config(
     # Check files and create `data.json` config with tokens data before running a task
     full_path = lambda data_file: os.path.join(app_data_path, data_file)
     task_data_config_path = full_path(VIDEO_ANNOTATOR__DATA_CONFIG_NAME)
-    assignment_config_path = full_path(VIDEO_ANNOTATOR__ASSIGNMENT_CONFIG_NAME)
+    unit_config_path = full_path(VIDEO_ANNOTATOR__UNIT_CONFIG_NAME)
     token_sets_values_config_path = full_path(VIDEO_ANNOTATOR__TOKEN_SETS_VALUES_CONFIG_NAME)
     separate_token_values_config_path = full_path(
         VIDEO_ANNOTATOR__SEPARATE_TOKEN_VALUES_CONFIG_NAME
@@ -222,6 +236,7 @@ def config(
         logger.info(f"Started configs verification")
         verify_video_annotator_configs(
             task_data_config_path=task_data_config_path,
+            unit_config_path=unit_config_path,
             token_sets_values_config_path=token_sets_values_config_path,
             separate_token_values_config_path=separate_token_values_config_path,
             task_data_config_only=False,
@@ -261,7 +276,7 @@ def config(
             f"from '{VIDEO_ANNOTATOR__TOKEN_SETS_VALUES_CONFIG_NAME}' [/green]"
         )
         create_extrapolated_config(
-            form_config_path=assignment_config_path,
+            unit_config_path=unit_config_path,
             token_sets_values_config_path=token_sets_values_config_path,
             task_data_config_path=task_data_config_path,
             data_path=app_data_path,
@@ -290,7 +305,7 @@ def config(
             token_sets_values_config_path
         ):
             create_extrapolated_config(
-                form_config_path=assignment_config_path,
+                unit_config_path=unit_config_path,
                 token_sets_values_config_path=token_sets_values_config_path,
                 task_data_config_path=task_data_config_path,
                 data_path=app_data_path,
@@ -308,6 +323,7 @@ def config(
         logger.info(f"[green]3. Started verification[/green]")
         verify_video_annotator_configs(
             task_data_config_path=task_data_config_path,
+            unit_config_path=unit_config_path,
             token_sets_values_config_path=token_sets_values_config_path,
             separate_token_values_config_path=separate_token_values_config_path,
             task_data_config_only=False,

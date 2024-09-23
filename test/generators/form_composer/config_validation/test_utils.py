@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 import json
 import os
 import shutil
@@ -9,38 +14,42 @@ from urllib.parse import quote
 
 from botocore.exceptions import BotoCoreError
 
-from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+from mephisto.generators.generators_utils.config_validation.config_validation_constants import (
     CUSTOM_TRIGGERS_JS_FILE_NAME,
 )
-from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+from mephisto.generators.generators_utils.config_validation.config_validation_constants import (
     CUSTOM_TRIGGERS_JS_FILE_NAME_ENV_KEY,
 )
-from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+from mephisto.generators.generators_utils.config_validation.config_validation_constants import (
     CUSTOM_VALIDATORS_JS_FILE_NAME,
 )
-from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+from mephisto.generators.generators_utils.config_validation.config_validation_constants import (
     CUSTOM_VALIDATORS_JS_FILE_NAME_ENV_KEY,
 )
-from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+from mephisto.generators.generators_utils.config_validation.config_validation_constants import (
     INSERTIONS_PATH_NAME,
 )
-from mephisto.generators.form_composer.config_validation.utils import (
+from mephisto.generators.generators_utils.config_validation.utils import (
     _get_bucket_and_key_from_S3_url,
 )
-from mephisto.generators.form_composer.config_validation.utils import _run_and_handle_boto_errors
-from mephisto.generators.form_composer.config_validation.utils import get_file_ext
-from mephisto.generators.form_composer.config_validation.utils import get_file_urls_from_s3_storage
-from mephisto.generators.form_composer.config_validation.utils import get_s3_presigned_url
-from mephisto.generators.form_composer.config_validation.utils import is_insertion_file
-from mephisto.generators.form_composer.config_validation.utils import is_s3_url
-from mephisto.generators.form_composer.config_validation.utils import make_error_message
-from mephisto.generators.form_composer.config_validation.utils import read_config_file
-from mephisto.generators.form_composer.config_validation.utils import set_custom_triggers_js_env_var
-from mephisto.generators.form_composer.config_validation.utils import (
+from mephisto.generators.generators_utils.config_validation.utils import _run_and_handle_boto_errors
+from mephisto.generators.generators_utils.config_validation.utils import get_file_ext
+from mephisto.generators.generators_utils.config_validation.utils import (
+    get_file_urls_from_s3_storage,
+)
+from mephisto.generators.generators_utils.config_validation.utils import get_s3_presigned_url
+from mephisto.generators.generators_utils.config_validation.utils import is_insertion_file
+from mephisto.generators.generators_utils.config_validation.utils import is_s3_url
+from mephisto.generators.generators_utils.config_validation.utils import make_error_message
+from mephisto.generators.generators_utils.config_validation.utils import read_config_file
+from mephisto.generators.generators_utils.config_validation.utils import (
+    set_custom_triggers_js_env_var,
+)
+from mephisto.generators.generators_utils.config_validation.utils import (
     set_custom_validators_js_env_var,
 )
-from mephisto.generators.form_composer.config_validation.utils import write_config_to_file
-from mephisto.generators.form_composer.constants import CONTENTTYPE_BY_EXTENSION
+from mephisto.generators.generators_utils.config_validation.utils import write_config_to_file
+from mephisto.generators.generators_utils.constants import CONTENTTYPE_BY_EXTENSION
 
 
 def get_mock_boto_resource(bucket_object_data: List[dict]):
