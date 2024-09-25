@@ -10,23 +10,32 @@
   min-height: 40px;
   display: flex;
   flex-direction: column;
-  background-color: #666666;
+  background-color: var(--track-bg-color-inactive);
+}
+
+.annotation-track:not(.non-clickable):not(.active):hover {
+  background-color: var(--track-bg-color-inactive-hover);
   cursor: pointer;
 }
 
-.annotation-track:hover {
-  background-color: #777777;
-}
-
 .annotation-track.active {
-  background-color: #dddddd;
+  background-color: var(--track-bg-color-active);
 }
 
 .annotation-track .track-name-small {
   position: absolute;
   top: 2px;
   left: 4px;
-  font-size: 8px;
+  font-size: 10px;
+  color: #ffffff;
+}
+
+.annotation-track .segments-count {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 10px;
+  font-style: italic;
   color: #ffffff;
 }
 
@@ -37,7 +46,7 @@
   flex-direction: row;
   gap: 4px;
   align-items: center;
-  padding: 0 150px 0 10px;
+  padding: 0 190px 0 10px;
 }
 
 .annotation-track .track-info .track-name-label {
@@ -58,7 +67,6 @@
 }
 
 .annotation-track .track-info .buttons .btn {
-  width: 32px;
 }
 
 .annotation-track .track-info .track-buttons {
@@ -75,13 +83,21 @@
 .annotation-track .segments {
   position: relative;
   width: 100%;
-  height: 40px;
+  height: 50px;
   display: flex;
   flex-direction: row;
   gap: 4px;
   align-items: center;
   padding-left: var(--segments-padding-left);
   padding-right: var(--segments-padding-right);
+}
+
+.annotation-track .segments .progress-bar {
+  width: 100%;
+  height: var(--segment-height-inactive);
+  background-color: #000000;
+  border-radius: 4px;
+  opacity: 0.2;
 }
 
 .annotation-track .segment-info {
@@ -114,11 +130,27 @@
 }
 
 .annotation-track .segment-info .field-label {
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .annotation-track .segment-info .field-help {
   font-size: 10px;
+}
+
+.annotation-track .segment-info .fc-radio-field .form-check-label,
+.annotation-track .segment-info .fc-checkbox-field .form-check-label,
+.annotation-track
+  .segment-info
+  .fc-select-field
+  .filter-option
+  .filter-option-inner-inner,
+.annotation-track
+  .segment-info
+  .fc-select-field
+  .dropdown-menu
+  .dropdown-item
+  .text {
+  font-size: 0.875rem; /* Same as in inputs */
 }
 
 .annotation-track .segment-info .segment-buttons {

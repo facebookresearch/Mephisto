@@ -7,16 +7,16 @@
 import { cloneDeep } from "lodash";
 import React from "react";
 import AnnotationTrack from "./AnnotationTrack.jsx";
+import "./AnnotationTracks.css";
+import {
+  INIT_ANNOTATION_TRACK,
+  POPOVER_INVALID_SEGMENT_CLASS,
+  POPOVER_INVALID_SEGMENT_PROPS,
+} from "./constants";
 import {
   convertAnnotationTasksDataObjectsRoLists,
   convertInitialDataListsToObjects,
 } from "./helpers.jsx";
-import "./AnnotationTracks.css";
-
-const INIT_ANNOTATION_TRACK = {
-  title: "",
-  segments: {},
-};
 
 function AnnotationTracks({
   className,
@@ -83,10 +83,11 @@ function AnnotationTracks({
       {!inReviewState && (
         <div className={`tracks-buttons`}>
           <button
-            className={`btn btn-sm btn-primary`}
+            className={`btn btn-sm btn-primary ${POPOVER_INVALID_SEGMENT_CLASS}`}
             type={"button"}
             onClick={(e) => segmentIsValid && onClickAddAnnotationTrack(e)}
             disabled={!segmentIsValid}
+            {...POPOVER_INVALID_SEGMENT_PROPS}
           >
             <i className={`las la-plus`} /> Track
           </button>

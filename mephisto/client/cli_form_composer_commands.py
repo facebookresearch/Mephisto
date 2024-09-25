@@ -77,12 +77,7 @@ def _get_form_composer_app_path() -> str:
     return app_path
 
 
-@click.group(
-    name="form_composer",
-    context_settings=dict(help_option_names=["-h", "--help"]),
-    cls=RichGroup,
-    invoke_without_command=True,
-)
+@click.group(name="form_composer", cls=RichGroup, invoke_without_command=True)
 @click.pass_context
 @click.option(
     "-o",

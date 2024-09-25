@@ -12,5 +12,5 @@ export function onFocusDescription(
   segmentFields, // Object containing all segment fields as defined in 'unit_config.json'
   argumentFromConfig // Argument for this trigger (taken from annotator config)
 ) {
-  alert(`${argumentFromConfig} description was focused!`);
+  console.log(`${argumentFromConfig} description was focused!`);
 }

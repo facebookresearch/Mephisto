@@ -38,7 +38,9 @@ class TestTasksView(BaseTestApiViewCase):
         self.assertEqual(first_response_task["name"], task_name)
         self.assertTrue("created_at" in first_response_task)
         self.assertTrue("is_reviewed" in first_response_task)
-        self.assertTrue("unit_count" in first_response_task)
+        self.assertTrue("unit_all_count" in first_response_task)
+        self.assertTrue("unit_completed_count" in first_response_task)
+        self.assertTrue("unit_finished_count" in first_response_task)
         self.assertTrue("has_stats" in first_response_task)
 
 

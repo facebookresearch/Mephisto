@@ -7,8 +7,15 @@
 .video-annotation {
   --annotator-width: 700px;
 
+  --track-bg-color-active: #ecdadf;
+  --track-bg-color-inactive: #666666;
+  --track-bg-color-inactive-hover: #777777;
+
   --segments-padding-left: initial;
   --segments-padding-right: initial;
+
+  --segment-height-active: 22px;
+  --segment-height-inactive: 12px;
 
   --blue-color: #439acb;
   --brown-color: #9f4f33;
@@ -44,7 +51,7 @@
   margin-bottom: 20px;
 }
 
-.video-annotation .video-player {
+.video-annotation .video-player-container {
   margin-bottom: 20px;
 }
 

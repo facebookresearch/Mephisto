@@ -6,10 +6,9 @@
 
 import { Popover } from "bootstrap";
 import React from "react";
+import { MIN_SEGMENT_WIDTH_PX } from "./constants";
 import { secontsToTime } from "./helpers.jsx";
 import "./TrackSegment.css";
-
-const MIN_SEGMENT_WIDTH_PX = 6;
 
 function TrackSegment({
   duration,
@@ -19,11 +18,13 @@ function TrackSegment({
   playerSizes,
   segment,
   segmentIndex,
+  segmentIsValid,
   segmentsColor,
   selectedSegment,
 }) {
   const isSelectedSegment =
-    isSelectedAnnotationTrack && selectedSegment === segmentIndex;
+    isSelectedAnnotationTrack &&
+    String(selectedSegment) === String(segmentIndex);
 
   let oneSecWidthPx = 0;
   if (playerSizes.progressBar?.width) {
@@ -31,7 +32,7 @@ function TrackSegment({
   }
   const leftPositionPx = paddingLeft + segment.start_sec * oneSecWidthPx;
   let segmentWidthPx = (segment.end_sec - segment.start_sec) * oneSecWidthPx;
-  // In case if section is too narrow, we need to make it a bit vissible
+  // In case if segment is too narrow, we need to make it a bit vissible
   if (segmentWidthPx < MIN_SEGMENT_WIDTH_PX) {
     segmentWidthPx = MIN_SEGMENT_WIDTH_PX;
   }
@@ -53,6 +54,7 @@ function TrackSegment({
       className={`
         segment
         ${isSelectedSegment ? "active" : ""}
+        ${!segmentIsValid ? "non-clickable" : ""}
       `}
       id={segmentId}
       style={{

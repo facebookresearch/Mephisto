@@ -37,7 +37,7 @@ def _print_used_options_for_running_command_message(ctx: click.Context, options:
     logger.debug(message)
 
 
-@click.group(name="db", context_settings=dict(help_option_names=["-h", "--help"]), cls=RichGroup)
+@click.group(name="db", cls=RichGroup)
 def db_cli():
     """Operations with Mephisto DB and provider-specific datastores"""
     pass

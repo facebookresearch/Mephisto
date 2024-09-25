@@ -7,13 +7,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import videojs from "video.js";
 import "video.js/dist/video-js.css";
-
-const CHAPTERS_SETTINGS = {
-  kind: "chapters",
-  label: "Chapters",
-  language: "en",
-  mode: "showing",
-};
+import { CHAPTERS_SETTINGS } from "./constants";
 
 function VideoPlayer({ chapters, className, onReady, options }) {
   const videoRef = useRef(null);
@@ -21,6 +15,7 @@ function VideoPlayer({ chapters, className, onReady, options }) {
 
   const [chaptersTrack, setChaptersTrack] = useState(null);
   const [playerIsReady, setPlayerIsReady] = useState(false);
+  const [lastTimePressedPlay, setLastTimePressedPlay] = useState(false);
 
   // ----- Methods -----
 
@@ -39,7 +34,7 @@ function VideoPlayer({ chapters, className, onReady, options }) {
       track.mode = "disabled";
 
       // Remove previously created cues to clear memory (I hope)
-      if (track.cues) {
+      if (Array.isArray(track.cues)) {
         [...track.cues].forEach((cue) => {
           track.removeCue(cue);
         });
@@ -89,6 +84,12 @@ function VideoPlayer({ chapters, className, onReady, options }) {
   useEffect(() => {
     const player = playerRef.current;
 
+    // Add time of previous pressing on Play button in HTML
+    // for HACK where we pause video in the end of current segment
+    player.on("play", () => {
+      setLastTimePressedPlay(player.currentTime());
+    });
+
     return () => {
       if (player && !player.isDisposed()) {
         player.dispose();
@@ -104,7 +105,11 @@ function VideoPlayer({ chapters, className, onReady, options }) {
   }, [chapters]);
 
   return (
-    <div className={`${className || ""}`} data-vjs-player="">
+    <div
+      className={`${className || ""}`}
+      data-vjs-player={""}
+      data-lasttimepressedplay={lastTimePressedPlay}
+    >
       <div ref={videoRef} />
     </div>
   );

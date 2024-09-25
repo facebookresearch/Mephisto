@@ -23,6 +23,9 @@ from mephisto.client.cli_form_composer_commands import set_form_composer_env_var
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     collect_unit_config_items_to_extrapolate,
 )
+from mephisto.generators.form_composer.config_validation.task_data_config import (
+    verify_form_composer_configs,
+)
 from mephisto.generators.generators_utils.config_validation.task_data_config import (
     _collect_tokens_from_unit_config,
 )
@@ -873,7 +876,7 @@ class TestTaskDataConfig(unittest.TestCase):
 
         captured_print_output = io.StringIO()
         sys.stdout = captured_print_output
-        verify_generator_configs(
+        verify_form_composer_configs(
             task_data_config_path,
             unit_config_path,
             token_sets_values_config_path,
@@ -934,7 +937,7 @@ class TestTaskDataConfig(unittest.TestCase):
 
         captured_print_output = io.StringIO()
         sys.stdout = captured_print_output
-        verify_generator_configs(
+        verify_form_composer_configs(
             task_data_config_path,
             unit_config_path,
             token_sets_values_config_path,

@@ -11,6 +11,7 @@ import {
   TOKEN_START_SYMBOLS,
 } from "./FormComposer/constants";
 import * as FormComposerFields from "./FormComposer/fields";
+import * as helpers from "./helpers";
 import { Errors as ListErrors } from "./FormComposer/fields/Errors";
 import { FormComposer } from "./FormComposer/FormComposer";
 import {
@@ -39,6 +40,7 @@ export {
   VideoAnnotator,
   VideoPlayer,
   WorkerOpinion,
+  helpers,
   prepareFormData,
   prepareRemoteProcedures,
   prepareVideoAnnotatorData,

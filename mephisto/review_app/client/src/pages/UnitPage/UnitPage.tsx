@@ -4,21 +4,21 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import InitialParametersCollapsable from "components/InitialParametersCollapsable/InitialParametersCollapsable";
+import InitialParametersCollapsable
+  from "components/InitialParametersCollapsable/InitialParametersCollapsable";
 import { InReviewFileModal } from "components/InReviewFileModal/InReviewFileModal";
 import ResultsCollapsable from "components/ResultsCollapsable/ResultsCollapsable";
 import TasksHeader from "components/TasksHeader/TasksHeader";
-import VideoAnnotatorWebVTTCollapsable from "components/VideoAnnotatorWebVTTCollapsable/VideoAnnotatorWebVTTCollapsable";
+import VideoAnnotatorWebVTTCollapsable
+  from "components/VideoAnnotatorWebVTTCollapsable/VideoAnnotatorWebVTTCollapsable";
 import WorkerOpinionCollapsable from "components/WorkerOpinionCollapsable/WorkerOpinionCollapsable";
-import {
-  MESSAGES_IFRAME_DATA_KEY,
-  MESSAGES_IN_REVIEW_FILE_DATA_KEY,
-} from "consts/review";
+import { MESSAGES_IFRAME_DATA_KEY, MESSAGES_IN_REVIEW_FILE_DATA_KEY } from "consts/review";
 import { setPageTitle } from "helpers";
 import * as React from "react";
 import { useEffect } from "react";
 import { Spinner } from "react-bootstrap";
 import { useParams } from "react-router-dom";
+import { getTask } from 'requests/tasks';
 import { getUnits, getUnitsDetails } from "requests/units";
 import urls from "urls";
 import "./UnitPage.css";
@@ -40,6 +40,7 @@ function UnitPage(props: UnitPagePropsType) {
   const [iframeLoaded, setIframeLoaded] = React.useState<boolean>(false);
   const [iframeHeight, setIframeHeight] = React.useState<number>(100);
   const [unit, setUnit] = React.useState<UnitType>(null);
+  const [task, setTask] = React.useState<TaskType>(null);
   const [loading, setLoading] = React.useState(false);
 
   const [unitDetails, setUnitDetails] = React.useState<UnitDetailsType>(null);
@@ -142,6 +143,10 @@ function UnitPage(props: UnitPagePropsType) {
     setPageTitle("Mephisto - Task Review - Current Unit");
 
     if (unit === null) {
+      if (task === null) {
+        getTask(params.taskId, setTask, setLoading, onError, null);
+      }
+
       getUnits((units: UnitType[]) => setUnit(units[0]), setLoading, onError, {
         unit_ids: params.unitId,
       });
@@ -208,7 +213,7 @@ function UnitPage(props: UnitPagePropsType) {
         <div className={"header"}>
           <div className={"unit-name"}>Unit: {unit.id}</div>
 
-          <div>Task ID: {params.taskId}</div>
+          <div>Task name: {task.name}</div>
 
           <div>Worker ID: {unit.worker_id}</div>
         </div>

@@ -4,10 +4,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import InitialParametersCollapsable from "components/InitialParametersCollapsable/InitialParametersCollapsable";
+import InitialParametersCollapsable
+  from "components/InitialParametersCollapsable/InitialParametersCollapsable";
 import { InReviewFileModal } from "components/InReviewFileModal/InReviewFileModal";
 import ResultsCollapsable from "components/ResultsCollapsable/ResultsCollapsable";
-import VideoAnnotatorWebVTTCollapsable from "components/VideoAnnotatorWebVTTCollapsable/VideoAnnotatorWebVTTCollapsable";
+import VideoAnnotatorWebVTTCollapsable
+  from "components/VideoAnnotatorWebVTTCollapsable/VideoAnnotatorWebVTTCollapsable";
 import WorkerOpinionCollapsable from "components/WorkerOpinionCollapsable/WorkerOpinionCollapsable";
 import {
   MESSAGES_IFRAME_DATA_KEY,
@@ -470,6 +472,7 @@ function TaskPage(props: TaskPagePropsType) {
       getUnits(setUnits, setLoading, onError, {
         task_id: params.id,
         unit_ids: unitsOnReview[1].join(","),
+        completed: "true",
       });
     }
   }, [unitsOnReview]);
@@ -614,8 +617,8 @@ function TaskPage(props: TaskPagePropsType) {
             <div className={"info"}>
               {currentUnitDetails && (
                 <>
-                  <div className={"grey"}>
-                    Task ID: {currentUnitDetails.task_id}
+                  <div className={"grey task-name"} title={task.name}>
+                    Task name: {task.name}
                   </div>
                   <div className={"grey"}>
                     Worker ID: {currentUnitDetails.worker_id}

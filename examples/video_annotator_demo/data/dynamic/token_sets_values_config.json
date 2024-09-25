@@ -1,8 +1,8 @@
 [
   {
     "tokens_values": {
-      "video_path": "https://d2zihajmogu5jn.cloudfront.net/elephantsdream/",
-      "video_file": "ed_hd.mp4"
+      "video_path": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/",
+      "video_file": "BigBuckBunny.mp4"
     }
   }
 ]

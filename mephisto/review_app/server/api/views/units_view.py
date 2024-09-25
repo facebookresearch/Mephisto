@@ -27,6 +27,7 @@ class UnitsView(MethodView):
 
         task_id_param = request.args.get("task_id")
         unit_ids_param: Optional[str] = request.args.get("unit_ids")
+        completed_param: Optional[str] = request.args.get("completed")
 
         app.logger.debug(f"Params: {task_id_param=}, {unit_ids_param=}")
 
@@ -59,7 +60,7 @@ class UnitsView(MethodView):
             if task_id_param and unit.task_id != task_id_param:
                 continue
 
-            if unit.db_status != AssignmentState.COMPLETED:
+            if completed_param and unit.db_status != AssignmentState.COMPLETED:
                 continue
 
             try:

@@ -62,7 +62,22 @@ class TestTaskExportResultsView(BaseTestApiViewCase):
 
         self.assertEqual(response.status_code, http_status.HTTP_404_NOT_FOUND)
 
-    def test_task_export_result_not_reviews_error(self, *args, **kwargs):
+    @patch(
+        (
+            "mephisto.review_app.server.api.views.task_export_results_view."
+            "ENABLE_INCOMPLETE_TASK_RESULTS_EXPORT"
+        ),
+        False,
+    )
+    @patch("mephisto.review_app.server.api.views.task_export_results_view.check_if_task_reviewed")
+    def test_task_export_result_not_reviews_error(
+        self,
+        mock_check_if_task_reviewed,
+        *args,
+        **kwargs,
+    ):
+        mock_check_if_task_reviewed.return_value = False
+
         unit_id = get_test_unit(self.db)
         unit: Unit = Unit.get(self.db, unit_id)
         unit.set_db_status(AssignmentState.COMPLETED)

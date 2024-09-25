@@ -4,27 +4,21 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { Popover } from "bootstrap";
 import React from "react";
 import { getFormatStringWithTokensFunction } from "../FormComposer/utils";
 import TaskInstructionButton from "../TaskInstructionModal/TaskInstructionButton";
 import TaskInstructionModal from "../TaskInstructionModal/TaskInstructionModal";
 import AnnotationTracks from "./AnnotationTracks.jsx";
+import {
+  DEFAULT_SEGMENT_FIELDS,
+  DELAY_PROGRESSBAR_RESIZING_MSEC,
+  POPOVER_INVALID_SEGMENT_CLASS,
+  POPOVER_INVALID_SEGMENT_PROPS,
+  STORAGE_PRESAVED_ANNOTATION_TRACKS_KEY,
+} from "./constants";
 import "./VideoAnnotator.css";
 import VideoPlayer from "./VideoPlayer.jsx";
-
-const DELAY_PROGRESSBAR_RESIZING_MSEC = 1000;
-
-const STORAGE_PRESAVED_ANNOTATION_TRACKS_KEY = "annotation_tracks";
-
-// In case if user does not specify any field
-const DEFAULT_SEGMENT_FIELDS = [
-  {
-    id: "id_title",
-    label: "Segment name",
-    name: "title",
-    type: "input",
-  },
-];
 
 function VideoAnnotator({
   data,
@@ -115,6 +109,7 @@ function VideoAnnotator({
     playbackRates: [0.5, 1, 1.5, 2],
     preload: "auto",
     controlBar: {
+      chaptersButton: true,
       fullscreenToggle: false,
       pictureInPictureToggle: false,
     },
@@ -154,14 +149,19 @@ function VideoAnnotator({
     // Stop playing the video at the end of the selected segment
     player.on("timeupdate", () => {
       // HACK to pass values into event listeners as them cannot read updated React states
-      const sectionElement = document.querySelectorAll(`.segment.active`)[0];
-      if (!sectionElement) {
+      const segmentElement = document.querySelectorAll(`.segment.active`)[0];
+      if (!segmentElement) {
         return;
       }
-      const endSec = Number.parseFloat(sectionElement.dataset.endsec) || null;
+      const endSec = Number.parseFloat(segmentElement.dataset.endsec) || null;
       if (endSec === null) {
         return;
       }
+
+      // HACK to prevent setting player on pause if current time is out of current segment
+      const videoPlayerElement = document.querySelectorAll(`.video-player`)[0];
+      const lastTimePressedPlay =
+        Number.parseFloat(videoPlayerElement.dataset.lasttimepressedplay) || 0;
 
       // Check for end only if video is playing
       const isVideoPlaying = !!(
@@ -170,8 +170,11 @@ function VideoAnnotator({
         !player.ended() &&
         player.readyState() > 2
       );
+
       if (isVideoPlaying) {
-        if (player.currentTime() >= endSec) {
+        // We pause video only in case if video was started before ending current segment.
+        // Otherwise, we should continue playing.
+        if (lastTimePressedPlay < endSec && player.currentTime() >= endSec) {
           player.pause();
           // HACK: setting exact end value on progress bar,
           // because this event is being fired every 15-250 milliseconds,
@@ -192,10 +195,11 @@ function VideoAnnotator({
     }
   }
 
+  // ----- Methods -----
+
   function onSelectSegment(segment) {
     const player = playerRef.current;
 
-    // Set start
     if (player) {
       const startTime = segment?.start_sec || 0;
       player.currentTime(startTime);
@@ -222,6 +226,35 @@ function VideoAnnotator({
     localStorage.removeItem(STORAGE_PRESAVED_ANNOTATION_TRACKS_KEY);
   }
 
+  // ----- Effects -----
+
+  React.useEffect(() => {
+    // NOTE that we search for all buttons we disable if segment form is invalid:
+    //   - VideoAnnotator ("Submit")
+    //   - AnnotationTracks ("+ Track")
+    //   - AnnotationTrack ("+ Segment")
+
+    let popovers = [];
+
+    // Create popover objects every time when segment marked as invalid
+    if (!segmentIsValid) {
+      popovers = [
+        ...document.querySelectorAll(
+          `.${POPOVER_INVALID_SEGMENT_CLASS}:not(.active)[data-toggle="popover"]`
+        ),
+      ].map((el) => new Popover(el));
+    }
+    // Remove popover objects every time when segment marked as valid
+    else {
+      popovers.map((p) => p.dispose());
+    }
+
+    // Do not forget to remove all popovers unmounting component to save memory
+    return () => {
+      popovers.map((p) => p.dispose());
+    };
+  }, [segmentIsValid]);
+
   return (
     <div className={`video-annotation`}>
       {/* Task info */}
@@ -235,7 +268,7 @@ function VideoAnnotator({
 
           {annotatorInstruction && (
             <div className={`instruction-hint`}>
-              For instructions, click "Task Instruction" button in the top-right
+              For instructions, click "Task Instructions" button in the top-right
               corner.
             </div>
           )}
@@ -262,9 +295,10 @@ function VideoAnnotator({
       )}
 
       {/* Video Player */}
-      <div className={"video-player"}>
+      <div className={"video-player-container"}>
         <VideoPlayer
           chapters={videoPlayerChapters}
+          className={"video-player"}
           onReady={onVideoPlayerReady}
           options={videoJsOptions}
         />
@@ -322,11 +356,12 @@ function VideoAnnotator({
               {/* Submit button */}
               <div className={`annotator-buttons container`}>
                 <button
-                  className={`button-submit btn btn-success`}
+                  className={`button-submit btn btn-success ${POPOVER_INVALID_SEGMENT_CLASS}`}
                   type={"submit"}
-                  title={annotatorSubmitButton.tooltip}
+                  title={segmentIsValid ? annotatorSubmitButton.tooltip : ""}
                   onClick={(e) => segmentIsValid && onSubmitAnnotation(e)}
                   disabled={!segmentIsValid}
+                  {...POPOVER_INVALID_SEGMENT_PROPS}
                 >
                   {annotatorSubmitButton.text}
                 </button>

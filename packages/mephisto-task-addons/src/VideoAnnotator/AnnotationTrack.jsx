@@ -8,25 +8,19 @@ import { cloneDeep } from "lodash";
 import React from "react";
 import { FieldType } from "../FormComposer/constants";
 import { validateFormFields } from "../FormComposer/validation/helpers";
+import { pluralizeString } from "../helpers";
 import { FormComposerFields, ListErrors } from "../index.jsx";
 import "./AnnotationTrack.css";
+import {
+  COLORS,
+  DELAY_CLICK_ON_SECTION_MSEC,
+  INIT_SECTION,
+  POPOVER_INVALID_SEGMENT_CLASS,
+  POPOVER_INVALID_SEGMENT_PROPS,
+  START_NEXT_SECTION_PLUS_SEC,
+} from "./constants";
 import { secontsToTime } from "./helpers.jsx";
 import TrackSegment from "./TrackSegment.jsx";
-
-// When we click on segment, we simulate clicking on track as well, and it must be first,
-// but setting states is async
-const DELAY_CLICK_ON_SECTION_MSEC = 200;
-
-const START_NEXT_SECTION_PLUS_SEC = 0;
-
-const COLORS = ["blue", "green", "orange", "purple", "red", "yellow", "brown"];
-
-const INIT_SECTION = {
-  description: "",
-  end_sec: 0,
-  start_sec: 0,
-  title: "",
-};
 
 function AnnotationTrack({
   annotationTrack,
@@ -74,11 +68,13 @@ function AnnotationTrack({
     trackIndex - Math.floor(trackIndex / COLORS.length) * COLORS.length;
   const segmentsColor = COLORS[segmentsColorIndex];
 
-  const showSegments = !!Object.keys(annotationTrack.segments).length;
+  const showSegments = true;
 
   const segmentFieldsByName = Object.fromEntries(
     segmentFields.map((x) => [x.name, x])
   );
+
+  const segmentsAmount = Object.keys(annotationTrack.segments).length;
 
   // ----- Methods -----
 
@@ -113,6 +109,7 @@ function AnnotationTrack({
       });
 
       setInEditState(false);
+      setSegmentValidation({});
     }
   }
 
@@ -129,6 +126,7 @@ function AnnotationTrack({
       setInEditState(false);
       setSelectedSegment(null);
       setSegmentToChange(null);
+      setSegmentValidation({});
     }
   }
 
@@ -138,13 +136,25 @@ function AnnotationTrack({
     const newSegment = cloneDeep(INIT_SECTION);
     newSegment.title = `Segment #${segmentsCount + 1} `;
 
+    // Get current video time and set it to new segment
+    let currentVideoTime = null;
+    if (player) {
+      currentVideoTime = player.currentTime() + START_NEXT_SECTION_PLUS_SEC;
+    }
+    newSegment.start_sec = currentVideoTime;
+    newSegment.end_sec = currentVideoTime;
+
     if (segmentsCount !== 0) {
       const latestSegment = annotationTrack.segments[segmentsCount - 1];
-      newSegment.start_sec =
-        latestSegment.end_sec + START_NEXT_SECTION_PLUS_SEC;
-      newSegment.end_sec = newSegment.start_sec;
 
-      // Prevent creating empty duplicates
+      // In case if player was not found somehow, create segment right after previous one
+      if (currentVideoTime === null) {
+        currentVideoTime = latestSegment.end_sec + START_NEXT_SECTION_PLUS_SEC;
+        newSegment.start_sec = currentVideoTime;
+        newSegment.end_sec = currentVideoTime;
+      }
+
+      // Prevent creating empty duplicates with unset time fields
       if (latestSegment.start_sec === newSegment.start_sec) {
         alert(
           "You already have unfinished segment.\n\n" +
@@ -164,6 +174,10 @@ function AnnotationTrack({
         ...{ [trackIndex]: prevAnnotationTrack },
       };
     });
+
+    setSelectedSegment(newSegmentIndex);
+    setSegmentToChange(newSegment);
+    onSelectSegment && onSelectSegment(newSegment);
   }
 
   function validateTimeFieldsOnSave() {
@@ -172,7 +186,7 @@ function AnnotationTrack({
 
     // If start is greater than end
     if (segmentToChange.start_sec > segmentToChange.end_sec) {
-      errors.push(`Start of the section cannot be greater than end of it.`);
+      errors.push(`Start of the segment cannot be greater than end of it.`);
       validation.end_sec = false;
     }
 
@@ -218,10 +232,12 @@ function AnnotationTrack({
 
   function onClickSegment(e, segmentIndex) {
     player.pause();
-    setTimeout(
-      () => setSelectedSegment(segmentIndex),
-      DELAY_CLICK_ON_SECTION_MSEC
-    );
+    setTimeout(() => {
+      setSelectedSegment(segmentIndex);
+      const segment = annotationTrack.segments[segmentIndex];
+      setSegmentToChange(segment);
+      onSelectSegment && onSelectSegment(segment);
+    }, DELAY_CLICK_ON_SECTION_MSEC);
   }
 
   function onClickSaveFormField(fieldName, value, e) {
@@ -244,17 +260,6 @@ function AnnotationTrack({
       setInEditState(false);
     }
   }, [selectedAnnotationTrack]);
-
-  React.useEffect(() => {
-    let _segmentToChange = null;
-
-    if (selectedSegment !== null) {
-      _segmentToChange = annotationTrack.segments[selectedSegment];
-      setSegmentToChange(_segmentToChange);
-    }
-
-    onSelectSegment && onSelectSegment(_segmentToChange);
-  }, [selectedSegment]);
 
   React.useEffect(() => {
     if (!segmentToChange) {
@@ -297,12 +302,21 @@ function AnnotationTrack({
       className={`
         annotation-track
         ${isSelectedAnnotationTrack ? "active" : ""}
+        ${!segmentIsValid ? "non-clickable" : ""}
+        ${POPOVER_INVALID_SEGMENT_CLASS}
       `}
-      onClick={(e) => onClickTrack()}
+      onClick={(e) => segmentIsValid && onClickTrack(e)}
+      {...POPOVER_INVALID_SEGMENT_PROPS}
     >
       {/* Short name on unactive track */}
       {!isSelectedAnnotationTrack && (
-        <div className={`track-name-small`}>{annotationTrack.title}</div>
+        <>
+          <div className={`track-name-small`}>{annotationTrack.title}</div>
+
+          <div className={`segments-count`}>
+            {segmentsAmount} {pluralizeString("segment", segmentsAmount)}
+          </div>
+        </>
       )}
 
       {isSelectedAnnotationTrack && (
@@ -348,7 +362,7 @@ function AnnotationTrack({
                       type={"button"}
                       onClick={(e) => onClickEditTrackInfo(e)}
                     >
-                      <i className={`las la-pen`} />
+                      <i className={`las la-pen`} /> Track
                     </button>
                   </>
                 )}
@@ -360,14 +374,15 @@ function AnnotationTrack({
                   type={"button"}
                   onClick={(e) => onClickRemoveTrack(e)}
                 >
-                  <i className={`las la-trash`} />
+                  <i className={`las la-trash`} /> Track
                 </button>
 
                 <button
-                  className={`btn btn-sm btn-primary`}
+                  className={`btn btn-sm btn-primary ${POPOVER_INVALID_SEGMENT_CLASS}`}
                   type={"button"}
                   onClick={(e) => segmentIsValid && onClickAddSegment(e)}
                   disabled={!segmentIsValid}
+                  {...POPOVER_INVALID_SEGMENT_PROPS}
                 >
                   <i className={`las la-plus`} /> Segment
                 </button>
@@ -385,6 +400,14 @@ function AnnotationTrack({
             "--segments-padding-right": `${paddingRight}px`,
           }}
         >
+          <div
+            className={`progress-bar`}
+            style={{
+              "--segments-padding-left": `${paddingLeft}px`,
+              "--segments-padding-right": `${paddingRight}px`,
+            }}
+          />
+
           {Object.entries(annotationTrack.segments).map(
             ([segmentIndex, segment]) => {
               return (
@@ -392,11 +415,12 @@ function AnnotationTrack({
                   duration={duration}
                   isSelectedAnnotationTrack={isSelectedAnnotationTrack}
                   key={`track-segment-${segmentIndex}`}
-                  onClickSegment={onClickSegment}
+                  onClickSegment={(e, index) => segmentIsValid && onClickSegment(e, index)}
                   paddingLeft={paddingLeft}
                   playerSizes={playerSizes}
                   segment={segment}
                   segmentIndex={segmentIndex}
+                  segmentIsValid={segmentIsValid}
                   segmentsColor={segmentsColor}
                   selectedSegment={selectedSegment}
                 />
@@ -434,7 +458,7 @@ function AnnotationTrack({
                     e
                   )
                 }
-                title={"Save current player time as a start of this section"}
+                title={"Save current player time as a start of this segment"}
               >
                 <i className={`las la-thumbtack`} />
               </button>
@@ -460,7 +484,7 @@ function AnnotationTrack({
                     e
                   )
                 }
-                title={"Save current player time as an end of this section"}
+                title={"Save current player time as an end of this segment"}
               >
                 <i className={`las la-thumbtack`} />
               </button>

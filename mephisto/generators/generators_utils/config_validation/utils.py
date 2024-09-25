@@ -26,13 +26,13 @@ from mephisto.generators.generators_utils.config_validation.config_validation_co
 from mephisto.generators.generators_utils.constants import CONTENTTYPE_BY_EXTENSION
 from mephisto.generators.generators_utils.constants import JSON_IDENTATION
 from mephisto.generators.generators_utils.constants import S3_URL_EXPIRATION_MINUTES
-from mephisto.utils.logger_core import get_logger
+from mephisto.utils.console_writer import ConsoleWriter
 from .config_validation_constants import CUSTOM_TRIGGERS_JS_FILE_NAME
 from .config_validation_constants import CUSTOM_TRIGGERS_JS_FILE_NAME_ENV_KEY
 from .config_validation_constants import CUSTOM_VALIDATORS_JS_FILE_NAME
 from .config_validation_constants import CUSTOM_VALIDATORS_JS_FILE_NAME_ENV_KEY
 
-logger = get_logger(name=__name__)
+logger = ConsoleWriter()
 s3_client = boto3.client("s3")
 
 

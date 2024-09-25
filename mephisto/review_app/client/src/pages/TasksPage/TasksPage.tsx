@@ -117,7 +117,7 @@ function TasksPage(props: TasksPagePropsType) {
               <b>Opinions</b>
             </th>
             <th className={"title display-units"}>
-              <b>Display Unit</b>
+              <b>View Units</b>
             </th>
             <th className={"title export"}>
               <b>Export results</b>

@@ -62,12 +62,7 @@ def _get_video_annotator_app_path() -> str:
     return app_path
 
 
-@click.group(
-    name="video_annotator",
-    context_settings=dict(help_option_names=["-h", "--help"]),
-    cls=RichGroup,
-    invoke_without_command=True,
-)
+@click.group(name="video_annotator", cls=RichGroup, invoke_without_command=True)
 @click.pass_context
 @click.option(
     "-o",

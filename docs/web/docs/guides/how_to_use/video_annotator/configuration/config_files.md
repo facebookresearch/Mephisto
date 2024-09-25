@@ -46,6 +46,34 @@ Task data config file `task_data.json` specifies layout of all form versions tha
       "instruction": "<div class=\"instruction\">\n  Please annotate everything you think is necessary.\n</div>\n\n<style>\n  .instruction {\n    font-style: italic;\n  }\n</style>\n",
       "video": "https://my-bucket.s3.amazonaws.com/my-folder/video.mp4",
       "show_instructions_as_modal": true,
+      "segment_fields": [
+        {
+          "id": "id_title",
+          "label": "Segment name",
+          "name": "title",
+          "type": "input",
+          "validators": {
+            "required": true,
+            "minLength": 1,
+            "maxLength": 40
+          }
+        },
+        {
+          "id": "id_description",
+          "label": "Describe what you see in this segment",
+          "name": "description",
+          "type": "textarea",
+          "validators": {
+            "minLength": 2,
+            "maxLength": 500,
+            "checkForbiddenWords": true
+          },
+          "triggers": {
+            "onFocus": ["onFocusDescription", "\"Describe what you see in this segment\""]
+          }
+        },
+        { ... }
+      ],
       "submit_button": {
         "instruction": "If you are ready and think that you described everything, submit the results.",
         "text": "Submit",
@@ -63,7 +91,7 @@ Task data config file `task_data.json` specifies layout of all form versions tha
 ]
 ```
 
-### Assignment config levels
+### Unit config levels
 
 VideoAnnotator UI layout consists of the following layers of UI object hierarchy:
 
@@ -83,7 +111,6 @@ While attributes values are limited to numbers and text, these fields (at any hi
 _Note that, due to limitations of JSON format, HTML content needs to be converted into a single long string of text._
 
 You can style fields with HTML-classes in `classes` attribute. You can use any bootstrap classes or our built-in classes:
-- `hidden` - if you need to hide element and show it later with custom triggerm, but you do not need it be a fully hidden field (`"type": "hidden"`)
 - `centered` - centered horizontally
 
 TBD: Other classes and styles insertions
@@ -101,6 +128,7 @@ TBD: Other classes and styles insertions
 - `show_instructions_as_modal` - Enables showing `instruction` content as a modal (opened by clicking a sticky button in top-right corner); this make lengthy task instructions available from any place of a lengthy form without scrolling the page (Boolean, Optional, Default: false)
 - `title` - HTML header of the form (String)
 - `video` - URL to preuploaded video file (String)
+- `segment_fields` - **List of fields** that will be added into each track segment
 - `submit_button` - Button to submit the whole form and thus finish a task (Object)
     - `id` - Unique HTML id of the button, in case we need to refer to it from custom handlers code (String, Optional)
     - `instruction` - Text shown above the "Submit" button (String, Optional)
@@ -108,9 +136,90 @@ TBD: Other classes and styles insertions
     - `tooltip` - Browser tooltip shown on mouseover (String, Optional)
     - `triggers` - Functions that are being called on available React-events (`onClick`, see [JS trigger insertion](/docs/guides/how_to_use/video_annotator/configuration/insertions/#js-trigger-insertion))
 
+---
+
+#### Config level: field
+
+Each item of `segment_fields` list is an object that corresponds to the track segment field displayed in the resulting Task UI page.
+
+Here's example of a single field config:
+
+```json
+{
+  "id": "id_title",
+  "label": "Segment name",
+  "name": "title",
+  "type": "input",
+  "validators": {
+    "required": true,
+    "minLength": 2,
+    "maxLength": 20,
+    "regexp": ["^[a-z\.\-']+$", "ig"]
+    // or can use this --> "regexp": "^[a-z\.\-']+$"
+  },
+  "value": ""
+}
+```
+
+---
+
+### Attributes for "field" config level
+
+#### `value` attribute
+
+The `value` attribute specifies initial value of a field, and has the following format:
+
+- String for `input`, `textarea`, `email`, `number`, `password`, `radio`, and `select` with `"multiple": false` field types
+    - For `radio` and `select` fields, it must be one of the input options' values
+- Object for `checkbox`
+    - The object should consist of all checkbox options with their Boolean value, e.g. `{"react": true, "python": true, "sql": false}`
+- Array<String\> for `select` with `"multiple": true`
+    - All array items must be input options' values, e.g. `["python", "sql"]`
+
+
+#### Attributes - all fields
+
+The most important attributes are: `label`, `name`, `type`, `validators`
+
+- `help` - HTML explanation of the field/fieldset displayed in small font below the field (String, Optional)
+- `id` - Unique HTML id of the field, in case we need to refer to it from custom handlers code (String, Optional)
+- `classes` = Custom classes that you can use to restyle element or refer to it from custom handlers code (String, Optional)
+- `label` - Field name displayed above the field (String)
+- `name` - Unique name under which this field's data will be sent to the server (String)
+- `placeholder` - Text faintly displayed in the field before user provides a value (String, Optional)
+- `tooltip` - Text shown in browser tooltip on mouseover (String, Optional)
+- `type` - Type of the field (`input`, `email`, `select`, `textarea`, `checkbox`, `radio`, `file`, `hidden`) (String)
+- `validators` - Validators preventing incorrect data from being submitted (Object[<String\>: String|Boolean|Number], Optional). Supported key-value pairs for the `validators` object:
+    - `required`: Ensure field is not left empty (Boolean)
+    - `minLength`: Ensure minimal number of typed characters or selected choices (Number)
+    - `maxLength`: Ensure maximum number of typed characters or selected choices (Number)
+    - `regexp`: Ensure provided value confirms to a Javascript regular expression. It can be:
+        - (String): a regexp string (e.g. `"^[a-zA-Z0-9._-]+$"`) in which case default matching flags are `igm` are used
+        - (2-item Array[String, String]): a regexp string followed by matching flags (e.g. `["^[a-zA-Z0-9._-]+$", "ig"]`)
+- `value` - Initial value of the field (String, Optional)
+- `triggers` - Functions that are being called on available React-events (`onClick`, `onChange`, `onBlur`, `onFocus`, see [JS trigger insertion](/docs/guides/how_to_use/video_annotator/configuration/insertions/#js-trigger-insertion))
+
+
+#### Attributes - select field
+
+- `multiple` - Support selection of multiple provided options, not just one (Boolean. Default: false)
+- `options` - list of available options to select from. Each option is an object with these attributes:
+    - `label`: displayed text (String)
+    - `value`: value sent to the server (String|Number|Boolean)
+
+
+#### Attributes - checkbox and radio fields
+
+- `options` - list of available options to select from. Each option is an object with these attributes:
+    - `label`: displayed text (String)
+    - `value`: value sent to the server (String|Number|Boolean)
+    - `checked`: initial state of selection (Boolean, default: false)
+
+_Note that, comparing FormComposer, VideoAnnotator segments do not have fields `file` and `hidden`._
+
 ## Config file: `unit_config.json`
 
-Assignment config file `unit_config.json` specifies layout of an annotator in the same way as `task_data.json`, but with a few notable differences:
+Unit config file `unit_config.json` specifies layout of an annotator in the same way as `task_data.json`, but with a few notable differences:
 - It contains a single JSON object (not a JSON array of objects)
 - Some of its form attributes definitions must contain dynamic tokens (whose values will be extrapolated, i.e. substituted with variable chunks of text) - see further below.
 

@@ -108,14 +108,7 @@ function TaskUnitsPage(props: TaskUnitsPagePropsType) {
               return (
                 <tr className={"unit-row"} key={"unit-row" + index}>
                   <td className={"worker"}>{unit.worker_id}</td>
-                  <td className={"unit"}>
-                    <Link
-                      to={urls.client.taskUnit(task.id, unit.id)}
-                      target={"_blank"}
-                    >
-                      {unit.id}
-                    </Link>
-                  </td>
+                  <td className={"unit"}>{unit.id}</td>
                   <td className={"reviewed"}>
                     {unit.is_reviewed ? <span>&#x2611;</span> : ""}
                   </td>
@@ -133,7 +126,7 @@ function TaskUnitsPage(props: TaskUnitsPagePropsType) {
                       to={urls.client.taskUnit(task.id, unit.id)}
                       target={"_blank"}
                     >
-                      Details
+                      View Unit
                     </Link>
                   </td>
                   <td></td>

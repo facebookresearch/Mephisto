@@ -147,7 +147,7 @@ While attributes values are limited to numbers and text, these fields (at any hi
 _Note that, due to limitations of JSON format, HTML content needs to be converted into a single long string of text._
 
 You can style fields with HTML-classes in `classes` attribute. You can use any bootstrap classes or our built-in classes:
-- `hidden` - if you need to hide element and show it later with custom triggerm, but you do not need it be a fully hidden field (`"type": "hidden"`)
+- `hidden` - if you need to hide element and show it later with custom trigger, but you do not need it be a fully hidden field (`"type": "hidden"`)
 - `centered` - centered horizontally
 
 TBD: Other classes and styles insertions

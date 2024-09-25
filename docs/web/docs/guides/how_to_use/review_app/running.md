@@ -35,7 +35,7 @@ where
 
 Command `mephisto review_app` supports the following options:
 
-- `-h/--host` - host where TaskReview app will be served
+- `-H/--host` - host where TaskReview app will be served
 - `-p/--port` - port where TaskReview app will be served
 - `-d/--debug` - run in debug mode (with extra logging)
 - `-f/--force-rebuild` - force rebuild React bundle (use if your Task client code has been updated)

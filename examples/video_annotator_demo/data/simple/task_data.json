@@ -36,7 +36,7 @@
         {
           "id": "id_person_name",
           "label": "Person name",
-          "help": "The name of talking person",
+          "help": "Select name of the person who is talking",
           "multiple": false,
           "name": "person_name",
           "type": "select",
@@ -46,16 +46,12 @@
               "value": ""
             },
             {
-              "label": "Jack",
-              "value": "jack"
+              "label": "Bunny",
+              "value": "bunny"
             },
             {
-              "label": "Anna",
-              "value": "anna"
-            },
-            {
-              "label": "Peter",
-              "value": "peter"
+              "label": "Squirrel",
+              "value": "squirrel"
             }
           ],
           "value": ""

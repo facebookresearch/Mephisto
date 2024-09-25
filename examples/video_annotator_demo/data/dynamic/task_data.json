@@ -3,7 +3,7 @@
     "annotator": {
       "title": "Video Annotator example",
       "instruction": "<div class=\"instruction\">\n  Please annotate everything you think is necessary.\n</div>\n\n<style>\n  .instruction {\n    font-style: italic;\n  }\n</style>\n",
-      "video": "https://d2zihajmogu5jn.cloudfront.net/elephantsdream/ed_hd.mp4",
+      "video": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
       "segment_fields": [
         {
           "id": "id_title",
@@ -52,7 +52,7 @@
         {
           "id": "id_person_name",
           "label": "Person name",
-          "help": "The name of talking person",
+          "help": "Select name of the person who is talking",
           "multiple": false,
           "name": "person_name",
           "type": "select",
@@ -62,16 +62,12 @@
               "value": ""
             },
             {
-              "label": "Jack",
-              "value": "jack"
+              "label": "Bunny",
+              "value": "bunny"
             },
             {
-              "label": "Anna",
-              "value": "anna"
-            },
-            {
-              "label": "Peter",
-              "value": "peter"
+              "label": "Squirrel",
+              "value": "squirrel"
             }
           ],
           "value": ""
@@ -84,13 +80,13 @@
           "options": [
             {
               "checked": false,
-              "label": "React",
-              "value": "react"
+              "label": "Forest",
+              "value": "forest"
             },
             {
               "checked": false,
-              "label": "JavaScript",
-              "value": "javascript"
+              "label": "City",
+              "value": "city"
             }
           ],
           "type": "checkbox"
@@ -105,8 +101,8 @@
     },
     "annotator_metadata": {
       "tokens_values": {
-        "video_path": "https://d2zihajmogu5jn.cloudfront.net/elephantsdream/",
-        "video_file": "ed_hd.mp4"
+        "video_path": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/",
+        "video_file": "BigBuckBunny.mp4"
       }
     }
   }
