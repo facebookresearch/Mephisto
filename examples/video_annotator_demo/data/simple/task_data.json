@@ -1,0 +1,74 @@
+[
+  {
+    "annotator": {
+      "title": "Video Annotator Demo",
+      "instruction": "<div class=\"instruction\">\n  Please annotate everything you think is necessary.\n</div>\n\n<style>\n  .instruction {\n    font-style: italic;\n  }\n</style>\n",
+      "video": "https://d2zihajmogu5jn.cloudfront.net/elephantsdream/ed_hd.mp4",
+      "segment_fields": [
+        {
+          "id": "id_title",
+          "label": "Segment name",
+          "name": "title",
+          "type": "input"
+        },
+        {
+          "id": "id_description",
+          "label": "Describe what you see in this segment",
+          "name": "description",
+          "type": "textarea"
+        },
+        {
+          "id": "id_can_understand",
+          "label": "Was that easy to understand?",
+          "name": "can_understand",
+          "type": "radio",
+          "options": [
+            {
+              "label": "Yes",
+              "value": "yes"
+            },
+            {
+              "label": "No",
+              "value": "no"
+            }
+          ]
+        },
+        {
+          "id": "id_person_name",
+          "label": "Person name",
+          "help": "Select name of the person who is talking",
+          "multiple": false,
+          "name": "person_name",
+          "type": "select",
+          "options": [
+            {
+              "label": "---",
+              "value": ""
+            },
+            {
+              "label": "Bunny",
+              "value": "bunny"
+            },
+            {
+              "label": "Squirrel",
+              "value": "squirrel"
+            }
+          ],
+          "value": ""
+        }
+      ],
+      "show_instructions_as_modal": true,
+      "submit_button": {
+        "instruction": "If you are ready and think that you described everything, submit the results.",
+        "text": "Submit",
+        "tooltip": "Submit annotations"
+      }
+    },
+    "annotator_metadata": {
+      "tokens_values": {
+        "video_path": "https://d2zihajmogu5jn.cloudfront.net/elephantsdream/",
+        "video_file": "ed_hd.mp4"
+      }
+    }
+  }
+]

@@ -4,13 +4,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import InitialParametersCollapsable from "components/InitialParametersCollapsable/InitialParametersCollapsable";
 import { InReviewFileModal } from "components/InReviewFileModal/InReviewFileModal";
+import ResultsCollapsable from "components/ResultsCollapsable/ResultsCollapsable";
+import VideoAnnotatorWebVTTCollapsable from "components/VideoAnnotatorWebVTTCollapsable/VideoAnnotatorWebVTTCollapsable";
 import WorkerOpinionCollapsable from "components/WorkerOpinionCollapsable/WorkerOpinionCollapsable";
 import {
   MESSAGES_IFRAME_DATA_KEY,
   MESSAGES_IN_REVIEW_FILE_DATA_KEY,
   ReviewType,
 } from "consts/review";
+import { setPageTitle, updateModalState } from "helpers";
 import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
 import { useEffect } from "react";
@@ -31,15 +35,12 @@ import {
 } from "requests/units";
 import { postWorkerBlock } from "requests/workers";
 import urls from "urls";
-import { setPageTitle, updateModalState } from "./helpers";
-import InitialParametersCollapsable from "./InitialParametersCollapsable/InitialParametersCollapsable";
 import {
   APPROVE_MODAL_DATA_STATE,
   DEFAULT_MODAL_STATE_VALUE,
   REJECT_MODAL_DATA_STATE,
   SOFT_REJECT_MODAL_DATA_STATE,
 } from "./modalData";
-import ResultsCollapsable from "./ResultsCollapsable/ResultsCollapsable";
 import ReviewModal from "./ReviewModal/ReviewModal";
 import TaskHeader from "./TaskHeader/TaskHeader";
 import "./TaskPage.css";
@@ -58,11 +59,11 @@ type ParamsType = {
   id: string;
 };
 
-interface PropsType {
+interface TaskPagePropsType {
   setErrors: Function;
 }
 
-function TaskPage(props: PropsType) {
+function TaskPage(props: TaskPagePropsType) {
   const params = useParams<ParamsType>();
   const navigate = useNavigate();
 
@@ -469,6 +470,7 @@ function TaskPage(props: PropsType) {
       getUnits(setUnits, setLoading, onError, {
         task_id: params.id,
         unit_ids: unitsOnReview[1].join(","),
+        completed: "true",
       });
     }
   }, [unitsOnReview]);
@@ -613,8 +615,8 @@ function TaskPage(props: PropsType) {
             <div className={"info"}>
               {currentUnitDetails && (
                 <>
-                  <div className={"grey"}>
-                    Task ID: {currentUnitDetails.task_id}
+                  <div className={"grey task-name"} title={task.name}>
+                    Task name: {task.name}
                   </div>
                   <div className={"grey"}>
                     Worker ID: {currentUnitDetails.worker_id}
@@ -639,8 +641,8 @@ function TaskPage(props: PropsType) {
           </div>
         )}
 
+        {/* Initial Unit parameters */}
         {currentUnitDetails?.inputs && (
-          // Initial Unit parameters
           <InitialParametersCollapsable
             data={currentUnitDetails.inputs}
             open={inputsVisibility}
@@ -648,11 +650,19 @@ function TaskPage(props: PropsType) {
           />
         )}
 
+        {/* Worker Opinion about Unit */}
         {currentUnitDetails?.metadata?.worker_opinion && (
-          // Worker Opinion about Unit
           <WorkerOpinionCollapsable
             data={currentUnitDetails?.metadata?.worker_opinion}
             onClickOnAttachment={onClickOnWorkerOpinionAttachment}
+          />
+        )}
+
+        {/* Video Annotator tracks in WebVTT format */}
+        {currentUnitDetails?.metadata?.webvtt && (
+          <VideoAnnotatorWebVTTCollapsable
+            data={currentUnitDetails?.metadata?.webvtt}
+            open={false}
           />
         )}
 

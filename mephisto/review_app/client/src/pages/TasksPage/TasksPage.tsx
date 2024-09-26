@@ -17,11 +17,11 @@ import "./TasksPage.css";
 const STORAGE_TASK_ID_KEY: string = "selectedTaskID";
 const ENABLE_INCOMPLETE_TASK_RESULTS_EXPORT = true;
 
-interface PropsType {
+interface TasksPagePropsType {
   setErrors: Function;
 }
 
-function TasksPage(props: PropsType) {
+function TasksPage(props: TasksPagePropsType) {
   const { localStorage } = window;
 
   const [tasks, setTasks] = React.useState<Array<TaskType>>(null);
@@ -116,6 +116,9 @@ function TasksPage(props: PropsType) {
             <th className={"title worker-opinions"}>
               <b>Opinions</b>
             </th>
+            <th className={"title display-units"}>
+              <b>View Units</b>
+            </th>
             <th className={"title export"}>
               <b>Export results</b>
             </th>
@@ -124,7 +127,7 @@ function TasksPage(props: PropsType) {
         </thead>
         <tbody>
           {tasks &&
-            tasks.map((task: TaskType, index) => {
+            tasks.map((task: TaskType, index: number) => {
               const date = moment(task.created_at).format("MMM D, YYYY");
               const nonClickable =
                 task.is_reviewed || task.unit_all_count === 0;
@@ -174,6 +177,11 @@ function TasksPage(props: PropsType) {
                       to={urls.client.taskWorkerOpinions(task.id)}
                       target={"_blank"}
                     >
+                      Show
+                    </Link>
+                  </td>
+                  <td className={"display-units"}>
+                    <Link to={urls.client.taskUnits(task.id)} target={"_blank"}>
                       Show
                     </Link>
                   </td>

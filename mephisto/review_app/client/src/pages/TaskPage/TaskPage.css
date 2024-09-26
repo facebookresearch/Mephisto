@@ -39,6 +39,13 @@
   color: #ccc;
 }
 
+.task .review-board .right-side .info .task-name {
+  text-overflow: ellipsis;
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 .task .review-board .right-side .info .grey {
   color: #999;
 }

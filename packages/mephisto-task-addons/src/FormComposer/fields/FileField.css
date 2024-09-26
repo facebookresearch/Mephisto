@@ -1,0 +1,65 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.fc-file-field {
+  position: relative;
+}
+
+.fc-file-field .review-file-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  display: block;
+  width: 88px;
+  height: calc(1.5em + 0.75rem + 2px);
+  padding: 0.375rem 0.75rem;
+  line-height: 1.5;
+  background-color: var(--orange-color);
+  color: white;
+  border: 1px solid var(--orange-color);
+  border-left: inherit;
+  border-radius: 0 0.25rem 0.25rem 0;
+  cursor: pointer;
+}
+
+.fc-file-field .review-file-button:hover {
+  background-color: #de8800;
+  border-color: #de8800;
+}
+
+.fc-file-field .file-preview {
+  display: flex;
+  max-width: 400px;
+  max-height: 400px;
+}
+
+.fc-file-field .file-preview img {
+  max-width: 400px;
+  max-height: 400px;
+}
+
+.fc-file-field .file-preview .audio-wrapper {
+  width: 100%;
+  padding: 25px;
+}
+
+.fc-file-field .file-preview .audio-wrapper audio {
+  width: 100%;
+}
+
+.fc-file-field .file-preview .pdf-wrapper iframe {
+  margin: 20px 0;
+}
+
+.fc-input-field input {
+  width: 100%;
+}
+
+.fc-input-field input {
+  background-color: var(--input-bg-color);
+}

@@ -1,0 +1,6 @@
+{
+  "video_path": [
+    "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/"
+  ],
+  "video_file": ["BigBuckBunny.mp4"]
+}

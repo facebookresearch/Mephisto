@@ -1,0 +1,59 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.unit .header {
+  margin-bottom: 40px;
+  padding: 10px 20px;
+  background-color: #ecdadf;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: center;
+}
+
+.unit .header .unit-name {
+  font-size: 25px;
+}
+
+/* Content */
+.unit .content {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.unit .content pre {
+  white-space: normal;
+}
+
+.unit .content .unit-preview-container {
+  position: relative;
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+  cursor: default;
+}
+
+.unit .loading {
+  width: 100%;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.unit-preview-iframe {
+  width: 100%;
+}
+
+.json-pretty .__json-pretty__ {
+  white-space: pre !important;
+  padding-top: 15px;
+}
+
+.json-pretty .__json-pretty__ .__json-key__ {
+  font-weight: bold;
+}

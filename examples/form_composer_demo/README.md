@@ -19,7 +19,7 @@ These form-based questionnaires are example of FormComposer task generator.
 
 1. For simple form config you need to provide FormComposer with one JSON file - a configuration of your form fields. An example is found in `examples/form_composer_demo/data/simple/task_data.json` file.
 2. For dynamic form configs you need two JSON files in `examples/form_composer_demo/data/dynamic` directory:
-   - Form configuration `form_config.json`
+   - Unit configuration `unit_config.json`
    - Token sets values `token_sets_values_config.json`
    - To generate extrapolated `task_data.json` config, run this command: `mephisto form_composer config --extrapolate-token-sets True`
        - Note that `task_data.json` file will be overwritten with the resulting config
@@ -28,6 +28,6 @@ These form-based questionnaires are example of FormComposer task generator.
 
 ---
 
-#### Form config
+#### Unit config
 
 For details on how form config is composed, and how its data fields are validated, please see the main FormComposer's [README.md](/mephisto/generators/form_composer/README.md).

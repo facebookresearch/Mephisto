@@ -11,9 +11,9 @@ import logo from "static/images/logo.svg";
 import urls from "urls";
 import "./TasksHeader.css";
 
-interface PropsType {}
+interface TasksHeaderPropsType {}
 
-function TasksHeader(props: PropsType) {
+function TasksHeader(props: TasksHeaderPropsType) {
   return (
     <Container className={"tasks-header"}>
       <Row>

@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 import io
 import json
 import os
@@ -9,43 +14,47 @@ from copy import deepcopy
 from unittest.mock import patch
 
 from mephisto.client.cli_form_composer_commands import FORM_COMPOSER__DATA_CONFIG_NAME
-from mephisto.client.cli_form_composer_commands import FORM_COMPOSER__FORM_CONFIG_NAME
 from mephisto.client.cli_form_composer_commands import (
     FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
 )
 from mephisto.client.cli_form_composer_commands import FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME
+from mephisto.client.cli_form_composer_commands import FORM_COMPOSER__UNIT_CONFIG_NAME
+from mephisto.client.cli_form_composer_commands import set_form_composer_env_vars
 from mephisto.generators.form_composer.config_validation.task_data_config import (
-    _collect_form_config_items_to_extrapolate,
-)
-from mephisto.generators.form_composer.config_validation.task_data_config import (
-    _collect_tokens_from_form_config,
-)
-from mephisto.generators.form_composer.config_validation.task_data_config import (
-    _combine_extrapolated_form_configs,
-)
-from mephisto.generators.form_composer.config_validation.task_data_config import (
-    _extrapolate_tokens_in_form_config,
-)
-from mephisto.generators.form_composer.config_validation.task_data_config import (
-    _extrapolate_tokens_values,
-)
-from mephisto.generators.form_composer.config_validation.task_data_config import (
-    _set_tokens_in_form_config_item,
-)
-from mephisto.generators.form_composer.config_validation.task_data_config import (
-    _validate_tokens_in_both_configs,
-)
-from mephisto.generators.form_composer.config_validation.task_data_config import (
-    create_extrapolated_config,
-)
-from mephisto.generators.form_composer.config_validation.task_data_config import (
-    prepare_task_config_for_review_app,
-)
-from mephisto.generators.form_composer.config_validation.task_data_config import (
-    validate_task_data_config,
+    collect_unit_config_items_to_extrapolate,
 )
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     verify_form_composer_configs,
+)
+from mephisto.generators.generators_utils.config_validation.task_data_config import (
+    _collect_tokens_from_unit_config,
+)
+from mephisto.generators.generators_utils.config_validation.task_data_config import (
+    _combine_extrapolated_unit_configs,
+)
+from mephisto.generators.generators_utils.config_validation.task_data_config import (
+    _extrapolate_tokens_in_unit_config,
+)
+from mephisto.generators.generators_utils.config_validation.task_data_config import (
+    _extrapolate_tokens_values,
+)
+from mephisto.generators.generators_utils.config_validation.task_data_config import (
+    _set_tokens_in_unit_config_item,
+)
+from mephisto.generators.generators_utils.config_validation.task_data_config import (
+    _validate_tokens_in_both_configs,
+)
+from mephisto.generators.generators_utils.config_validation.task_data_config import (
+    create_extrapolated_config,
+)
+from mephisto.generators.generators_utils.config_validation.task_data_config import (
+    prepare_task_config_for_review_app,
+)
+from mephisto.generators.generators_utils.config_validation.task_data_config import (
+    validate_task_data_config,
+)
+from mephisto.generators.generators_utils.config_validation.task_data_config import (
+    verify_generator_configs,
 )
 
 CORRECT_CONFIG_DATA_WITH_TOKENS = {
@@ -97,6 +106,7 @@ CORRECT_CONFIG_DATA_WITH_TOKENS = {
 class TestTaskDataConfig(unittest.TestCase):
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()
+        set_form_composer_env_vars()
 
     def tearDown(self):
         shutil.rmtree(self.data_dir, ignore_errors=True)
@@ -161,7 +171,7 @@ class TestTaskDataConfig(unittest.TestCase):
 
         self.assertEqual(result, "Test value 1 and value 2")
 
-    def test__set_tokens_in_form_config_item(self, *args, **kwargs):
+    def test__set_tokens_in_unit_config_item(self, *args, **kwargs):
         item = {
             "title": "Form title {{token_1}} and {{token_2}}",
             "instruction": "Form instruction {{token_2}}",
@@ -171,7 +181,7 @@ class TestTaskDataConfig(unittest.TestCase):
             "token_2": "value 2",
         }
 
-        _set_tokens_in_form_config_item(item, tokens_values)
+        _set_tokens_in_unit_config_item(item, tokens_values)
 
         self.assertEqual(
             item,
@@ -181,7 +191,7 @@ class TestTaskDataConfig(unittest.TestCase):
             },
         )
 
-    def test__collect_form_config_items_to_extrapolate(self, *args, **kwargs):
+    def test__collect_unit_config_items_to_extrapolate(self, *args, **kwargs):
         config_data = {
             "form": {
                 "title": "Form title",
@@ -227,19 +237,19 @@ class TestTaskDataConfig(unittest.TestCase):
             },
         }
 
-        items = _collect_form_config_items_to_extrapolate(config_data)
+        items = collect_unit_config_items_to_extrapolate(config_data)
 
         self.assertEqual(len(items), 6)
 
-    def test__collect_tokens_from_form_config_success(self, *args, **kwargs):
+    def test__collect_tokens_from_unit_config_success(self, *args, **kwargs):
         config_data = deepcopy(CORRECT_CONFIG_DATA_WITH_TOKENS)
 
-        tokens, errors = _collect_tokens_from_form_config(config_data)
+        tokens, errors = _collect_tokens_from_unit_config(config_data)
 
         self.assertEqual(tokens, {"token_1", "token_2", "token_3", "token_4", "token_5"})
         self.assertEqual(errors, [])
 
-    def test__collect_tokens_from_form_config_with_errors(self, *args, **kwargs):
+    def test__collect_tokens_from_unit_config_with_errors(self, *args, **kwargs):
         config_data = {
             "form": {
                 "title": "Form title {{token_1}}",
@@ -285,7 +295,7 @@ class TestTaskDataConfig(unittest.TestCase):
             },
         }
 
-        tokens, errors = _collect_tokens_from_form_config(config_data)
+        tokens, errors = _collect_tokens_from_unit_config(config_data)
 
         self.assertEqual(tokens, {"token_1", "token_2", "token_3", "token_4", "token_5"})
         self.assertEqual(
@@ -316,7 +326,7 @@ class TestTaskDataConfig(unittest.TestCase):
             ),
         )
 
-    def test__extrapolate_tokens_in_form_config_success(self, *args, **kwargs):
+    def test__extrapolate_tokens_in_unit_config_success(self, *args, **kwargs):
         config_data = deepcopy(CORRECT_CONFIG_DATA_WITH_TOKENS)
         tokens_values = {
             "token_1": "value 1",
@@ -326,7 +336,7 @@ class TestTaskDataConfig(unittest.TestCase):
             "token_5": "value 5",
         }
 
-        result = _extrapolate_tokens_in_form_config(config_data, tokens_values)
+        result = _extrapolate_tokens_in_unit_config(config_data, tokens_values)
 
         self.assertEqual(
             result,
@@ -476,7 +486,7 @@ class TestTaskDataConfig(unittest.TestCase):
             ],
         )
 
-    def test__combine_extrapolated_form_configs_success(self, *args, **kwargs):
+    def test__combine_extrapolated_unit_configs_success(self, *args, **kwargs):
         config_data = deepcopy(CORRECT_CONFIG_DATA_WITH_TOKENS)
         token_sets_values_config_data = [
             {
@@ -490,7 +500,7 @@ class TestTaskDataConfig(unittest.TestCase):
             },
         ]
 
-        result = _combine_extrapolated_form_configs(config_data, token_sets_values_config_data)
+        result = _combine_extrapolated_unit_configs(config_data, token_sets_values_config_data)
 
         self.assertEqual(
             result,
@@ -538,6 +548,15 @@ class TestTaskDataConfig(unittest.TestCase):
                             "tooltip": "Submit tooltip",
                         },
                     },
+                    "form_metadata": {
+                        "tokens_values": {
+                            "token_1": "value 1",
+                            "token_2": "value 2",
+                            "token_3": "value 3",
+                            "token_4": "value 4",
+                            "token_5": "value 5",
+                        }
+                    },
                 },
             ],
         )
@@ -559,9 +578,9 @@ class TestTaskDataConfig(unittest.TestCase):
         f.write(html_content_2)
         f.close()
 
-        form_config_data = deepcopy(CORRECT_CONFIG_DATA_WITH_TOKENS)
-        form_config_data["form"]["title"] = value_with_file_path_1
-        form_config_data["form"]["instruction"] = value_with_file_path_2
+        unit_config_data = deepcopy(CORRECT_CONFIG_DATA_WITH_TOKENS)
+        unit_config_data["form"]["title"] = value_with_file_path_1
+        unit_config_data["form"]["instruction"] = value_with_file_path_2
 
         token_sets_values_config_data = [
             {
@@ -575,9 +594,9 @@ class TestTaskDataConfig(unittest.TestCase):
             },
         ]
 
-        form_config_path = os.path.join(
+        unit_config_path = os.path.join(
             self.data_dir,
-            FORM_COMPOSER__FORM_CONFIG_NAME,
+            FORM_COMPOSER__UNIT_CONFIG_NAME,
         )
         token_sets_values_config_path = os.path.join(
             self.data_dir,
@@ -588,16 +607,16 @@ class TestTaskDataConfig(unittest.TestCase):
             FORM_COMPOSER__DATA_CONFIG_NAME,
         )
 
-        form_config_f = open(form_config_path, "w")
-        form_config_f.write(json.dumps(form_config_data))
-        form_config_f.close()
+        unit_config_f = open(unit_config_path, "w")
+        unit_config_f.write(json.dumps(unit_config_data))
+        unit_config_f.close()
 
         token_sets_values_config_f = open(token_sets_values_config_path, "w")
         token_sets_values_config_f.write(json.dumps(token_sets_values_config_data))
         token_sets_values_config_f.close()
 
         create_extrapolated_config(
-            form_config_path=form_config_path,
+            unit_config_path=unit_config_path,
             token_sets_values_config_path=token_sets_values_config_path,
             task_data_config_path=task_data_config_path,
             data_path=self.data_dir,
@@ -652,14 +671,23 @@ class TestTaskDataConfig(unittest.TestCase):
                             "tooltip": "Submit tooltip",
                         },
                     },
+                    "form_metadata": {
+                        "tokens_values": {
+                            "token_1": "value 1",
+                            "token_2": "value 2",
+                            "token_3": "value 3",
+                            "token_4": "value 4",
+                            "token_5": "value 5",
+                        }
+                    },
                 },
             ],
         )
 
     def test_create_extrapolated_config_file_not_found(self, *args, **kwargs):
-        form_config_path = os.path.join(
+        unit_config_path = os.path.join(
             self.data_dir,
-            FORM_COMPOSER__FORM_CONFIG_NAME,
+            FORM_COMPOSER__UNIT_CONFIG_NAME,
         )
         token_sets_values_config_path = os.path.join(
             self.data_dir,
@@ -672,7 +700,7 @@ class TestTaskDataConfig(unittest.TestCase):
 
         with self.assertRaises(FileNotFoundError) as cm:
             create_extrapolated_config(
-                form_config_path=form_config_path,
+                unit_config_path=unit_config_path,
                 token_sets_values_config_path=token_sets_values_config_path,
                 task_data_config_path=task_data_config_path,
                 data_path=self.data_dir,
@@ -680,11 +708,11 @@ class TestTaskDataConfig(unittest.TestCase):
 
         self.assertEqual(
             cm.exception.__str__(),
-            f"Create file '{form_config_path}' with form configuration.",
+            f"Create file '{unit_config_path}' with form configuration.",
         )
 
     def test_create_extrapolated_config_success(self, *args, **kwargs):
-        form_config_data = deepcopy(CORRECT_CONFIG_DATA_WITH_TOKENS)
+        unit_config_data = deepcopy(CORRECT_CONFIG_DATA_WITH_TOKENS)
         token_sets_values_config_data = [
             {
                 "tokens_values": {
@@ -697,9 +725,9 @@ class TestTaskDataConfig(unittest.TestCase):
             },
         ]
 
-        form_config_path = os.path.join(
+        unit_config_path = os.path.join(
             self.data_dir,
-            FORM_COMPOSER__FORM_CONFIG_NAME,
+            FORM_COMPOSER__UNIT_CONFIG_NAME,
         )
         token_sets_values_config_path = os.path.join(
             self.data_dir,
@@ -710,16 +738,16 @@ class TestTaskDataConfig(unittest.TestCase):
             FORM_COMPOSER__DATA_CONFIG_NAME,
         )
 
-        form_config_f = open(form_config_path, "w")
-        form_config_f.write(json.dumps(form_config_data))
-        form_config_f.close()
+        unit_config_f = open(unit_config_path, "w")
+        unit_config_f.write(json.dumps(unit_config_data))
+        unit_config_f.close()
 
         token_sets_values_config_f = open(token_sets_values_config_path, "w")
         token_sets_values_config_f.write(json.dumps(token_sets_values_config_data))
         token_sets_values_config_f.close()
 
         create_extrapolated_config(
-            form_config_path=form_config_path,
+            unit_config_path=unit_config_path,
             token_sets_values_config_path=token_sets_values_config_path,
             task_data_config_path=task_data_config_path,
             data_path=self.data_dir,
@@ -774,6 +802,15 @@ class TestTaskDataConfig(unittest.TestCase):
                             "tooltip": "Submit tooltip",
                         },
                     },
+                    "form_metadata": {
+                        "tokens_values": {
+                            "token_1": "value 1",
+                            "token_2": "value 2",
+                            "token_3": "value 3",
+                            "token_4": "value 4",
+                            "token_5": "value 5",
+                        }
+                    },
                 },
             ],
         )
@@ -795,7 +832,11 @@ class TestTaskDataConfig(unittest.TestCase):
         self.assertEqual(errors, ["Config must be a JSON Array."])
 
     def test_validate_task_data_config_errors(self, *args, **kwargs):
-        task_config_data = [{}]
+        task_config_data = [
+            {
+                "wrong_key": {},
+            }
+        ]
 
         result, errors = validate_task_data_config(task_config_data)
 
@@ -803,8 +844,15 @@ class TestTaskDataConfig(unittest.TestCase):
         self.assertEqual(
             errors,
             [
-                "Task data config must contain at least one non-empty item.",
-                "Form config must contain only these attributes: form.",
+                (
+                    "Object `form`. Not all required attributes were specified. "
+                    "Required attributes: form. Passed attributes: wrong_key."
+                ),
+                (
+                    "Object `form` has no available attribute with name `wrong_key`. "
+                    "Available attributes: form, form_metadata."
+                ),
+                "Unit config must contain only these attributes: form, form_metadata.",
             ],
         )
 
@@ -813,9 +861,9 @@ class TestTaskDataConfig(unittest.TestCase):
             self.data_dir,
             FORM_COMPOSER__DATA_CONFIG_NAME,
         )
-        form_config_path = os.path.join(
+        unit_config_path = os.path.join(
             self.data_dir,
-            FORM_COMPOSER__FORM_CONFIG_NAME,
+            FORM_COMPOSER__UNIT_CONFIG_NAME,
         )
         token_sets_values_config_path = os.path.join(
             self.data_dir,
@@ -830,7 +878,7 @@ class TestTaskDataConfig(unittest.TestCase):
         sys.stdout = captured_print_output
         verify_form_composer_configs(
             task_data_config_path,
-            form_config_path,
+            unit_config_path,
             token_sets_values_config_path,
             separate_token_values_config_path,
             task_data_config_only=False,
@@ -846,7 +894,7 @@ class TestTaskDataConfig(unittest.TestCase):
             captured_print_output.getvalue(),
         )
         self.assertIn(
-            f"'{self.data_dir}/form_config.json'",
+            f"'{self.data_dir}/unit_config.json'",
             captured_print_output.getvalue(),
         )
         self.assertIn(
@@ -874,9 +922,9 @@ class TestTaskDataConfig(unittest.TestCase):
             self.data_dir,
             FORM_COMPOSER__DATA_CONFIG_NAME,
         )
-        form_config_path = os.path.join(
+        unit_config_path = os.path.join(
             self.data_dir,
-            FORM_COMPOSER__FORM_CONFIG_NAME,
+            FORM_COMPOSER__UNIT_CONFIG_NAME,
         )
         token_sets_values_config_path = os.path.join(
             self.data_dir,
@@ -891,7 +939,7 @@ class TestTaskDataConfig(unittest.TestCase):
         sys.stdout = captured_print_output
         verify_form_composer_configs(
             task_data_config_path,
-            form_config_path,
+            unit_config_path,
             token_sets_values_config_path,
             separate_token_values_config_path,
             task_data_config_only=True,
@@ -909,7 +957,7 @@ class TestTaskDataConfig(unittest.TestCase):
 
     def test_verify_form_composer_configs_success(self, *args, **kwargs):
         task_data_config_data = [deepcopy(CORRECT_CONFIG_DATA_WITH_TOKENS)]
-        form_config_data = deepcopy(CORRECT_CONFIG_DATA_WITH_TOKENS)
+        unit_config_data = deepcopy(CORRECT_CONFIG_DATA_WITH_TOKENS)
         token_sets_values_config_data = [
             {
                 "tokens_values": {
@@ -944,9 +992,9 @@ class TestTaskDataConfig(unittest.TestCase):
             self.data_dir,
             FORM_COMPOSER__DATA_CONFIG_NAME,
         )
-        form_config_path = os.path.join(
+        unit_config_path = os.path.join(
             self.data_dir,
-            FORM_COMPOSER__FORM_CONFIG_NAME,
+            FORM_COMPOSER__UNIT_CONFIG_NAME,
         )
         token_sets_values_config_path = os.path.join(
             self.data_dir,
@@ -961,9 +1009,9 @@ class TestTaskDataConfig(unittest.TestCase):
         task_data_config_f.write(json.dumps(task_data_config_data))
         task_data_config_f.close()
 
-        form_config_f = open(form_config_path, "w")
-        form_config_f.write(json.dumps(form_config_data))
-        form_config_f.close()
+        unit_config_f = open(unit_config_path, "w")
+        unit_config_f.write(json.dumps(unit_config_data))
+        unit_config_f.close()
 
         token_sets_values_config_f = open(token_sets_values_config_path, "w")
         token_sets_values_config_f.write(json.dumps(token_sets_values_config_data))
@@ -975,9 +1023,9 @@ class TestTaskDataConfig(unittest.TestCase):
 
         captured_print_output = io.StringIO()
         sys.stdout = captured_print_output
-        verify_form_composer_configs(
+        verify_generator_configs(
             task_data_config_path,
-            form_config_path,
+            unit_config_path,
             token_sets_values_config_path,
             separate_token_values_config_path,
         )
@@ -986,7 +1034,7 @@ class TestTaskDataConfig(unittest.TestCase):
         self.assertIn("All configs are valid.", captured_print_output.getvalue(), "\n")
 
     @patch(
-        "mephisto.generators.form_composer.config_validation.task_data_config.get_s3_presigned_url"
+        "mephisto.generators.generators_utils.config_validation.task_data_config.get_s3_presigned_url"
     )
     def test_prepare_task_config_for_review_app_success(
         self,

@@ -11,11 +11,19 @@ from flask import request
 from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
 
+from mephisto.client.cli_form_composer_commands import set_form_composer_env_vars
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.unit import Unit
-from mephisto.generators.form_composer.config_validation.task_data_config import (
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    FORM_COMPOSER_TASK_TAG,
+)
+from mephisto.generators.generators_utils.config_validation.task_data_config import (
     prepare_task_config_for_review_app,
 )
+from mephisto.generators.video_annotator.config_validation.config_validation_constants import (
+    VIDEO_ANNOTATOR_TASK_TAG,
+)
+from mephisto.review_app.server.utils.video_annotator import convert_annotation_tracks_to_webvtt
 
 
 class UnitsDetailsView(MethodView):
@@ -55,9 +63,14 @@ class UnitsDetailsView(MethodView):
             task_run: TaskRun = unit.get_task_run()
             has_task_source_review = bool(task_run.args.get("blueprint").get("task_source_review"))
 
+            # Initial task data and data that user submitted
             inputs = unit_data.get("data", {}).get("inputs") or {}
             outputs = unit_data.get("data", {}).get("outputs") or {}
-            metadata = unit_data.get("metadata", {})
+
+            # Get Task tags
+            task_tags = task_run.args.get("task").get("task_tags") or ""
+            is_form_composer_task = FORM_COMPOSER_TASK_TAG in task_tags
+            is_video_annotator_task = VIDEO_ANNOTATOR_TASK_TAG in task_tags
 
             # In case if there is outdated code that returns `final_submission`
             # under `inputs` and `outputs` keys, we should use the value in side `final_submission`
@@ -69,9 +82,17 @@ class UnitsDetailsView(MethodView):
             # Perform any dynamic action on task config for current unit
             # to make it the same as it looked like for a worker
             prepared_inputs = inputs
-            if "form" in inputs:
+            if is_form_composer_task:
+                set_form_composer_env_vars(use_validation_mapping_cache=False)
                 prepared_inputs = prepare_task_config_for_review_app(inputs)
 
+            # Prepare metadata
+            metadata = unit_data.get("metadata", {})
+            if is_video_annotator_task:
+                task_name = task_run.get_task().task_name
+                metadata["webvtt"] = convert_annotation_tracks_to_webvtt(task_name, inputs, outputs)
+
+            # Get Unit data path
             agent = unit.get_assigned_agent()
             unit_data_folder = agent.get_data_dir() if agent else None
 

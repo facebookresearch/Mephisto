@@ -21,7 +21,7 @@ The inserted code must reside in separate files (called "insertion files") locat
 
 ## HTML content insertion
 
-An HTML insertion file is specified as a file path that's relative to the form config. It can be inserted directly into `form_config.json` config, or via a token.
+An HTML insertion file is specified as a file path that's relative to the form config. It can be inserted directly into `unit_config.json` config, or via a token.
 
 #### Insertion without token
 
@@ -30,7 +30,7 @@ This is equivalent to setting value of that attribute to content of the HTML fil
 
 Attributes that support HTML insertions are the same ones that support tokens
 
-Example in `form_config.json`:
+Example in `unit_config.json`:
 ```json
 {
   ...
@@ -55,7 +55,7 @@ Example in `token_sets_values_config.json`:
 ]
 ```
 
-Then embed this token into `form_config.json`:
+Then embed this token into `unit_config.json`:
 ```json
 {
   ...
@@ -107,7 +107,7 @@ export function fieldContainsWord(field, value, word) {
 export { phoneValidatorFunction } from "./phone_validator_code.js";
 ```
 
-...and its usage in `form_config.json`:
+...and its usage in `unit_config.json`:
 ```json
 {
   ...
@@ -132,13 +132,14 @@ In form config, the trigger function is associated with an element by adding thi
 ```
 
 In your custom code, each trigger function must have the following signature:
-- Accept 4 required arguments `formData`, `updateFormData`, `element`, `fieldValue`, and extra arguments as needed
+- Accept 4 required arguments `formData`, `updateFormData`, `element`, `fieldValue`, `formFields`, and extra arguments as needed
     - `formData` is a React state with form data (`{<fieldName>: <fieldValue>, ...}`)
         - This allows to lookup values of any form field by its `"name"` attribute
     - `updateFormData` is a callback that sets value of any form field in the React state
         - This allows to change values of any form field by its `"name"` attribute, e.g. `updateFormData("name_first", "Austin")`. Note that you will need change HTML-field value as well.
     - `element` is the form object that fired the trigger (i.e. "field", "section" or "submit button" object defined in form config)
     - `fieldValue` is the value of an element that fired the trigger, if it's a form field (otherwise it's null)
+    - `formFields` is an object containing all form fields as defined in 'unit_config.json' (otherwise it's null)
     - Extra arguments will be passed after the `fieldValue` argument (they come from the `myTriggerArgument` value you specified in the form config under `"myTrigger"` key) :
         - If the value is a non-Array (Boolean, String, Number, or non-array Object), it will be passed as-is
         - If the value is an Array, the content of Array will be decostructed and passed as separate positional arguments.
@@ -180,13 +181,14 @@ export function onClickSectionHeader(
   updateFormData, // callback to set the React state
   element, // "field", "section", or "submit button" element that invoked this trigger
   fieldValue, // (optional) current field value, if the `element` is a form field
+  formFields, // (optional) Object containing all form fields as defined in 'unit_config.json'
   sectionName // Argument for this trigger (taken from form config)
 ) {
   alert(`${sectionName} section was clicked!`);
 }
 ```
 
-...and its usage in `form_config.json`:
+...and its usage in `unit_config.json`:
 ```json
 {
   ...,
@@ -210,29 +212,29 @@ During development of your form config, you can use a few available helper funct
 
   Example of use:
 
-  1. Add `react-form-composer` in webpack config
+  1. Add `mephisto-task-addons` in webpack config
 
   ```js
   resolve: {
     alias: {
       ...
-      "react-form-composer": path.resolve(
+      "mephisto-task-addons": path.resolve(
         __dirname,
-        "<relativePath>/packages/react-form-composer"
+        "<relativePath>/packages/mephisto-task-addons"
       ),
     },
   }
   ```
   2. Add import
   ```js
-  import { validateFieldValue } from "react-form-composer";
+  import { validateFieldValue } from "mephisto-task-addons";
   ```
   3. Validate a value before assigning it to form field
   ```js
   const valueIsValid = validateFieldValue(formFields.languageRadioSelector, {"en": true, "fr": false}, true);
   ```
 
-#### CSS styles insertions
+## CSS styles insertions
 
 To customize UI appearance, and separate CSS styles from your HTML insertions,
 you can create multiple CSS files in the `insertions` directory.

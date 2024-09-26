@@ -4,6 +4,46 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import {
+  TOKEN_END_REGEX,
+  TOKEN_END_SYMBOLS,
+  TOKEN_START_REGEX,
+  TOKEN_START_SYMBOLS,
+} from "./FormComposer/constants";
+import * as FormComposerFields from "./FormComposer/fields";
+import * as helpers from "./helpers";
+import { Errors as ListErrors } from "./FormComposer/fields/Errors";
+import { FormComposer } from "./FormComposer/FormComposer";
+import {
+  prepareFormData,
+  prepareRemoteProcedures,
+  procedureTokenRegex,
+  validateFieldValue,
+} from "./FormComposer/utils";
+import TaskInstructionButton from "./TaskInstructionModal/TaskInstructionButton";
+import TaskInstructionModal from "./TaskInstructionModal/TaskInstructionModal";
+import VideoAnnotator from "./VideoAnnotator/VideoAnnotator.jsx";
+import VideoPlayer from "./VideoAnnotator/VideoPlayer.jsx";
 import WorkerOpinion from "./WorkerOpinion/WorkerOpinion";
+import { prepareVideoAnnotatorData } from "./VideoAnnotator/utils";
 
-export { WorkerOpinion };
+export {
+  FormComposer,
+  FormComposerFields,
+  ListErrors,
+  TOKEN_END_REGEX,
+  TOKEN_END_SYMBOLS,
+  TOKEN_START_REGEX,
+  TOKEN_START_SYMBOLS,
+  TaskInstructionButton,
+  TaskInstructionModal,
+  VideoAnnotator,
+  VideoPlayer,
+  WorkerOpinion,
+  helpers,
+  prepareFormData,
+  prepareRemoteProcedures,
+  prepareVideoAnnotatorData,
+  procedureTokenRegex,
+  validateFieldValue,
+};

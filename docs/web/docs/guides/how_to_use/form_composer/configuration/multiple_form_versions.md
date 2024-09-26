@@ -35,7 +35,7 @@ _As a result, for each Task assignment Mephisto will automatically produce N uni
 If your form versions vary only slightly (e.g. same set of fields, but showing different images or different text), you should use a dynamic form config as follows:
 
 - Ensure you populate these files, and place them into your FormComposer config folder:
-    - `form_config.json`: tokenized form config - same as regular form config, except it will contain tokens within certain objects' attributes (see [Tokens extrapolation](#tokens-extrapolation))
+    - `unit_config.json`: tokenized form config - same as regular form config, except it will contain tokens within certain objects' attributes (see [Tokens extrapolation](#tokens-extrapolation))
     - `token_sets_values_config.json`: file containing sets of token values, where each set is used to generate one version of the form (and each form version will be completed by `units_per_assignment` different workers).
 - Optionally, verify your files: `mephisto form_composer config --verify`
 - Generate task data config: `mephisto form_composer config --extrapolate-token-sets`
@@ -116,7 +116,7 @@ Let's start with separate token values in `separate_token_values_config.json` fi
 
 #### Token values config
 
-Permutating these token values will produce this `form_config.json` file with token sets values:
+Permutating these token values will produce this `unit_config.json` file with token sets values:
 
 ```json
 [
@@ -151,9 +151,9 @@ Example of config after using `--update-file-location-values "https://s3.amazona
 ]
 ```
 
-#### Form config
+#### Unit config
 
-These tokens are placed into the `form_config.json` dynamic form config like so:
+These tokens are placed into the `unit_config.json` dynamic form config like so:
 
 ```json
 {
@@ -173,7 +173,7 @@ These tokens are placed into the `form_config.json` dynamic form config like so:
 
 #### Task data config
 
-After extrapolating attributes from `form_config.json` with token sets from `token_sets_values_config.json`, we get the resulting `task_data.json` file used for the task:
+After extrapolating attributes from `unit_config.json` with token sets from `token_sets_values_config.json`, we get the resulting `task_data.json` file used for the task:
 
 ```json
 // First extrapolated form version

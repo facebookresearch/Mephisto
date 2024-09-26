@@ -97,3 +97,12 @@ class AssignmentState:
             AssignmentState.SOFT_REJECTED,
             AssignmentState.EXPIRED,
         ]
+
+    @staticmethod
+    def reviewed() -> List[str]:
+        """Return all statuses that denote a unit having been completed"""
+        return [
+            AssignmentState.ACCEPTED,
+            AssignmentState.REJECTED,
+            AssignmentState.SOFT_REJECTED,
+        ]

@@ -51,7 +51,7 @@ export const MOCK_RESPONSES_DATA = {
         task_id: 1,
         pay_amount: 10,
         status: "completed",
-        creation_date: "2023-08-28T12:00:56",
+        created_at: "2023-08-28T12:00:56",
         results: {
           start: 1693239305.1141467,
           end: 1693239999.1141467,
@@ -69,7 +69,7 @@ export const MOCK_RESPONSES_DATA = {
         task_id: 1,
         pay_amount: 11,
         status: "completed",
-        creation_date: "2023-08-28T12:00:56",
+        created_at: "2023-08-28T12:00:56",
         results: {
           start: 1693239305.1141467,
           end: 1693239999.1141467,
@@ -92,7 +92,7 @@ export const MOCK_RESPONSES_DATA = {
         task_id: 1,
         pay_amount: 10,
         status: "completed",
-        creation_date: "2023-08-28T12:10:56",
+        created_at: "2023-08-28T12:10:56",
         results: {
           start: 1693239305.1141467,
           end: 1693239999.1141467,

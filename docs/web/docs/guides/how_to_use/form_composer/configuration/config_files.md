@@ -13,19 +13,19 @@ This section is a reference on FormComposer's standard configuration files and o
 ## Config files structure
 
 You will need to provide FormComposer with a JSON configuration of your form fields,
-and place it in `generators/form-composer/data` directory.
+and place it in `generators/form_composer/data` directory.
 
 - The task config file should be named `task_data.json`, and contain a list of JSON objects, each one with one key `form`.
 - If you want to slightly vary your form within a Task (by inserting different values into its text), you need to add two files (that will be used to auto-generate `task_data.json` file):
     - `token_sets_values_config.json` containing a JSON array of objects (each with one key `tokens_values` and value representing name-value pairs for a set of text tokens to be used in one form version).
-    - `form_config.json` containing a single JSON object with one key `form`.
+    - `unit_config.json` containing a single JSON object with one key `form`.
     - For more details, read on about dynamic form configs.
 - If you want to insert code (HTML or JS) into your form config, you need to create `insertions` directory in the form config directory, and place these files there
     - For more details, read on about insertions.
 
 Working config examples are provided in `examples/form_composer_demo/data` directory:
 - task data config: `simple/task_data.json`
-- form config: `dynamic/form_config.json`
+- form config: `dynamic/unit_config.json`
 - token sets values config: `dynamic/token_sets_values_config.json`
 - separate tokens values: `dynamic/separate_token_values_config.json` to create `token_sets_values_config.json`
 - resulting extrapolated config: `dynamic/task_data.json`
@@ -124,7 +124,7 @@ Task data config file `task_data.json` specifies layout of all form versions tha
 ]
 ```
 
-### Form config levels
+### Unit config levels
 
 Form UI layout consists of the following layers of UI object hierarchy:
 
@@ -147,7 +147,7 @@ While attributes values are limited to numbers and text, these fields (at any hi
 _Note that, due to limitations of JSON format, HTML content needs to be converted into a single long string of text._
 
 You can style fields with HTML-classes in `classes` attribute. You can use any bootstrap classes or our built-in classes:
-- `hidden` - if you need to hide element and show it later with custom triggerm, but you do not need it be a fully hidden field (`"type": "hidden"`)
+- `hidden` - if you need to hide element and show it later with custom trigger, but you do not need it be a fully hidden field (`"type": "hidden"`)
 - `centered` - centered horizontally
 
 TBD: Other classes and styles insertions
@@ -298,9 +298,9 @@ The most important attributes are: `label`, `name`, `type`, `validators`
     - `checked`: initial state of selection (Boolean, default: false)
 
 
-## Config file: `form_config.json`
+## Config file: `unit_config.json`
 
-Form config file `form_config.json` specifies layout of a form in the same way as `task_data.json`, but with a few notable differences:
+Unit config file `unit_config.json` specifies layout of a form in the same way as `task_data.json`, but with a few notable differences:
 - It contains a single JSON object (not a JSON array of objects)
 - Some of its form attributes definitions must contain dynamic tokens (whose values will be extrapolated, i.e. substituted with variable chunks of text) - see further below.
 

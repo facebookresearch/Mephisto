@@ -1,0 +1,159 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.video-annotation {
+  --annotator-width: 700px;
+
+  --track-bg-color-active: #ecdadf;
+  --track-bg-color-inactive: #666666;
+  --track-bg-color-inactive-hover: #777777;
+
+  --segments-padding-left: initial;
+  --segments-padding-right: initial;
+
+  --segment-height-active: 22px;
+  --segment-height-inactive: 12px;
+
+  --blue-color: #439acb;
+  --brown-color: #9f4f33;
+  --green-color: #64b943;
+  --orange-color: #f18800;
+  --purple-color: #9e5aba;
+  --red-color: #da4a4a;
+  --yellow-color: #eadb37;
+
+  --input-bg-color: #fafafa;
+
+  width: var(--annotator-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.video-annotation hr {
+  width: 100%;
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.video-annotation .title {
+  margin-bottom: 20px;
+}
+
+.video-annotation .instruction {
+  margin-bottom: 20px;
+}
+
+.video-annotation .instruction-hint {
+  margin-bottom: 20px;
+}
+
+.video-annotation .video-player-container {
+  margin-bottom: 20px;
+}
+
+.video-annotation .annotator-buttons-separator {
+  margin-bottom: 40px;
+  width: 70%;
+  border: 1px solid black;
+  opacity: 0.2;
+}
+
+.video-annotation .annotator-buttons {
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.video-annotation .annotator-instruction-dialog {
+  max-width: var(--annotator-width);
+}
+
+/* --- VideoJS --- */
+.vjs-control-bar {
+  display: flex !important;
+}
+
+.vjs-tech {
+  margin: initial !important;
+  max-height: initial !important;
+}
+
+/* --- Floating labels --- */
+:root {
+  --input-padding-x: 0.75rem;
+  --input-padding-y: 0.65rem;
+  --label-color: #777777;
+}
+
+.form-label-group.floating-label {
+  position: relative;
+}
+
+.form-label-group.floating-label > input,
+.form-label-group.floating-label > textarea,
+.form-label-group.floating-label > label {
+  padding: var(--input-padding-y) var(--input-padding-x);
+  min-height: 45px;
+}
+
+.form-label-group.floating-label > label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  margin-bottom: 0; /* Override default `<label>` margin */
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--label-color);
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+  transition: all 0.1s ease-in-out;
+  -moz-transition: all 0.1s ease-in-out;
+  -o-transition: all 0.1s ease-in-out;
+  -webkit-transition: all 0.1s ease-in-out;
+  -ms-transition: all 0.1s ease-in-out;
+}
+
+.form-label-group.floating-label textarea::-webkit-input-placeholder,
+.form-label-group.floating-label input::-webkit-input-placeholder {
+  color: transparent;
+}
+
+.form-label-group.floating-label textarea:-ms-input-placeholder,
+.form-label-group.floating-label input:-ms-input-placeholder {
+  color: transparent;
+}
+
+.form-label-group.floating-label textarea::-ms-input-placeholder,
+.form-label-group.floating-label input::-ms-input-placeholder {
+  color: transparent;
+}
+
+.form-label-group.floating-label textarea::-moz-placeholder,
+.form-label-group.floating-label input::-moz-placeholder {
+  color: transparent;
+}
+
+.form-label-group.floating-label textarea::placeholder,
+.form-label-group.floating-label input::placeholder {
+  color: transparent;
+}
+
+.form-label-group.floating-label textarea:not(:placeholder-shown),
+.form-label-group.floating-label input:not(:placeholder-shown) {
+  padding-top: calc(var(--input-padding-y) + var(--input-padding-y) * (2 / 3));
+  padding-bottom: calc(var(--input-padding-y) / 3);
+}
+
+.form-label-group.floating-label textarea:not(:placeholder-shown) ~ label,
+.form-label-group.floating-label input:not(:placeholder-shown) ~ label {
+  padding-top: calc(var(--input-padding-y) / 3);
+  padding-bottom: calc(var(--input-padding-y) / 3);
+  font-size: 12px;
+  color: var(--label-color);
+}

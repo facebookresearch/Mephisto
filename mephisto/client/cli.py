@@ -12,8 +12,9 @@ from rich_click import RichGroup
 from mephisto.client.cli_db_commands import db_cli
 from mephisto.client.cli_form_composer_commands import form_composer_cli
 from mephisto.client.cli_metrics_commands import metrics_cli
-from mephisto.client.cli_review_app_commands import review_app
+from mephisto.client.cli_review_app_commands import review_app_cli
 from mephisto.client.cli_scripts_commands import run_script
+from mephisto.client.cli_video_annotator_commands import video_annotator_cli
 from mephisto.client.cli_wut_commands import run_wut
 from mephisto.operations.registry import get_valid_provider_types
 from mephisto.utils.console_writer import ConsoleWriter
@@ -23,7 +24,12 @@ from mephisto.utils.rich import create_table
 logger = ConsoleWriter()
 
 
-@click.group(cls=RichGroup)
+@click.group(
+    cls=RichGroup,
+    context_settings={
+        "help_option_names": ["-h", "--help"],
+    },
+)
 def cli():
     """[deep_sky_blue4]Bring your research ideas to life
     with powerful crowdsourcing tooling[/]
@@ -178,8 +184,9 @@ cli.command("scripts", cls=RichCommand, context_settings={"ignore_unknown_option
     run_script
 )
 cli.command("wut", cls=RichCommand, context_settings={"ignore_unknown_options": True})(run_wut)
-cli.command("review_app", cls=RichCommand)(review_app)
+cli.add_command(review_app_cli)
 cli.add_command(form_composer_cli)
+cli.add_command(video_annotator_cli)
 cli.add_command(metrics_cli)
 cli.add_command(db_cli)
 

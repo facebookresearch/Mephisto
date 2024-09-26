@@ -11,21 +11,65 @@ from typing import Optional
 import click
 from flask.cli import pass_script_info
 from flask.cli import ScriptInfo
+from rich_click import RichGroup
 
-from mephisto.utils.console_writer import ConsoleWriter
 from mephisto.tools.building_react_apps import review_app as _review_app
+from mephisto.utils.console_writer import ConsoleWriter
 
 logger = ConsoleWriter()
 
 
-@click.option("-h", "--host", type=str, default="127.0.0.1")
-@click.option("-p", "--port", type=int, default=5000)
-@click.option("-d", "--debug", type=bool, default=False, is_flag=True)
-@click.option("-f", "--force-rebuild", type=bool, default=False, is_flag=True)
-@click.option("-s", "--skip-build", type=bool, default=False, is_flag=True)
+@click.group(
+    name="review_app",
+    cls=RichGroup,
+    invoke_without_command=True,
+)
+@click.pass_context
+@click.option(
+    "-H",
+    "--host",
+    type=str,
+    default="127.0.0.1",
+    help="Host where TaskReview app will be served",
+)
+@click.option(
+    "-p",
+    "--port",
+    type=int,
+    default=5000,
+    help="Port where TaskReview app will be served",
+)
+@click.option(
+    "-d",
+    "--debug",
+    type=bool,
+    default=False,
+    is_flag=True,
+    help="Run in debug mode (with extra logging)",
+)
+@click.option(
+    "-f",
+    "--force-rebuild",
+    type=bool,
+    default=False,
+    is_flag=True,
+    help="Force rebuild React bundle (use if your Task client code has been updated)",
+)
+@click.option(
+    "-s",
+    "--skip-build",
+    type=bool,
+    default=False,
+    is_flag=True,
+    help=(
+        "Skip all installation and building steps for the UI, and directly launch the server "
+        "(use if no code has been changed)"
+    ),
+)
 @pass_script_info
-def review_app(
+def review_app_cli(
     info: ScriptInfo,
+    ctx: click.Context,
     host: Optional[str],
     port: Optional[int],
     debug: bool = False,
@@ -36,6 +80,12 @@ def review_app(
     Launch a local review server.
     Custom implementation of `flask run <app_name>` command (`flask.cli.run_command`)
     """
+
+    if ctx.invoked_subcommand is not None:
+        # It's needed to add the ability to run other commands,
+        # run default code only if there's no other command after `review_app`
+        return
+
     from flask.cli import show_server_banner
     from flask.helpers import get_debug_flag
     from mephisto.review_app.server import create_app

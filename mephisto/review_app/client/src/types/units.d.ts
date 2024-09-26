@@ -5,22 +5,23 @@
  */
 
 declare type UnitType = {
+  created_at: string;
   id: string;
-  worker_id: string | null;
-  task_id: string | null;
+  is_reviewed: boolean;
   pay_amount: number;
-  status: string;
-  creation_date: string;
   results: {
     start: number;
     end: number;
-    input_preview: null;
-    output_preview: null;
+    inputs_preview: null;
+    outputs_preview: null;
   };
   review: {
     bonus: number | null;
     review_note: number | null;
   };
+  status: string;
+  task_id: string | null;
+  worker_id: string | null;
 };
 
 declare type WorkerUnitIdType = {
@@ -53,6 +54,7 @@ declare type WorkerOpinionType = {
 
 declare type UnitDetailsMetadataType = {
   worker_opinion?: WorkerOpinionType;
+  webvtt?: string;
 };
 
 declare type UnitDetailsType = {

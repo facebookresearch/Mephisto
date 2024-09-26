@@ -48,21 +48,21 @@ These are the API specs enabling TaskReview app UI.
 
 Get all available tasks (to select one for review)
 
-```
+```json
 {
-    "tasks": [
-        {
-            "created_at": <timestamp>,
-            "has_stats": <bool>,
-            "id": <int>,
-            "is_reviewed": <bool>,
-            "name": <str>,
-            "unit_all_count": <int>,
-            "unit_completed_count": <int>,
-            "unit_finished_count": <int>
-        },
-        ...  // more tasks
-    ]
+  "tasks": [
+    {
+      "created_at": <timestamp>,
+      "has_stats": <bool>,
+      "id": <int>,
+      "is_reviewed": <bool>,
+      "name": <str>,
+      "unit_all_count": <int>,
+      "unit_completed_count": <int>,
+      "unit_finished_count": <int>
+    },
+    ...  // more tasks
+  ]
 }
 ```
 
@@ -72,12 +72,12 @@ Get all available tasks (to select one for review)
 
 Get metadata for a task
 
-```
+```json
 {
-    "id": <int>,
-    "name": <str>,
-    "type": <str>,
-    "created_at": <timestamp>
+  "id": <int>,
+  "name": <str>,
+  "type": <str>,
+  "created_at": <timestamp>
 }
 ```
 
@@ -99,7 +99,7 @@ Serve a single composed file with reviewed task results (API response is a file 
 
 Assemble stats with results for a Task.
 
-```
+```json
 {
   "stats": {
     <str>: {
@@ -120,7 +120,7 @@ Assemble stats with results for a Task.
 
 Check if Grafana server is available and redirect or return error.
 
-```
+```json
 {
   "dashboard_url": <str> | null,
   "server_is_available": <bool>,
@@ -134,7 +134,7 @@ Check if Grafana server is available and redirect or return error.
 
 Returns all Worker Opinions related to a Task.
 
-```
+```json
 {
   "task_name": <str>,
   "worker_opinions": [
@@ -179,15 +179,15 @@ Returns all Worker Opinions related to a Task.
 
 Get full, unpaginated list of unit IDs within a task (for subsequent client-side grouping by worker_id and `GET /task-units` pagination)
 
-```
+```json
 {
-    "worker_units_ids": [
-        {
-            "worker_id": <int>,
-            "unit_id": <int>,
-        },
-        ...  // more ids
-    ]
+  "worker_units_ids": [
+    {
+      "worker_id": <int>,
+      "unit_id": <int>,
+    },
+    ...  // more ids
+  ]
 }
 ```
 
@@ -197,15 +197,15 @@ Get full, unpaginated list of unit IDs within a task (for subsequent client-side
 
 Get all available qualifications (to select "approve" and "reject" qualifications)
 
-```
+```json
 {
-    "qualifications": [
-        {
-            "id": <int>,
-            "name": <str>,
-        },
-        ...  // more qualifications
-    ]
+  "qualifications": [
+    {
+      "id": <int>,
+      "name": <str>,
+    },
+    ...  // more qualifications
+  ]
 }
 ```
 
@@ -215,9 +215,9 @@ Get all available qualifications (to select "approve" and "reject" qualification
 
 Create a new qualification
 
-```
+```json
 {
-    "name": <str>,
+  "name": <str>,
 }
 ```
 
@@ -227,17 +227,17 @@ Create a new qualification
 
 Get list of all bearers of a qualification.
 
-```
+```json
 {
-    "workers": [
-        {
-            "worker_id": <int>,
-            "value": <int>,
-            "unit_review_id": <int>,  // latest grant of this qualification
-            "granted_at": <int>,   // maps to `unit_review.creation_date` column
-        },
-        ...  // more qualified workers
-    ]
+  "workers": [
+    {
+      "worker_id": <int>,
+      "value": <int>,
+      "unit_review_id": <int>,  // latest grant of this qualification
+      "granted_at": <int>,   // maps to `unit_review.creation_date` column
+    },
+    ...  // more qualified workers
+  ]
 }
 ```
 
@@ -247,10 +247,10 @@ Get list of all bearers of a qualification.
 
 Grant qualification to a worker
 
-```
+```json
 {
-    "unit_ids": [<int>, ...],
-    "value": <int>,
+  "unit_ids": [<int>, ...],
+  "value": <int>,
 }
 ```
 
@@ -260,9 +260,9 @@ Grant qualification to a worker
 
 Revoke qualification from a worker
 
-```
+```json
 {
-    "unit_ids": [<int>, ...],
+  "unit_ids": [<int>, ...],
 }
 ```
 
@@ -274,29 +274,30 @@ Get workers' results (filtered by task_id and/or unit_ids, etc) - without full d
 
 _NOTE: this edpoint is not currently used in TaskReview app_
 
-```
+```json
 {
-	"units": [
-		{
-			"id": <int>,
-			"worker_id": <int>,
-			"task_id": <int>,
-			"pay_amount": <int>,
-			"status": <str>,
-			"creation_date": <int>,
-			"results": {
-				"start": ,
-				"end": ,
-				"inputs_preview": <json str>,  // optional
-				"outputs_preview": <json str>,  // optional
-			},
-			"review": {
-				"tips": <int>,
-				"feedback": <str>,
-			}
-		},
-		...  // more units
-	]
+  "units": [
+    {
+      "creation_date": <int>,
+      "id": <int>,
+      "is_reviewed": <bool>,
+      "pay_amount": <int>,
+      "results": {
+        "start": ,
+        "end": ,
+        "inputs_preview": <json str>,  // optional
+        "outputs_preview": <json str>,  // optional
+      },
+      "review": {
+        "tips": <int>,
+        "feedback": <str>,
+      },
+      "status": <str>,
+      "task_id": <int>,
+      "worker_id": <int>,
+    },
+    ...  // more units
+  ]
 }
 ```
 
@@ -304,20 +305,20 @@ _NOTE: this edpoint is not currently used in TaskReview app_
 
 Get full input for specified workers results (`units_ids` parameter is mandatory)
 
-```
+```json
 {
-    "units": [
-        {
-            "has_task_source_review": <bool>,
-            "id": <int>,
-            "inputs": <json object>,  // instructions for worker
-            "metadata": <json object>,  // any metadata (e.g. Worker Opinion)
-            "outputs": <json object>,  // response from worker
-            "prepared_inputs": <json object>,  // prepared instructions from worker
-            "unit_data_folder": <str>},  // path to data dir in file system
-        },
-        ...  // more units
-    ]
+  "units": [
+    {
+      "has_task_source_review": <bool>,
+      "id": <int>,
+      "inputs": <json object>,  // instructions for worker
+      "metadata": <json object>,  // any metadata (e.g. Worker Opinion)
+      "outputs": <json object>,  // response from worker
+      "prepared_inputs": <json object>,  // prepared instructions from worker
+      "unit_data_folder": <str>},  // path to data dir in file system
+    },
+    ...  // more units
+  ]
 }
 ```
 
@@ -327,11 +328,11 @@ Get full input for specified workers results (`units_ids` parameter is mandatory
 
 Approve worker's result
 
-```
+```json
 {
-    "unit_ids": [<int>, ...],
-    "feedback": <str>,  // optional
-    "tips": <int>,  // optional
+  "unit_ids": [<int>, ...],
+  "feedback": <str>,  // optional
+  "tips": <int>,  // optional
 }
 ```
 
@@ -341,10 +342,10 @@ Approve worker's result
 
 Reject worker's result
 
-```
+```json
 {
-    "unit_ids": [<int>, ...],
-    "feedback": <str>,  // optional
+  "unit_ids": [<int>, ...],
+  "feedback": <str>,  // optional
 }
 ```
 
@@ -354,10 +355,10 @@ Reject worker's result
 
 Soft-reject worker's result
 
-```
+```json
 {
-    "unit_ids": [<int>, ...],
-    "feedback": <str>,  // optional
+  "unit_ids": [<int>, ...],
+  "feedback": <str>,  // optional
 }
 ```
 
@@ -367,10 +368,10 @@ Soft-reject worker's result
 
 Permanently block a worker
 
-```
+```json
 {
-    "unit_id": <int>,
-    "feedback": <str>,
+  "unit_id": <int>,
+  "feedback": <str>,
 }
 ```
 
@@ -380,17 +381,17 @@ Permanently block a worker
 
 Get list of all granted qualifications for a worker
 
-```
+```json
 {
-    "granted_qualifications": [
-        {
-            "worker_id": <int>,
-            "qualification_id": <int>,
-            "value": <int>,
-            "granted_at": <int>,  // maps to `unit_review.creation_date` column
-        }
-    ],
-    ...  // more granted qualifications
+  "granted_qualifications": [
+    {
+      "worker_id": <int>,
+      "qualification_id": <int>,
+      "value": <int>,
+      "granted_at": <int>,  // maps to `unit_review.creation_date` column
+    }
+  ],
+  ...  // more granted qualifications
 }
 ```
 
@@ -400,15 +401,15 @@ Get list of all granted qualifications for a worker
 
 Get stats of (recent) approvals. Either `task_id` or `worker_id` (or both) must be present.
 
-```
+```json
 {
-    "stats": {
-        "total_count": <int>,  // within the scope of the filters
-        "reviewed_count": <int>,
-        "approved_count": <int>,
-        "rejected_count": <int>,
-        "soft_rejected_count": <int>,
-    },
+  "stats": {
+    "total_count": <int>,  // within the scope of the filters
+    "reviewed_count": <int>,
+    "approved_count": <int>,
+    "rejected_count": <int>,
+    "soft_rejected_count": <int>,
+  },
 }
 ```
 
@@ -426,8 +427,8 @@ Response: file.
 
 Exception are returned by the API in this format:
 
-```
+```json
 {
-    "error": <str>,
+  "error": <str>,
 }
 ```

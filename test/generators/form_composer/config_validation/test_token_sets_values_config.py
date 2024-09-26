@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 import json
 import os
 import shutil
@@ -8,13 +13,14 @@ from mephisto.client.cli_form_composer_commands import (
     FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
 )
 from mephisto.client.cli_form_composer_commands import FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME
-from mephisto.generators.form_composer.config_validation.token_sets_values_config import (
+from mephisto.client.cli_form_composer_commands import set_form_composer_env_vars
+from mephisto.generators.generators_utils.config_validation.token_sets_values_config import (
     _premutate_separate_tokens,
 )
-from mephisto.generators.form_composer.config_validation.token_sets_values_config import (
+from mephisto.generators.generators_utils.config_validation.token_sets_values_config import (
     update_token_sets_values_config_with_premutated_data,
 )
-from mephisto.generators.form_composer.config_validation.token_sets_values_config import (
+from mephisto.generators.generators_utils.config_validation.token_sets_values_config import (
     validate_token_sets_values_config,
 )
 
@@ -22,6 +28,7 @@ from mephisto.generators.form_composer.config_validation.token_sets_values_confi
 class TestTokenSetsValuesConfig(unittest.TestCase):
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()
+        set_form_composer_env_vars()
 
     def tearDown(self):
         shutil.rmtree(self.data_dir, ignore_errors=True)

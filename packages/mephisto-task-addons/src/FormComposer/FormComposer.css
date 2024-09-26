@@ -1,0 +1,182 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/* --- Default content styles --- */
+img,
+video {
+  max-width: 100%;
+  max-height: 500px;
+  display: block;
+  margin: 20px 0;
+}
+
+/* --- Form --- */
+.form-composer {
+  /* Variables */
+  --error-color: red;
+  --form-max-width: 1280px;
+  --input-bg-color: #fafafa;
+  --orange-color: orange;
+
+  margin: 0 auto;
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: var(--form-max-width);
+}
+
+.form-composer .form-header {
+}
+
+.form-composer .form-header .form-name {
+  font-size: 22px;
+}
+
+.form-composer .form-header .form-instruction {
+}
+
+/* --- Section --- */
+.form-composer .section {
+}
+
+.form-composer .section .section-header:not(.collapsable):hover {
+  cursor: initial;
+  opacity: 1;
+}
+
+.form-composer .section .section-header.collapsable:hover {
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.form-composer .section .section-header.has-invalid-fields .section-name {
+  color: var(--error-color);
+}
+
+.form-composer .section .section-name {
+  font-size: 18px;
+}
+
+.form-composer .section .section-instruction {
+}
+
+/* --- Fieldset --- */
+.form-composer .section .fieldset {
+  margin-bottom: 20px;
+}
+
+.form-composer .section .fieldset .fieldset-header {
+  background-color: #d9e0df;
+}
+
+.form-composer .section .fieldset .fieldset-name {
+  margin: 0;
+}
+
+.form-composer .section .fieldset .fieldset-instruction {
+}
+
+/* --- Row --- */
+.form-composer .section .fieldset .row {
+}
+
+.form-composer .section .fieldset .row:not(:last-child) {
+  margin-bottom: 20px;
+}
+
+.form-composer .section .fieldset .row .row-instruction {
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.form-composer .section .fieldset .row .row-help {
+  padding-top: 5px;
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: 15px;
+  margin-right: 15px;
+  font-size: 12px;
+  font-style: italic;
+  color: grey;
+  border-top: 1px solid #ccc;
+}
+
+/* --- Field --- */
+.form-composer .section .fieldset .field {
+  margin-bottom: 10px;
+}
+
+.form-composer .section .fieldset .field .field-help {
+  font-size: 10px;
+}
+
+.form-composer .section .fieldset .field {
+}
+
+.form-composer .section .fieldset .field label {
+  width: 100%;
+}
+
+.form-composer .section .fieldset .field.required label:after {
+  content: "*";
+  color: var(--error-color);
+  margin-left: 3px;
+}
+
+.form-composer .form-buttons-separator {
+  margin-bottom: 40px;
+  width: 70%;
+  border: 1px solid black;
+  opacity: 0.2;
+}
+
+/* --- Buttons --- */
+.form-composer .form-buttons {
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.form-composer .form-buttons .button-submit {
+}
+
+.form-composer .form-instruction-dialog {
+  max-width: var(--form-max-width);
+}
+
+/* --- Bootstrap overriding --- */
+
+.form-control::placeholder {
+  color: #c7c7c7 !important;
+}
+.form-control::-moz-placeholder {
+  color: #c7c7c7 !important;
+  opacity: 1;
+}
+.form-control:-ms-input-placeholder {
+  color: #c7c7c7 !important;
+}
+.form-control::-webkit-input-placeholder {
+  color: #c7c7c7 !important;
+}
+
+.non-collapsable {
+  display: initial !important;
+}
+
+/* --- Custom classes for users --- */
+
+.centered {
+  display: block;
+  text-align: center;
+}
+
+.hidden,
+.hidden-type {
+  display: none;
+  visibility: hidden;
+}

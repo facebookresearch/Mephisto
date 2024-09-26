@@ -22,11 +22,7 @@ VERBOSITY_DEFAULT_VALUE = 0
 logger = ConsoleWriter()
 
 
-@click.group(
-    name="metrics",
-    context_settings=dict(help_option_names=["-h", "--help"]),
-    cls=RichGroup,
-)
+@click.group(name="metrics", cls=RichGroup)
 def metrics_cli():
     """View task health and status with Mephisto Metrics"""
     pass

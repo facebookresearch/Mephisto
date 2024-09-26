@@ -1,13 +1,24 @@
+#!/usr/bin/env python3
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 import unittest
 
-from mephisto.generators.form_composer.config_validation.form_config import (
-    _collect_values_for_unique_attrs_from_item,
+from mephisto.client.cli_form_composer_commands import set_form_composer_env_vars
+from mephisto.generators.form_composer.config_validation.unit_config import validate_unit_config
+from mephisto.generators.generators_utils.config_validation.unit_config import (
+    collect_values_for_unique_attrs_from_item,
 )
-from mephisto.generators.form_composer.config_validation.form_config import _duplicate_values_exist
-from mephisto.generators.form_composer.config_validation.form_config import validate_form_config
+from mephisto.generators.generators_utils.config_validation.unit_config import (
+    duplicate_values_exist,
+)
 
 
 class TestFormConfig(unittest.TestCase):
+    def setUp(self):
+        set_form_composer_env_vars()
+
     def test__collect_values_for_unique_attrs_from_item(self, *args, **kwargs):
         item = {
             "help": "Field help",
@@ -24,7 +35,7 @@ class TestFormConfig(unittest.TestCase):
         }
 
         values_for_unique_attrs = {}
-        result = _collect_values_for_unique_attrs_from_item(
+        result = collect_values_for_unique_attrs_from_item(
             item=item,
             values_for_unique_attrs=values_for_unique_attrs,
         )
@@ -35,7 +46,7 @@ class TestFormConfig(unittest.TestCase):
         no_duplicates_values_for_unique_attrs = {"id": ["id_field"], "name": ["field_name"]}
         errors = []
 
-        result = _duplicate_values_exist(no_duplicates_values_for_unique_attrs, errors)
+        result = duplicate_values_exist(no_duplicates_values_for_unique_attrs, errors)
 
         self.assertTrue(result)
         self.assertEqual(errors, [])
@@ -47,7 +58,7 @@ class TestFormConfig(unittest.TestCase):
         }
         errors = []
 
-        result = _duplicate_values_exist(no_duplicates_values_for_unique_attrs, errors)
+        result = duplicate_values_exist(no_duplicates_values_for_unique_attrs, errors)
 
         self.assertFalse(result)
         self.assertEqual(
@@ -58,23 +69,38 @@ class TestFormConfig(unittest.TestCase):
             ],
         )
 
-    def test_validate_form_config_not_dict(self, *args, **kwargs):
+    def test_validate_unit_config_not_dict(self, *args, **kwargs):
         config_data = []
 
-        result, errors = validate_form_config(config_data)
+        result, errors = validate_unit_config(config_data)
 
         self.assertFalse(result)
-        self.assertEqual(errors, ["Form config must be a key/value JSON Object."])
+        self.assertEqual(errors, ["Unit config must be a key/value JSON Object."])
 
-    def test_validate_form_config_wrong_keys(self, *args, **kwargs):
-        config_data = {}
+    def test_validate_unit_config_wrong_keys(self, *args, **kwargs):
+        config_data = {
+            "wrong_key": {},
+        }
 
-        result, errors = validate_form_config(config_data)
+        result, errors = validate_unit_config(config_data)
 
         self.assertFalse(result)
-        self.assertEqual(errors, ["Form config must contain only these attributes: form."])
+        self.assertEqual(
+            errors,
+            [
+                (
+                    "Object `form`. Not all required attributes were specified. "
+                    "Required attributes: form. Passed attributes: wrong_key."
+                ),
+                (
+                    "Object `form` has no available attribute with name `wrong_key`. "
+                    "Available attributes: form, form_metadata."
+                ),
+                "Unit config must contain only these attributes: form, form_metadata.",
+            ],
+        )
 
-    def test_validate_form_config_not_all_required_fields(self, *args, **kwargs):
+    def test_validate_unit_config_not_all_required_fields(self, *args, **kwargs):
         config_data = {
             "form": {
                 "instruction": "Form instruction",
@@ -118,7 +144,7 @@ class TestFormConfig(unittest.TestCase):
             },
         }
 
-        result, errors = validate_form_config(config_data)
+        result, errors = validate_unit_config(config_data)
 
         self.assertFalse(result)
         self.assertEqual(
@@ -138,7 +164,7 @@ class TestFormConfig(unittest.TestCase):
             ],
         )
 
-    def test_validate_form_config_with_duplicates(self, *args, **kwargs):
+    def test_validate_unit_config_with_duplicates(self, *args, **kwargs):
         config_data = {
             "form": {
                 "title": "Form title",
@@ -194,7 +220,7 @@ class TestFormConfig(unittest.TestCase):
             },
         }
 
-        result, errors = validate_form_config(config_data)
+        result, errors = validate_unit_config(config_data)
 
         self.assertFalse(result)
         self.assertEqual(
@@ -208,7 +234,7 @@ class TestFormConfig(unittest.TestCase):
             ],
         )
 
-    def test_validate_form_config_incorrent_field_type(self, *args, **kwargs):
+    def test_validate_unit_config_incorrent_field_type(self, *args, **kwargs):
         config_data = {
             "form": {
                 "title": "Form title",
@@ -254,7 +280,7 @@ class TestFormConfig(unittest.TestCase):
             },
         }
 
-        result, errors = validate_form_config(config_data)
+        result, errors = validate_unit_config(config_data)
 
         self.assertFalse(result)
         self.assertEqual(
@@ -262,7 +288,7 @@ class TestFormConfig(unittest.TestCase):
             ["Object 'field' has unsupported 'type' attribute value: incorrect_field_type"],
         )
 
-    def test_validate_form_config_success(self, *args, **kwargs):
+    def test_validate_unit_config_success(self, *args, **kwargs):
         config_data = {
             "form": {
                 "title": "Form title",
@@ -308,7 +334,7 @@ class TestFormConfig(unittest.TestCase):
             },
         }
 
-        result, errors = validate_form_config(config_data)
+        result, errors = validate_unit_config(config_data)
 
         self.assertTrue(result)
         self.assertEqual(errors, [])

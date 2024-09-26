@@ -13,32 +13,59 @@ import click
 from rich_click import RichCommand
 from rich_click import RichGroup
 
-from mephisto.generators.form_composer.config_validation.separate_token_values_config import (
-    update_separate_token_values_config_with_file_urls,
-)
-from mephisto.generators.form_composer.config_validation.task_data_config import (
-    create_extrapolated_config,
-)
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     verify_form_composer_configs,
 )
-from mephisto.generators.form_composer.config_validation.token_sets_values_config import (
+from mephisto.generators.generators_utils.config_validation.separate_token_values_config import (
+    update_separate_token_values_config_with_file_urls,
+)
+from mephisto.generators.generators_utils.config_validation.task_data_config import (
+    create_extrapolated_config,
+)
+from mephisto.generators.generators_utils.config_validation.token_sets_values_config import (
     update_token_sets_values_config_with_premutated_data,
 )
-from mephisto.generators.form_composer.config_validation.utils import is_s3_url
-from mephisto.generators.form_composer.config_validation.utils import set_custom_triggers_js_env_var
-from mephisto.generators.form_composer.config_validation.utils import (
+from mephisto.generators.generators_utils.config_validation.utils import is_s3_url
+from mephisto.generators.generators_utils.config_validation.utils import (
+    set_custom_triggers_js_env_var,
+)
+from mephisto.generators.generators_utils.config_validation.utils import (
     set_custom_validators_js_env_var,
 )
 from mephisto.utils.console_writer import ConsoleWriter
 
 FORM_COMPOSER__DATA_DIR_NAME = "data"
 FORM_COMPOSER__DATA_CONFIG_NAME = "task_data.json"
-FORM_COMPOSER__FORM_CONFIG_NAME = "form_config.json"
+FORM_COMPOSER__UNIT_CONFIG_NAME = "unit_config.json"
 FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME = "token_sets_values_config.json"
 FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME = "separate_token_values_config.json"
 
 logger = ConsoleWriter()
+
+
+def start_generator_process(app_path: str, conf: Optional[str] = None):
+    conf_param_str = f" conf={conf}" if conf else ""
+    process = subprocess.Popen(f"python ./run.py{conf_param_str}", shell=True, cwd=app_path)
+
+    # Kill subprocess when we interrupt the main process
+    try:
+        process.wait()
+    except (KeyboardInterrupt, Exception):
+        try:
+            process.terminate()
+        except OSError:
+            pass
+        process.wait()
+
+
+def set_form_composer_env_vars(use_validation_mapping_cache: bool = True):
+    os.environ["VALIDATION_MAPPING"] = (
+        "mephisto.generators.form_composer.config_validation.config_validation_constants."
+        "VALIDATION_MAPPING"
+    )
+
+    if use_validation_mapping_cache:
+        os.environ["VALIDATION_MAPPING_USE_CACHE"] = "true"
 
 
 def _get_form_composer_app_path() -> str:
@@ -50,12 +77,7 @@ def _get_form_composer_app_path() -> str:
     return app_path
 
 
-@click.group(
-    name="form_composer",
-    context_settings=dict(help_option_names=["-h", "--help"]),
-    cls=RichGroup,
-    invoke_without_command=True,
-)
+@click.group(name="form_composer", cls=RichGroup, invoke_without_command=True)
 @click.pass_context
 @click.option(
     "-o",
@@ -82,6 +104,8 @@ def form_composer_cli(
     with client-side form validation.
     """
 
+    set_form_composer_env_vars()
+
     if ctx.invoked_subcommand is not None:
         # It's needed to add the ability to run `config` command,
         # run default code only if there's no other command after `form_composer`
@@ -107,21 +131,11 @@ def form_composer_cli(
     verify_form_composer_configs(
         task_data_config_path=task_data_config_path,
         task_data_config_only=task_data_config_only,
+        force_exit=True,
     )
 
     # Start the process
-    conf_param_str = f" conf={conf}" if conf else ""
-    process = subprocess.Popen(f"python ./run.py{conf_param_str}", shell=True, cwd=app_path)
-
-    # Kill subprocess when we interrupt the main process
-    try:
-        process.wait()
-    except (KeyboardInterrupt, Exception):
-        try:
-            process.terminate()
-        except OSError:
-            pass
-        process.wait()
+    start_generator_process(app_path, conf)
 
 
 @form_composer_cli.command("config", cls=RichCommand)
@@ -224,7 +238,7 @@ def config(
     # Check files and create `data.json` config with tokens data before running a task
     full_path = lambda data_file: os.path.join(app_data_path, data_file)
     task_data_config_path = full_path(FORM_COMPOSER__DATA_CONFIG_NAME)
-    form_config_path = full_path(FORM_COMPOSER__FORM_CONFIG_NAME)
+    unit_config_path = full_path(FORM_COMPOSER__UNIT_CONFIG_NAME)
     token_sets_values_config_path = full_path(FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME)
     separate_token_values_config_path = full_path(FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME)
 
@@ -233,7 +247,7 @@ def config(
         logger.info(f"Started configs verification")
         verify_form_composer_configs(
             task_data_config_path=task_data_config_path,
-            form_config_path=form_config_path,
+            unit_config_path=unit_config_path,
             token_sets_values_config_path=token_sets_values_config_path,
             separate_token_values_config_path=separate_token_values_config_path,
             task_data_config_only=False,
@@ -273,7 +287,7 @@ def config(
             f"from '{FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME}' [/green]"
         )
         create_extrapolated_config(
-            form_config_path=form_config_path,
+            unit_config_path=unit_config_path,
             token_sets_values_config_path=token_sets_values_config_path,
             task_data_config_path=task_data_config_path,
             data_path=app_data_path,
@@ -302,7 +316,7 @@ def config(
             token_sets_values_config_path
         ):
             create_extrapolated_config(
-                form_config_path=form_config_path,
+                unit_config_path=unit_config_path,
                 token_sets_values_config_path=token_sets_values_config_path,
                 task_data_config_path=task_data_config_path,
                 data_path=app_data_path,
@@ -320,7 +334,7 @@ def config(
         logger.info(f"[green]3. Started verification[/green]")
         verify_form_composer_configs(
             task_data_config_path=task_data_config_path,
-            form_config_path=form_config_path,
+            unit_config_path=unit_config_path,
             token_sets_values_config_path=token_sets_values_config_path,
             separate_token_values_config_path=separate_token_values_config_path,
             task_data_config_only=False,

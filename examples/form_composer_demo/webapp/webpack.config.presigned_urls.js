@@ -21,9 +21,10 @@ module.exports = {
         __dirname,
         "../../../packages/mephisto-task-multipart"
       ),
-      "react-form-composer": path.resolve(
+      // Use local library with code that can use FormComposer and  submit Worker Opinion
+      "mephisto-task-addons": path.resolve(
         __dirname,
-        "../../../packages/react-form-composer"
+        "../../../packages/mephisto-task-addons"
       ),
     },
     fallback: {
