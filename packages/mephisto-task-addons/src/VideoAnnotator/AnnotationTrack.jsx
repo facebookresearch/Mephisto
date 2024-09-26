@@ -415,7 +415,9 @@ function AnnotationTrack({
                   duration={duration}
                   isSelectedAnnotationTrack={isSelectedAnnotationTrack}
                   key={`track-segment-${segmentIndex}`}
-                  onClickSegment={(e, index) => segmentIsValid && onClickSegment(e, index)}
+                  onClickSegment={(e, index) =>
+                    segmentIsValid && onClickSegment(e, index)
+                  }
                   paddingLeft={paddingLeft}
                   playerSizes={playerSizes}
                   segment={segment}

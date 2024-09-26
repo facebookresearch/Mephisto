@@ -268,8 +268,8 @@ function VideoAnnotator({
 
           {annotatorInstruction && (
             <div className={`instruction-hint`}>
-              For instructions, click "Task Instructions" button in the top-right
-              corner.
+              For instructions, click "Task Instructions" button in the
+              top-right corner.
             </div>
           )}
 

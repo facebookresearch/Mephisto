@@ -193,7 +193,7 @@ def convert_annotation_tracks_to_webvtt(
         return None
 
     webvtt = WebVTT(
-        header_comments=[f"Mephisto Task \"{task_name}\""],
+        header_comments=[f'Mephisto Task "{task_name}"'],
         footer_comments=["Copyright (c) Meta Platforms and its affiliates."],
     )
 

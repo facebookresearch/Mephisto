@@ -30,7 +30,7 @@ Working config examples are provided in `examples/video_annotator_demo/data` dir
 - separate tokens values: `dynamic/separate_token_values_config.json` to create `token_sets_values_config.json`
 - resulting extrapolated config: `dynamic/task_data.json`
 
-_To understand what the concept of "tokens" means, see [Using multiple form versions](/docs/guides/how_to_use/video_annotator/configuration/multiple_form_versions/) section._
+_To understand what the concept of "tokens" means, see [Using multiple form versions](/docs/guides/how_to_use/video_annotator/configuration/multiple_annotator_versions/) section._
 
 ---
 

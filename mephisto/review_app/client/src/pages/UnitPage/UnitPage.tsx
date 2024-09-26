@@ -4,21 +4,22 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import InitialParametersCollapsable
-  from "components/InitialParametersCollapsable/InitialParametersCollapsable";
+import InitialParametersCollapsable from "components/InitialParametersCollapsable/InitialParametersCollapsable";
 import { InReviewFileModal } from "components/InReviewFileModal/InReviewFileModal";
 import ResultsCollapsable from "components/ResultsCollapsable/ResultsCollapsable";
 import TasksHeader from "components/TasksHeader/TasksHeader";
-import VideoAnnotatorWebVTTCollapsable
-  from "components/VideoAnnotatorWebVTTCollapsable/VideoAnnotatorWebVTTCollapsable";
+import VideoAnnotatorWebVTTCollapsable from "components/VideoAnnotatorWebVTTCollapsable/VideoAnnotatorWebVTTCollapsable";
 import WorkerOpinionCollapsable from "components/WorkerOpinionCollapsable/WorkerOpinionCollapsable";
-import { MESSAGES_IFRAME_DATA_KEY, MESSAGES_IN_REVIEW_FILE_DATA_KEY } from "consts/review";
+import {
+  MESSAGES_IFRAME_DATA_KEY,
+  MESSAGES_IN_REVIEW_FILE_DATA_KEY,
+} from "consts/review";
 import { setPageTitle } from "helpers";
 import * as React from "react";
 import { useEffect } from "react";
 import { Spinner } from "react-bootstrap";
 import { useParams } from "react-router-dom";
-import { getTask } from 'requests/tasks';
+import { getTask } from "requests/tasks";
 import { getUnits, getUnitsDetails } from "requests/units";
 import urls from "urls";
 import "./UnitPage.css";

@@ -4,12 +4,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import InitialParametersCollapsable
-  from "components/InitialParametersCollapsable/InitialParametersCollapsable";
+import InitialParametersCollapsable from "components/InitialParametersCollapsable/InitialParametersCollapsable";
 import { InReviewFileModal } from "components/InReviewFileModal/InReviewFileModal";
 import ResultsCollapsable from "components/ResultsCollapsable/ResultsCollapsable";
-import VideoAnnotatorWebVTTCollapsable
-  from "components/VideoAnnotatorWebVTTCollapsable/VideoAnnotatorWebVTTCollapsable";
+import VideoAnnotatorWebVTTCollapsable from "components/VideoAnnotatorWebVTTCollapsable/VideoAnnotatorWebVTTCollapsable";
 import WorkerOpinionCollapsable from "components/WorkerOpinionCollapsable/WorkerOpinionCollapsable";
 import {
   MESSAGES_IFRAME_DATA_KEY,
