@@ -15,7 +15,7 @@
   "keywords": [],
   "author": "",
   "dependencies": {
-    "bootstrap": "^4.6.2",
+    "bootstrap": "^5.3.3",
     "bootstrap-select": "^1.13.18",
     "jquery": "^3.6.0",
     "react": "^18.2.0",
