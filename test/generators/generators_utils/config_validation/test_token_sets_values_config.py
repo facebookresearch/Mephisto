@@ -28,7 +28,7 @@ from mephisto.generators.generators_utils.config_validation.token_sets_values_co
 class TestTokenSetsValuesConfig(unittest.TestCase):
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()
-        set_form_composer_env_vars()
+        set_form_composer_env_vars(use_validation_mapping_cache=False)
 
     def tearDown(self):
         shutil.rmtree(self.data_dir, ignore_errors=True)

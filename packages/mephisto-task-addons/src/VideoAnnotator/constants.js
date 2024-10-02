@@ -27,6 +27,11 @@ export const INIT_ANNOTATION_TRACK = {
 // but setting states is async
 export const DELAY_CLICK_ON_SECTION_MSEC = 200;
 
+// When we create a new segment, if it's inside alreadycreated segment,
+// we show error message under progress bar.
+// If we show it immediately, it can be hidden with effect of setting currently in change segment
+export const DELAY_SHOW_OVERLAPPING_MESSAGE_MSEC = 200;
+
 export const START_NEXT_SECTION_PLUS_SEC = 0;
 
 export const COLORS = [

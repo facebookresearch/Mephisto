@@ -15,3 +15,37 @@ You can easily generate form-based Tasks using our FormComposer task generator f
 You can find working demos of FormComposer in `examples/form_composer_demo` repo directory.
 
 For details on how to run these examples, refer to the demo's [README.md](https://github.com/facebookresearch/Mephisto/blob/main/examples/form_composer_demo/README.md)
+
+### FormComposer app UI
+
+Here is how FormComposer app UI looks like.
+
+### Just started task
+
+![List of tasks](./screenshots/initial_view.png)
+<br/>
+<br/>
+
+### Filled form
+
+![List of tasks](./screenshots/in_progress_view.png)
+<br/>
+<br/>
+
+### TaskReview app
+
+![List of tasks](./screenshots/review.png)
+<br/>
+<br/>
+
+### TaskReview app. List of Units
+
+![TaskReview app. List of Units](./screenshots/units_list.png)
+<br/>
+<br/>
+
+### TaskReview app. Unit page
+
+![TaskReview app. Unit page](./screenshots/unit_page.png)
+<br/>
+<br/>

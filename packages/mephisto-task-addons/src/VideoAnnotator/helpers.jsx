@@ -50,3 +50,9 @@ export function convertAnnotationTasksDataObjectsRoLists(data) {
 
   return _data;
 }
+
+export function getExtFromFilePath(path) {
+  const splittedPath = path.split(".");
+  const ext = splittedPath[splittedPath.length - 1];
+  return ext;
+}

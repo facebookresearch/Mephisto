@@ -356,7 +356,9 @@ function TaskPage(props: TaskPagePropsType) {
   }
 
   function onModalSubmit() {
-    setModalShow(false);
+    props.setErrors([]);
+
+    let hasErrors = false;
 
     const unitIds = getUnitsIdsByApplyToNext(modalData.applyToNext);
 
@@ -388,23 +390,35 @@ function TaskPage(props: TaskPagePropsType) {
         }
       );
     } else if (modalData.type === ReviewType.REJECT) {
-      postUnitsReject(
-        () => onReviewSuccess(modalData, unitIds),
-        setLoading,
-        onError,
-        {
-          review_note: modalData.form.checkboxReviewNote
-            ? modalData.form.reviewNote
-            : null,
-          send_to_worker: modalData.form.checkboxReviewNoteSend,
-          unit_ids: unitIds,
-        }
-      );
+      if (modalData.form.checkboxBanWorker && !modalData.form.reviewNote) {
+        hasErrors = true;
+        props.setErrors(["'Write Note' is required if you ban Worker"]);
+      }
+
+      if (!hasErrors) {
+        postUnitsReject(
+          () => onReviewSuccess(modalData, unitIds),
+          setLoading,
+          onError,
+          {
+            review_note: modalData.form.checkboxReviewNote
+              ? modalData.form.reviewNote
+              : null,
+            send_to_worker: modalData.form.checkboxReviewNoteSend,
+            unit_ids: unitIds,
+          }
+        );
+      }
     }
 
-    // Save current state of the modal data
-    updateModalState(setModalState, modalData.type, modalData);
-    setIframeLoaded(false);
+    if (!hasErrors) {
+      // Close modal
+      setModalShow(false);
+
+      // Save current state of the modal data
+      updateModalState(setModalState, modalData.type, modalData);
+      setIframeLoaded(false);
+    }
   }
 
   function onError(errorResponse: ErrorResponseType | null) {

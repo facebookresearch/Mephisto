@@ -51,6 +51,8 @@ def set_video_annotator_env_vars(use_validation_mapping_cache: bool = True):
 
     if use_validation_mapping_cache:
         os.environ["VALIDATION_MAPPING_USE_CACHE"] = "true"
+    else:
+        os.environ["VALIDATION_MAPPING_USE_CACHE"] = "false"
 
 
 def _get_video_annotator_app_path() -> str:

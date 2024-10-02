@@ -10,6 +10,7 @@ import {
   ProcedureName,
   WAIT_FOR_AGENT_ID_MSEC,
 } from "../FormComposer/utils";
+import { secontsToTime } from "./helpers.jsx";
 
 let urlToTokenProcedureMapping = {};
 
@@ -143,4 +144,59 @@ export function prepareVideoAnnotatorData(
   );
 
   // 2. TODO: Add additional steps here
+}
+
+export function validateTimeFieldsOnSave(
+  annotationTrack,
+  segmentToChange,
+  selectedSegment
+) {
+  const errors = [];
+  const validation = {};
+
+  // If start is greater than end
+  if (segmentToChange.start_sec > segmentToChange.end_sec) {
+    errors.push(`Start of the segment cannot be greater than end of it.`);
+    validation.end_sec = false;
+  }
+
+  // If segment is inside another segment
+  Object.entries(annotationTrack.segments).map(([segmentIndex, segment]) => {
+    // Skip currently saving segment
+    if (String(segmentIndex) === String(selectedSegment)) {
+      return;
+    }
+
+    let hasOverlapping = false;
+
+    if (
+      segmentToChange.start_sec > segment.start_sec &&
+      segmentToChange.start_sec < segment.end_sec
+    ) {
+      hasOverlapping = true;
+      validation.start_sec = false;
+    }
+
+    if (
+      segmentToChange.end_sec > segment.start_sec &&
+      segmentToChange.end_sec < segment.end_sec
+    ) {
+      hasOverlapping = true;
+      validation.end_sec = false;
+    }
+
+    if (hasOverlapping) {
+      errors.push(
+        `You cannot start or end a segment in already created segment before: ` +
+          `${segment.title} ${secontsToTime(
+            segment.start_sec
+          )} - ${secontsToTime(segment.end_sec)}`
+      );
+    }
+  });
+
+  return {
+    errors: errors,
+    fields: validation,
+  };
 }

@@ -6,14 +6,14 @@
 
 import React from "react";
 
-export function Errors({ messages }) {
+export function Errors({ className, messages }) {
   return (
     // bootstrap classes:
     //  - invalid-feedback
 
     <>
       {messages && messages.length > 0 && (
-        <div className={`invalid-feedback`}>
+        <div className={`invalid-feedback ${className || ""}`}>
           {messages.map((message, i) => {
             return <div key={`message-${i}`}>{message}</div>;
           })}
