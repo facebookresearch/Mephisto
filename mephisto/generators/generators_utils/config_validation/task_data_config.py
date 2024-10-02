@@ -10,12 +10,11 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
-from rich import print
-
 from mephisto.generators.generators_utils.constants import S3_URL_EXPIRATION_MINUTES_MAX
 from mephisto.generators.generators_utils.constants import TOKEN_END_REGEX
 from mephisto.generators.generators_utils.constants import TOKEN_START_REGEX
 from mephisto.generators.generators_utils.remote_procedures import ProcedureName
+from mephisto.utils.console_writer import ConsoleWriter
 from .common_validation import replace_path_to_file_with_its_content
 from .config_validation_constants import TOKENS_VALUES_KEY
 from .separate_token_values_config import validate_separate_token_values_config
@@ -25,6 +24,8 @@ from .utils import get_validation_mappings
 from .utils import make_error_message
 from .utils import read_config_file
 from .utils import write_config_to_file
+
+logger = ConsoleWriter()
 
 
 def _extrapolate_tokens_values(
@@ -305,7 +306,7 @@ def create_extrapolated_config(
         )
         write_config_to_file(extrapolated_unit_config_data, task_data_config_path)
     except (ValueError, FileNotFoundError) as e:
-        print(f"\n[red]Could not extrapolate form configs:[/red] {e}\n")
+        logger.info(f"\n[red]Could not extrapolate form configs:[/red] {e}\n")
         exit()
 
 
@@ -463,10 +464,10 @@ def verify_generator_configs(
         if errors:
             raise ValueError(make_error_message("", errors))
         else:
-            print(f"[green]All configs are valid.[/green]")
+            logger.info(f"[green]All configs are valid.[/green]")
 
     except ValueError as e:
-        print(error_message.format(exc=e))
+        logger.info(error_message.format(exc=e))
 
         if force_exit:
             exit()

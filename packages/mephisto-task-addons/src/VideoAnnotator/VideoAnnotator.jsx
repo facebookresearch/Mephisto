@@ -6,6 +6,7 @@
 
 import { Popover } from "bootstrap";
 import React from "react";
+import { VIDEO_TYPES_BY_EXT } from "../constants";
 import { getFormatStringWithTokensFunction } from "../FormComposer/utils";
 import TaskInstructionButton from "../TaskInstructionModal/TaskInstructionButton";
 import TaskInstructionModal from "../TaskInstructionModal/TaskInstructionModal";
@@ -18,6 +19,7 @@ import {
   STORAGE_PRESAVED_ANNOTATION_TRACKS_KEY,
 } from "./constants";
 import "./VideoAnnotator.css";
+import { getExtFromFilePath } from "./helpers.jsx";
 import VideoPlayer from "./VideoPlayer.jsx";
 
 function VideoAnnotator({
@@ -95,13 +97,16 @@ function VideoAnnotator({
     segmentFields = DEFAULT_SEGMENT_FIELDS;
   }
 
+  const videoExt = getExtFromFilePath(videoAnnotatorConfig.video);
+  const videoType = VIDEO_TYPES_BY_EXT[videoExt];
+
   const videoJsOptions = {
     autoplay: false,
     controls: true,
     sources: [
       {
         src: videoAnnotatorConfig.video,
-        type: "video/mp4",
+        type: videoType,
       },
     ],
     width: "700",

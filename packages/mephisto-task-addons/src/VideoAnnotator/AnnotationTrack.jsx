@@ -14,6 +14,7 @@ import "./AnnotationTrack.css";
 import {
   COLORS,
   DELAY_CLICK_ON_SECTION_MSEC,
+  DELAY_SHOW_OVERLAPPING_MESSAGE_MSEC,
   INIT_SECTION,
   POPOVER_INVALID_SEGMENT_CLASS,
   POPOVER_INVALID_SEGMENT_PROPS,
@@ -21,6 +22,7 @@ import {
 } from "./constants";
 import { secontsToTime } from "./helpers.jsx";
 import TrackSegment from "./TrackSegment.jsx";
+import { validateTimeFieldsOnSave } from "./utils";
 
 function AnnotationTrack({
   annotationTrack,
@@ -46,6 +48,10 @@ function AnnotationTrack({
 
   const [inEditState, setInEditState] = React.useState(false);
   const [selectedSegment, setSelectedSegment] = React.useState(null);
+  const [
+    overlappingSegmentErrors,
+    setOverlappingSegmentErrors,
+  ] = React.useState([]);
   const [segmentToChangeErrors, setSegmentToChangeErrors] = React.useState([]);
   const [segmentToChange, setSegmentToChange] = React.useState(null);
   // Invalid fields (having error messages after form validation)
@@ -110,6 +116,7 @@ function AnnotationTrack({
 
       setInEditState(false);
       setSegmentValidation({});
+      setOverlappingSegmentErrors([]);
     }
   }
 
@@ -127,6 +134,7 @@ function AnnotationTrack({
       setSelectedSegment(null);
       setSegmentToChange(null);
       setSegmentValidation({});
+      setOverlappingSegmentErrors([]);
     }
   }
 
@@ -178,56 +186,20 @@ function AnnotationTrack({
     setSelectedSegment(newSegmentIndex);
     setSegmentToChange(newSegment);
     onSelectSegment && onSelectSegment(newSegment);
-  }
 
-  function validateTimeFieldsOnSave() {
-    const errors = [];
-    const validation = {};
-
-    // If start is greater than end
-    if (segmentToChange.start_sec > segmentToChange.end_sec) {
-      errors.push(`Start of the segment cannot be greater than end of it.`);
-      validation.end_sec = false;
+    // Show overlapping message under segments progress bar
+    const timeFieldsValidationResults = validateTimeFieldsOnSave(
+      annotationTrack,
+      newSegment,
+      newSegmentIndex
+    );
+    if (timeFieldsValidationResults.errors.length > 0) {
+      setTimeout(() => {
+        setOverlappingSegmentErrors([
+          "Overlapping segment should be added to a different track",
+        ]);
+      }, DELAY_SHOW_OVERLAPPING_MESSAGE_MSEC);
     }
-
-    // If segment is inside another segment
-    Object.entries(annotationTrack.segments).map(([segmentIndex, segment]) => {
-      // Skip currently saving segment
-      if (String(segmentIndex) === String(selectedSegment)) {
-        return;
-      }
-
-      if (
-        segmentToChange.start_sec > segment.start_sec &&
-        segmentToChange.start_sec < segment.end_sec
-      ) {
-        errors.push(
-          `You cannot start a segment in already created segment before: ` +
-            `${segment.title} ${secontsToTime(
-              segment.start_sec
-            )} - ${secontsToTime(segment.end_sec)}`
-        );
-        validation.start_sec = false;
-      }
-
-      if (
-        segmentToChange.end_sec > segment.start_sec &&
-        segmentToChange.end_sec < segment.end_sec
-      ) {
-        errors.push(
-          `You cannot end a segment in already created segment before: ` +
-            `${segment.title} ${secontsToTime(
-              segment.start_sec
-            )} - ${secontsToTime(segment.end_sec)}`
-        );
-        validation.end_sec = false;
-      }
-    });
-
-    // Update segment validation results
-    setSegmentValidation(validation);
-
-    return errors;
   }
 
   function onClickSegment(e, segmentIndex) {
@@ -267,8 +239,13 @@ function AnnotationTrack({
     }
 
     // Validate current segment
-    const timeFieldsErrors = validateTimeFieldsOnSave();
-    setSegmentToChangeErrors(timeFieldsErrors);
+    const timeFieldsValidationResults = validateTimeFieldsOnSave(
+      annotationTrack,
+      segmentToChange,
+      selectedSegment
+    );
+    setSegmentValidation(timeFieldsValidationResults.fields);
+    setSegmentToChangeErrors(timeFieldsValidationResults.errors);
 
     // Validate dynamic segment fields
     const dynamicFieldsErrorsByField = validateFormFields(
@@ -277,6 +254,9 @@ function AnnotationTrack({
       customValidators
     );
     setInvalidSegmentFields(dynamicFieldsErrorsByField);
+
+    // Clean overlapping message
+    setOverlappingSegmentErrors([]);
 
     // Update segment validation results
     setSegmentValidation((prevState) => {
@@ -431,6 +411,14 @@ function AnnotationTrack({
           )}
         </div>
       )}
+
+      <ListErrors
+        className={`
+          overlapping-segments
+          ${overlappingSegmentErrors.length ? "is-invalid" : ""}
+        `}
+        messages={overlappingSegmentErrors}
+      />
 
       {showSegmentToChangeInfo && (
         <div

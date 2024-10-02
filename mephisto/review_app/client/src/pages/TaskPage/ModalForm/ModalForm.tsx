@@ -97,6 +97,19 @@ function ModalForm(props: ModalFormProps) {
   const onChangeBanWorker = (value: boolean) => {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.checkboxBanWorker = value;
+
+    if (props.data.type === ReviewType.REJECT) {
+      if (value === true) {
+        // Open review note
+        prevFormData.checkboxReviewNote = true;
+      } else {
+        // Close review note only if there is no note typed already
+        if (!prevFormData.reviewNote) {
+          prevFormData.checkboxReviewNote = false;
+        }
+      }
+    }
+
     props.setData({ ...props.data, form: prevFormData });
   };
 

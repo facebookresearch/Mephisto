@@ -70,7 +70,7 @@ class InhouseUnit(Unit):
         ui_base_url = task_run.args.provider.ui_base_url
         # This param `id` will only be used by `getAssignmentId` from `wrap_crowd_source.js`
         # as any random pseudo id to pass server validation
-        unit_url = f"{ui_base_url}?worker_id=<WORKER_USERNAME>&id={self.assignment_id}"
+        unit_url = f"{ui_base_url}?worker_id=WORKER_USERNAME&id={self.assignment_id}"
         logger.info(f'Unit "{self.db_id}" launched: {unit_url}')
         return None
 

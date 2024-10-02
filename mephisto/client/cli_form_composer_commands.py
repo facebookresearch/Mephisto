@@ -66,6 +66,8 @@ def set_form_composer_env_vars(use_validation_mapping_cache: bool = True):
 
     if use_validation_mapping_cache:
         os.environ["VALIDATION_MAPPING_USE_CACHE"] = "true"
+    else:
+        os.environ["VALIDATION_MAPPING_USE_CACHE"] = "false"
 
 
 def _get_form_composer_app_path() -> str:
