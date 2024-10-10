@@ -35,6 +35,18 @@ def init_urls(app: Flask):
         view_func=api_views.QualificationsView.as_view("qualifications"),
     )
     app.add_url_rule(
+        "/api/qualifications/<int:qualification_id>",
+        view_func=api_views.QualificationView.as_view("qualification"),
+    )
+    app.add_url_rule(
+        "/api/qualifications/<int:qualification_id>/details",
+        view_func=api_views.QualificationDetailsView.as_view("qualification_details"),
+    )
+    app.add_url_rule(
+        "/api/granted-qualifications",
+        view_func=api_views.GrantedQualificationsView.as_view("granted_qualifications"),
+    )
+    app.add_url_rule(
         "/api/tasks/<int:task_id>/worker-units-ids",
         view_func=api_views.TaskUnitIdsView.as_view("worker_units_ids"),
     )

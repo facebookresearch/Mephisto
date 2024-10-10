@@ -1,0 +1,116 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.qualifications-table {
+  width: 100%;
+}
+
+.qualifications-table .titles-row th {
+  background-color: #ecdadf;
+}
+
+.qualifications-table .titles-row .qualification {
+  width: 350px;
+  max-width: 350px;
+}
+
+.qualifications-table .titles-row .value-granted {
+  width: 130px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.qualifications-table .titles-row .date-granted {
+  width: 130px;
+  text-align: center;
+}
+
+.qualifications-table .titles-row .task {
+  width: 130px;
+  text-align: center;
+}
+
+.qualifications-table .titles-row .worker {
+  width: 80px;
+  text-align: center;
+}
+
+.qualifications-table .titles-row .unit {
+  width: 80px;
+  text-align: center;
+}
+
+.qualifications-table .titles-row .actions {
+  width: 80px;
+  text-align: center;
+}
+
+.qualifications-table .value-row:not(.no-hover) {
+  cursor: pointer;
+}
+
+.qualifications-table .value-row:not(.no-hover):hover td {
+  background-color: rgba(236, 218, 223, 0.3);
+}
+
+.qualifications-table .value-row .qualification {
+  width: 350px;
+  max-width: 350px;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qualifications-table .value-row .qualification .qualification-link {
+  text-decoration: initial;
+  cursor: pointer;
+}
+.qualifications-table .value-row .qualification .qualification-link:hover {
+  text-decoration: underline;
+}
+
+.qualifications-table .value-row .value-granted,
+.qualifications-table .value-row .date-granted,
+.qualifications-table .value-row .task,
+.qualifications-table .value-row .worker {
+  text-align: center;
+}
+
+.qualifications-table .value-row .units {
+  width: 280px;
+  max-width: 280px;
+  text-align: left;
+}
+
+.qualifications-table .value-row .units .unit {
+  display: inline-flex;
+}
+
+.qualifications-table .value-row .units .unit .unit-value {
+  margin-right: 4px;
+}
+
+.qualifications-table .value-row .units .unit .text-primary {
+  cursor: pointer;
+  text-decoration: initial;
+}
+
+.qualifications-table .value-row .units .unit .text-primary:hover {
+  text-decoration: underline;
+}
+
+.qualifications-table .value-row .units .unit .task-name {
+  display: inline-block;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qualifications-table .value-row .units .unit .unit-id {
+  display: inline-block;
+}

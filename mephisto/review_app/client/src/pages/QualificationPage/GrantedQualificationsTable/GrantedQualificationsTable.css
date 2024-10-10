@@ -1,0 +1,115 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.granted-qualification-table {
+  width: 100%;
+}
+
+.granted-qualification-table .titles-row th {
+  background-color: #ecdadf;
+}
+
+.granted-qualification-table .titles-row .qualification {
+  width: 350px;
+  max-width: 350px;
+}
+
+.granted-qualification-table .titles-row .value-granted {
+  width: 130px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.granted-qualification-table .titles-row .date-granted {
+  width: 130px;
+  text-align: center;
+}
+
+.granted-qualification-table .titles-row .task {
+  width: 130px;
+  text-align: center;
+}
+
+.granted-qualification-table .titles-row .worker {
+  width: 80px;
+  text-align: center;
+}
+
+.granted-qualification-table .titles-row .unit {
+  width: 80px;
+  text-align: center;
+}
+
+.granted-qualification-table .titles-row .actions {
+  width: 80px;
+  text-align: center;
+}
+
+.granted-qualification-table .value-row:not(.no-hover) {
+  cursor: pointer;
+}
+
+.granted-qualification-table .value-row:not(.no-hover):hover td {
+  background-color: rgba(236, 218, 223, 0.3);
+}
+
+.granted-qualification-table .value-row .task {
+  width: 350px;
+  max-width: 350px;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.granted-qualification-table .value-row .qualification.text-primary {
+  cursor: pointer;
+}
+.granted-qualification-table .value-row .qualification.text-primary:hover {
+  text-decoration: underline;
+}
+
+.granted-qualification-table .value-row .value-granted,
+.granted-qualification-table .value-row .date-granted,
+.granted-qualification-table .value-row .task,
+.granted-qualification-table .value-row .worker {
+  text-align: center;
+}
+
+.granted-qualification-table .value-row .units {
+  width: 280px;
+  max-width: 280px;
+  text-align: left;
+}
+
+.granted-qualification-table .value-row .units .unit {
+  display: inline-flex;
+}
+
+.granted-qualification-table .value-row .units .unit .unit-value {
+  margin-right: 4px;
+}
+
+.granted-qualification-table .value-row .units .unit .text-primary {
+  cursor: pointer;
+  text-decoration: initial;
+}
+
+.granted-qualification-table .value-row .units .unit .text-primary:hover {
+  text-decoration: underline;
+}
+
+.granted-qualification-table .value-row .units .unit .task-name {
+  display: inline-block;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.granted-qualification-table .value-row .units .unit .unit-id {
+  display: inline-block;
+}

@@ -5,12 +5,12 @@
  */
 
 import { InReviewFileModal } from "components/InReviewFileModal/InReviewFileModal";
+import Preloader from "components/Preloader/Preloader";
 import TasksHeader from "components/TasksHeader/TasksHeader";
 import WorkerOpinionCollapsable from "components/WorkerOpinionCollapsable/WorkerOpinionCollapsable";
-import { setPageTitle } from "helpers";
+import { setPageTitle, setResponseErrors } from "helpers";
 import * as React from "react";
 import { useEffect } from "react";
-import { Spinner } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import { getTaskWorkerOpinions } from "requests/tasks";
 import "./TaskWorkerOpinionsPage.css";
@@ -40,11 +40,8 @@ function TaskWorkerOpinionsPage(props: TaskWorkerOpinionsPagePropsType) {
     InReviewFileModalDataType
   >({});
 
-  function onError(errorResponse: ErrorResponseType | null) {
-    if (errorResponse) {
-      props.setErrors((oldErrors) => [...oldErrors, ...[errorResponse.error]]);
-    }
-  }
+  const onError = (response: ErrorResponseType) =>
+    setResponseErrors(props.setErrors, response);
 
   function onClickOnWorkerOpinionAttachment(
     file: WorkerOpinionAttachmentType,
@@ -124,11 +121,7 @@ function TaskWorkerOpinionsPage(props: TaskWorkerOpinionsPagePropsType) {
       <div className={"content"}>
         {/* Preloader when we request task worker opinions */}
         {loading ? (
-          <div className={"loading"}>
-            <Spinner animation="border" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </Spinner>
-          </div>
+          <Preloader loading={loading} />
         ) : (
           // Worker Opinions
           taskWorkerOpinions?.worker_opinions?.map(

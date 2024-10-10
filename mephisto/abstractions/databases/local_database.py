@@ -784,7 +784,7 @@ class LocalMephistoDB(MephistoDB):
         self, unit_id: str, agent_id: Optional[str] = None, status: Optional[str] = None
     ) -> None:
         """
-        Update the given task with the given parameters if possible,
+        Update the given unit with the given parameters if possible,
         raise appropriate exception otherwise.
         """
         if status not in AssignmentState.valid_unit():
@@ -1117,7 +1117,9 @@ class LocalMephistoDB(MephistoDB):
             rows = c.fetchall()
             return [Agent(self, str(r["agent_id"]), row=r, _used_new_call=True) for r in rows]
 
-    def _make_qualification(self, qualification_name: str) -> str:
+    def _make_qualification(
+        self, qualification_name: str, description: Optional[str] = None
+    ) -> str:
         """
         Make a new qualification, throws an error if a qualification by the given name
         already exists. Return the id for the qualification.
@@ -1128,8 +1130,8 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             try:
                 c.execute(
-                    "INSERT INTO qualifications(qualification_name) VALUES (?);",
-                    (qualification_name,),
+                    "INSERT INTO qualifications(qualification_name, description) VALUES (?, ?);",
+                    (qualification_name, description),
                 )
                 qualification_id = str(c.lastrowid)
                 return qualification_id
@@ -1194,6 +1196,38 @@ class LocalMephistoDB(MephistoDB):
                 "DELETE FROM qualifications WHERE qualification_name = ?1;",
                 (qualification_name,),
             )
+
+    def _update_qualification(
+        self,
+        qualification_id: str,
+        name: str,
+        description: Optional[str] = None,
+    ) -> None:
+        """
+        Update the given qualification with the given parameters if possible,
+        raise appropriate exception otherwise.
+        """
+        with self.table_access_condition, self.get_connection() as conn:
+            c = conn.cursor()
+            try:
+                c.execute(
+                    """
+                    UPDATE qualifications
+                    SET qualification_name = ?2, description = ?3
+                    WHERE qualification_id = ?1;
+                    """,
+                    [
+                        nonesafe_int(qualification_id),
+                        name,
+                        description,
+                    ],
+                )
+            except sqlite3.IntegrityError as e:
+                if is_key_failure(e):
+                    raise EntryDoesNotExistException(
+                        f"Given qualification_id {qualification_id} not found in the database"
+                    )
+                raise MephistoDBException(e)
 
     def _grant_qualification(self, qualification_id: str, worker_id: str, value: int = 1) -> None:
         """

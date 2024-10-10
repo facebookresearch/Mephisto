@@ -78,6 +78,7 @@ MAKE_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="make_qualification"
 GET_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="get_qualification")
 FIND_QUALIFICATIONS_LATENCY = DATABASE_LATENCY.labels(method="find_qualifications")
 DELETE_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="delete_qualification")
+UPDATE_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="update_qualification")
 GRANT_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="grant_qualification")
 FIND_GRANT_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="find_granted_qualification")
 CHECK_GRANTED_QUALIFICATIONS_LATENCY = DATABASE_LATENCY.labels(
@@ -600,7 +601,8 @@ class MephistoDB(ABC):
         self, unit_id: str, agent_id: Optional[str] = None, status: Optional[str] = None
     ) -> None:
         """
-        Update the given task with the given parameters if possible, raise appropriate exception otherwise.
+        Update the given unit with the given parameters if possible,
+        raise appropriate exception otherwise.
         """
         return self._update_unit(unit_id=unit_id, status=status)
 
@@ -901,17 +903,21 @@ class MephistoDB(ABC):
         )
 
     @abstractmethod
-    def _make_qualification(self, qualification_name: str) -> str:
+    def _make_qualification(
+        self, qualification_name: str, description: Optional[str] = None
+    ) -> str:
         """make_qualification implementation"""
         raise NotImplementedError()
 
     @MAKE_QUALIFICATION_LATENCY.time()
-    def make_qualification(self, qualification_name: str) -> str:
+    def make_qualification(self, qualification_name: str, description: Optional[str] = None) -> str:
         """
         Make a new qualification, throws an error if a qualification by the given name
         already exists. Return the id for the qualification.
         """
-        return self._make_qualification(qualification_name=qualification_name)
+        return self._make_qualification(
+            qualification_name=qualification_name, description=description
+        )
 
     @abstractmethod
     def _find_qualifications(self, qualification_name: Optional[str] = None) -> List[Qualification]:
@@ -942,9 +948,7 @@ class MephistoDB(ABC):
 
     @abstractmethod
     def _delete_qualification(self, qualification_name: str) -> None:
-        """
-        Remove this qualification from all workers that have it, then delete the qualification
-        """
+        """delete_qualification implementation"""
         raise NotImplementedError()
 
     @DELETE_QUALIFICATION_LATENCY.time()
@@ -958,16 +962,46 @@ class MephistoDB(ABC):
             provider = ProviderClass(self)
             provider.cleanup_qualification(qualification_name)
 
+    @abstractmethod
+    def _update_qualification(
+        self,
+        qualification_id: str,
+        name: str,
+        description: Optional[str] = None,
+    ) -> None:
+        """update_qualification implementation"""
+        raise NotImplementedError()
+
+    @UPDATE_QUALIFICATION_LATENCY.time()
+    def update_qualification(
+        self,
+        qualification_id: str,
+        name: str,
+        description: Optional[str] = None,
+    ) -> None:
+        """
+        Update the given qualification with the given parameters if possible,
+        raise appropriate exception otherwise.
+        """
+        return self._update_qualification(
+            qualification_id=qualification_id,
+            name=name,
+            description=description,
+        )
+
     @FIND_GRANT_QUALIFICATION_LATENCY.time()
     def find_granted_qualifications(
         self,
         worker_id: Optional[str] = None,
+        qualification_id: Optional[str] = None,
     ) -> List[GrantedQualification]:
         """
         Find granted qualifications.
-        If `worker_id` is not supplied, returns all granted qualifications.
+        If nothing supplied, returns all granted qualifications.
         """
-        return self._check_granted_qualifications(worker_id=worker_id)
+        return self._check_granted_qualifications(
+            worker_id=worker_id, qualification_id=qualification_id
+        )
 
     @abstractmethod
     def _grant_qualification(self, qualification_id: str, worker_id: str, value: int = 1) -> None:

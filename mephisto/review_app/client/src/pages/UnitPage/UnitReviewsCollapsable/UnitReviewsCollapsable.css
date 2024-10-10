@@ -1,0 +1,61 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.unit-reviews {
+}
+
+.unit-reviews .unit-reviews-table .titles-row th {
+  background-color: #ecdadf;
+}
+
+.unit-reviews .unit-reviews-table .titles-row .value,
+.unit-reviews .unit-reviews-table .titles-row .status,
+.unit-reviews .unit-reviews-table .titles-row .blocked,
+.unit-reviews .unit-reviews-table .titles-row .bonus {
+  width: 80px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.unit-reviews .unit-reviews-table .titles-row .qualification {
+  width: 350px;
+  max-width: 350px;
+}
+
+.unit-reviews .unit-reviews-table .titles-row .date {
+  width: 130px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.unit-reviews .unit-reviews-table .titles-row .note {
+  width: 350px;
+  max-width: 350px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.unit-reviews .unit-reviews-table .value-row .value,
+.unit-reviews .unit-reviews-table .value-row .date,
+.unit-reviews .unit-reviews-table .value-row .status,
+.unit-reviews .unit-reviews-table .value-row .blocked,
+.unit-reviews .unit-reviews-table .value-row .bonus {
+  text-align: center;
+}
+
+.unit-reviews .unit-reviews-table .value-row .qualification {
+  width: 350px;
+  max-width: 350px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unit-reviews .unit-reviews-table .value-row .note {
+  width: 350px;
+  max-width: 350px;
+  text-align: left;
+}

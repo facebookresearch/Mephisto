@@ -1,0 +1,42 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.qualification {
+}
+
+.qualification .header {
+  margin-bottom: 40px;
+  padding: 10px 20px;
+  background-color: #ecdadf;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.qualification .header .qualification-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.qualification .header .qualification-info .qualification-name {
+  font-size: 25px;
+}
+
+.qualification .header .qualification-info .qualification-description {
+  max-width: 800px;
+}
+
+.qualification .header .qualification-info .qualification-date {
+}
+
+.qualification .header .header-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: flex-start;
+}

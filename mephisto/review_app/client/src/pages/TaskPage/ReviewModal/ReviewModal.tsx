@@ -38,7 +38,7 @@ function ReviewModal(props: ReviewModalProps) {
   return (
     props.show && (
       <Modal className={"review-modal"} show={props.show} onHide={onModalClose}>
-        <Modal.Header closeButton={false}>
+        <Modal.Header closeButton={true}>
           <Modal.Title>{props.data.title}</Modal.Title>
         </Modal.Header>
 
@@ -54,11 +54,11 @@ function ReviewModal(props: ReviewModalProps) {
         <Modal.Footer>
           <div className={"review-buttons"}>
             <Button
-              variant={"cancel-button link"}
+              variant={"outline-secondary"}
               size={"sm"}
               onClick={onModalClose}
             >
-              <b>{props.data.buttonCancel}</b>
+              {props.data.buttonCancel}
             </Button>
             <Button
               variant={ReviewTypeButtonClassMapping[props.data.type]}

@@ -9,6 +9,7 @@ const API_URL = process.env.REACT_APP__API_URL || "";
 const urls = {
   client: {
     home: "/",
+    qualification: (id) => `/qualifications/${id}`,
     task: (id) => `/tasks/${id}`,
     taskStats: (id) => `/tasks/${id}/stats`,
     taskTimeline: (id) => `/tasks/${id}/timeline`,
@@ -18,6 +19,9 @@ const urls = {
     tasks: "/tasks",
   },
   server: {
+    grantedQualifications: API_URL + "/api/granted-qualifications",
+    qualification: (id) => API_URL + `/api/qualifications/${id}`,
+    qualificationDetails: (id) => API_URL + `/api/qualifications/${id}/details`,
     qualifications: API_URL + "/api/qualifications",
     qualificationWorkers: (id) => API_URL + `/api/qualifications/${id}/workers`,
     qualificationGrantWorker: (id, workerId) =>

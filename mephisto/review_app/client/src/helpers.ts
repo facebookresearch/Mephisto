@@ -31,3 +31,12 @@ export function setPageTitle(title: string) {
 export function capitalizeString(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
+
+export function setResponseErrors(
+  setErrorsFunc: Function,
+  errorResponse: ErrorResponseType | null
+) {
+  if (errorResponse) {
+    setErrorsFunc((oldErrors) => [...oldErrors, ...[errorResponse.error]]);
+  }
+}

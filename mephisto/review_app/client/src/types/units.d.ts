@@ -55,6 +55,7 @@ declare type WorkerOpinionType = {
 declare type UnitDetailsMetadataType = {
   worker_opinion?: WorkerOpinionType;
   webvtt?: string;
+  unit_reviews: UnitReviewType[];
 };
 
 declare type UnitDetailsType = {
@@ -65,4 +66,15 @@ declare type UnitDetailsType = {
   outputs: object;
   prepared_inputs: object;
   unit_data_folder: string;
+};
+
+declare type UnitReviewType = {
+  blocked_worker: number;
+  bonus: number;
+  creation_date: string;
+  qualification_id: string;
+  qualification_name: string;
+  review_note: string;
+  status: string;
+  value: number;
 };

@@ -4,13 +4,18 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { ReviewType } from "consts/review";
+import {
+  NEW_QUALIFICATION_DESCRIPTION_LENGTH,
+  NEW_QUALIFICATION_NAME_LENGTH,
+  ReviewType,
+} from "consts/review";
+import { setResponseErrors } from "helpers";
 import * as React from "react";
 import { useEffect } from "react";
 import { Button, Col, Form, Row } from "react-bootstrap";
 import { getQualifications, postQualification } from "requests/qualifications";
-import "./ModalForm.css";
 import { getWorkerGrantedQualifications } from "requests/workers";
+import "./ModalForm.css";
 
 const BONUS_FOR_WORKER_ENABLED = true;
 const FEEDBACK_FOR_WORKER_ENABLED = true;
@@ -19,14 +24,14 @@ const QUALIFICATION_VALUE_MAX = 10;
 
 const range = (start, end) => Array.from(Array(end + 1).keys()).slice(start);
 
-type ModalFormProps = {
+type ModalFormPropsType = {
   data: ModalDataType;
   setData: React.Dispatch<React.SetStateAction<ModalDataType>>;
   setErrors: Function;
   workerId: string | null;
 };
 
-function ModalForm(props: ModalFormProps) {
+function ModalForm(props: ModalFormPropsType) {
   const [
     workerGrantedQualifications,
     setWorkerGrantedQualifications,
@@ -36,25 +41,34 @@ function ModalForm(props: ModalFormProps) {
   >(null);
   const [loading, setLoading] = React.useState(false);
   const [_, setCreateQualificationLoading] = React.useState(false);
+  const [
+    newQualificationFormIsValid,
+    setNewQualificationFormIsValid,
+  ] = React.useState<boolean>(false);
 
-  const onChangeAssign = (value: boolean) => {
+  const onError = (response: ErrorResponseType) =>
+    setResponseErrors(props.setErrors, response);
+
+  // Methods
+  function onChangeAssign(value: boolean) {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.checkboxAssignQualification = value;
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeUnassign = (value: boolean) => {
+  function onChangeUnassign(value: boolean) {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.checkboxUnassignQualification = value;
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeAssignQualification = (value: string) => {
+  function onChangeAssignQualification(value: string) {
     let prevFormData: FormType = Object(props.data.form);
 
     if (value === "+") {
       prevFormData.showNewQualification = true;
-      prevFormData.newQualificationValue = "";
+      prevFormData.newQualificationName = "";
+      prevFormData.newQualificationDescription = "";
     } else {
       prevFormData.qualification = value;
 
@@ -70,31 +84,31 @@ function ModalForm(props: ModalFormProps) {
     }
 
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeAssignQualificationValue = (value: string) => {
+  function onChangeAssignQualificationValue(value: string) {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.qualificationValue = Number(value);
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeUnassignQualification = (id: string) => {
+  function onChangeUnassignQualification(id: string) {
     onChangeAssignQualification(id);
-  };
+  }
 
-  const onChangeGiveBonus = (value: boolean) => {
+  function onChangeGiveBonus(value: boolean) {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.checkboxGiveBonus = value;
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeBonus = (value: string) => {
+  function onChangeBonus(value: string) {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.bonus = Number(value);
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeBanWorker = (value: boolean) => {
+  function onChangeBanWorker(value: boolean) {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.checkboxBanWorker = value;
 
@@ -111,92 +125,93 @@ function ModalForm(props: ModalFormProps) {
     }
 
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeWriteReviewNote = (value: boolean) => {
+  function onChangeWriteReviewNote(value: boolean) {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.checkboxReviewNote = value;
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeReviewNote = (value: string) => {
+  function onChangeReviewNote(value: string) {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.reviewNote = value;
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeWriteReviewNoteSend = (value: boolean) => {
+  function onChangeWriteReviewNoteSend(value: boolean) {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.checkboxReviewNoteSend = value;
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeNewQualificationValue = (value: string) => {
+  function onChangeNewQualificationValue(fieldName: string, value: string) {
     let prevFormData: FormType = Object(props.data.form);
-    prevFormData.newQualificationValue = value;
+    prevFormData[fieldName] = value;
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onClickAddNewQualification = (value: string) => {
-    createNewQualification(value);
-  };
+  function onClickAddNewQualification() {
+    createNewQualification(
+      props.data.form.newQualificationName,
+      props.data.form.newQualificationDescription
+    );
+  }
 
-  const onError = (errorResponse: ErrorResponseType | null) => {
-    if (errorResponse) {
-      props.setErrors((oldErrors) => [...oldErrors, ...[errorResponse.error]]);
-    }
-  };
-
-  const onCreateNewQualificationSuccess = () => {
+  function onCreateNewQualificationSuccess() {
     // Clear input
     let prevFormData: FormType = Object(props.data.form);
-    prevFormData.newQualificationValue = "";
+    prevFormData.newQualificationName = "";
+    prevFormData.newQualificationDescription = "";
     prevFormData.showNewQualification = false;
     props.setData({ ...props.data, form: prevFormData });
 
     // Update select with Qualifications
     requestQualifications();
-  };
+  }
 
-  const onGetWorkerGrantedQualificationsSuccess = (
+  function onGetWorkerGrantedQualificationsSuccess(
     grantedQualifications: GrantedQualificationType[]
-  ) => {
+  ) {
     const _workerGrantedQualifications = {};
 
     grantedQualifications.forEach((gq: GrantedQualificationType) => {
       _workerGrantedQualifications[gq.qualification_id] = gq;
     });
     setWorkerGrantedQualifications(_workerGrantedQualifications);
-  };
+  }
 
-  const requestQualifications = () => {
+  function requestQualifications() {
     let params;
     if (props.data.type === ReviewType.REJECT) {
       params = { worker_id: props.workerId };
     }
 
     getQualifications(setQualifications, setLoading, onError, params);
-  };
+  }
 
-  const requestWorkerGrantedQualifications = () => {
+  function requestWorkerGrantedQualifications() {
     getWorkerGrantedQualifications(
       props.workerId,
       onGetWorkerGrantedQualificationsSuccess,
       setLoading,
       onError
     );
-  };
+  }
 
-  const createNewQualification = (name: string) => {
+  function createNewQualification(name: string, description: string) {
     postQualification(
       onCreateNewQualificationSuccess,
       setCreateQualificationLoading,
       onError,
-      { name: name }
+      {
+        name: name,
+        description: description,
+      }
     );
-  };
+  }
 
-  // Effiects
+  // Effects
   useEffect(() => {
     requestWorkerGrantedQualifications();
 
@@ -204,6 +219,14 @@ function ModalForm(props: ModalFormProps) {
       requestQualifications();
     }
   }, []);
+
+  useEffect(() => {
+    if (props.data.form.newQualificationName) {
+      setNewQualificationFormIsValid(true);
+    } else {
+      setNewQualificationFormIsValid(false);
+    }
+  }, [props.data.form.newQualificationName]);
 
   if (loading) {
     return;
@@ -241,27 +264,32 @@ function ModalForm(props: ModalFormProps) {
                       onChangeAssignQualification(e.target.value)
                     }
                   >
-                    <option value={""}>---</option>
-                    <option value={"+"}>+ Add new qualification</option>
-                    {qualifications &&
-                      qualifications.map((q: QualificationType) => {
-                        const prevGrantedQualification =
-                          workerGrantedQualifications[q.id];
-                        const prevGrantedQualificationValue =
-                          prevGrantedQualification?.value;
+                    <optgroup>
+                      <option value={""}>---</option>
+                      <option value={"+"}>+ Create new qualification</option>
+                    </optgroup>
 
-                        let nameSuffix = "";
-                        if (prevGrantedQualificationValue !== undefined) {
-                          nameSuffix = ` (granted value: ${prevGrantedQualificationValue})`;
-                        }
-                        const qualificationName = `${q.name}${nameSuffix}`;
+                    <optgroup>
+                      {qualifications &&
+                        qualifications.map((q: QualificationType) => {
+                          const prevGrantedQualification =
+                            workerGrantedQualifications[q.id];
+                          const prevGrantedQualificationValue =
+                            prevGrantedQualification?.value;
 
-                        return (
-                          <option key={"qual" + q.id} value={q.id}>
-                            {qualificationName}
-                          </option>
-                        );
-                      })}
+                          let nameSuffix = "";
+                          if (prevGrantedQualificationValue !== undefined) {
+                            nameSuffix = ` (granted value: ${prevGrantedQualificationValue})`;
+                          }
+                          const qualificationName = `${q.name}${nameSuffix}`;
+
+                          return (
+                            <option key={`qual-${q.id}`} value={q.id}>
+                              {qualificationName}
+                            </option>
+                          );
+                        })}
+                    </optgroup>
                   </Form.Select>
                 </Col>
                 <Col>
@@ -286,12 +314,33 @@ function ModalForm(props: ModalFormProps) {
                 <Row className={"third-line"}>
                   <Col xs={9}>
                     <Form.Control
+                      className={`mb-1`}
                       size={"sm"}
                       type={"input"}
+                      maxLength={NEW_QUALIFICATION_NAME_LENGTH}
                       placeholder={"New qualification name"}
-                      value={props.data.form.newQualificationValue || ""}
+                      value={props.data.form.newQualificationName || ""}
                       onChange={(e) =>
-                        onChangeNewQualificationValue(e.target.value)
+                        onChangeNewQualificationValue(
+                          "newQualificationName",
+                          e.target.value
+                        )
+                      }
+                    />
+
+                    <Form.Control
+                      size={"sm"}
+                      type={"texarea"}
+                      as={"textarea"}
+                      rows={3}
+                      maxLength={NEW_QUALIFICATION_DESCRIPTION_LENGTH}
+                      placeholder={"Description"}
+                      value={props.data.form.newQualificationDescription || ""}
+                      onChange={(e) =>
+                        onChangeNewQualificationValue(
+                          "newQualificationDescription",
+                          e.target.value
+                        )
                       }
                     />
                   </Col>
@@ -300,13 +349,16 @@ function ModalForm(props: ModalFormProps) {
                       className={"new-qualification-name-button"}
                       variant={"secondary"}
                       size={"sm"}
+                      title={
+                        newQualificationFormIsValid ? "" : "Name is required"
+                      }
+                      disabled={!newQualificationFormIsValid}
                       onClick={() =>
-                        onClickAddNewQualification(
-                          props.data.form.newQualificationValue
-                        )
+                        newQualificationFormIsValid &&
+                        onClickAddNewQualification()
                       }
                     >
-                      Add
+                      Create
                     </Button>
                   </Col>
                 </Row>

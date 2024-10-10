@@ -24,7 +24,49 @@ export function getQualifications(
     (data) => setDataAction(data.qualifications),
     setLoadingAction,
     setErrorsAction,
-    "getTasks error:",
+    "getQualifications error:",
+    abortController
+  );
+}
+
+export function getQualification(
+  id: string,
+  setDataAction: SetRequestDataActionType,
+  setLoadingAction: SetRequestLoadingActionType,
+  setErrorsAction: SetRequestErrorsActionType,
+  abortController?: AbortController
+) {
+  const url = generateURL(urls.server.qualification, [id], null);
+
+  makeRequest(
+    "GET",
+    url,
+    null,
+    (data) => setDataAction(data),
+    setLoadingAction,
+    setErrorsAction,
+    "getQualification error:",
+    abortController
+  );
+}
+
+export function getQualificationDetails(
+  id: string,
+  setDataAction: SetRequestDataActionType,
+  setLoadingAction: SetRequestLoadingActionType,
+  setErrorsAction: SetRequestErrorsActionType,
+  abortController?: AbortController
+) {
+  const url = generateURL(urls.server.qualificationDetails, [id], null);
+
+  makeRequest(
+    "GET",
+    url,
+    null,
+    (data) => setDataAction(data),
+    setLoadingAction,
+    setErrorsAction,
+    "getQualificationDetails error:",
     abortController
   );
 }
@@ -37,11 +79,7 @@ export function getQualificationWorkers(
   getParams: { [key: string]: string | number } = null,
   abortController?: AbortController
 ) {
-  const url = generateURL(
-    urls.server.qualificationWorkers(id),
-    null,
-    getParams
-  );
+  const url = generateURL(urls.server.qualificationWorkers, [id], getParams);
 
   makeRequest(
     "GET",
@@ -76,8 +114,51 @@ export function postQualification(
   );
 }
 
-export function postQualificationGrantWorker(
+export function patchQualification(
   id: string,
+  setDataAction: SetRequestDataActionType,
+  setLoadingAction: SetRequestLoadingActionType,
+  setErrorsAction: SetRequestErrorsActionType,
+  data: { [key: string]: string | number },
+  abortController?: AbortController
+) {
+  const url = generateURL(urls.server.qualification, [id], null);
+
+  makeRequest(
+    "PATCH",
+    url,
+    JSON.stringify(data),
+    (data) => setDataAction(data),
+    setLoadingAction,
+    setErrorsAction,
+    "patchQualification error:",
+    abortController
+  );
+}
+
+export function deleteQualification(
+  id: string,
+  setDataAction: SetRequestDataActionType,
+  setLoadingAction: SetRequestLoadingActionType,
+  setErrorsAction: SetRequestErrorsActionType,
+  abortController?: AbortController
+) {
+  const url = generateURL(urls.server.qualification, [id], null);
+
+  makeRequest(
+    "DELETE",
+    url,
+    null,
+    (data) => setDataAction(data),
+    setLoadingAction,
+    setErrorsAction,
+    "deleteQualification error:",
+    abortController
+  );
+}
+
+export function postQualificationGrantWorker(
+  qualificationId: string,
   workerId: string,
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
@@ -86,8 +167,8 @@ export function postQualificationGrantWorker(
   abortController?: AbortController
 ) {
   const url = generateURL(
-    urls.server.qualificationGrantWorker(id, workerId),
-    null,
+    urls.server.qualificationGrantWorker,
+    [qualificationId, workerId],
     null
   );
 
@@ -104,7 +185,7 @@ export function postQualificationGrantWorker(
 }
 
 export function postQualificationRevokeWorker(
-  id: string,
+  qualificationId: string,
   workerId: string,
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
@@ -113,8 +194,8 @@ export function postQualificationRevokeWorker(
   abortController?: AbortController
 ) {
   const url = generateURL(
-    urls.server.qualificationRevokeWorker(id, workerId),
-    null,
+    urls.server.qualificationRevokeWorker,
+    [qualificationId, workerId],
     null
   );
 
@@ -126,6 +207,80 @@ export function postQualificationRevokeWorker(
     setLoadingAction,
     setErrorsAction,
     "postQualificationRevokeWorker error:",
+    abortController
+  );
+}
+
+export function patchQualificationGrantWorker(
+  quailificationId: string,
+  workerId: string,
+  setDataAction: SetRequestDataActionType,
+  setLoadingAction: SetRequestLoadingActionType,
+  setErrorsAction: SetRequestErrorsActionType,
+  data: { [key: string]: string[] | number[] | number | string },
+  abortController?: AbortController
+) {
+  const url = generateURL(
+    urls.server.qualificationGrantWorker,
+    [quailificationId, workerId],
+    null
+  );
+
+  makeRequest(
+    "PATCH",
+    url,
+    JSON.stringify(data),
+    (data) => setDataAction(data),
+    setLoadingAction,
+    setErrorsAction,
+    "patchQualificationGrantWorker error:",
+    abortController
+  );
+}
+
+export function patchQualificationRevokeWorker(
+  quailificationId: string,
+  workerId: string,
+  setDataAction: SetRequestDataActionType,
+  setLoadingAction: SetRequestLoadingActionType,
+  setErrorsAction: SetRequestErrorsActionType,
+  abortController?: AbortController
+) {
+  const url = generateURL(
+    urls.server.qualificationRevokeWorker,
+    [quailificationId, workerId],
+    null
+  );
+
+  makeRequest(
+    "PATCH",
+    url,
+    "{}",
+    (data) => setDataAction(data),
+    setLoadingAction,
+    setErrorsAction,
+    "patchQualificationRevokeWorker error:",
+    abortController
+  );
+}
+
+export function getGrantedQualifications(
+  setDataAction: SetRequestDataActionType,
+  setLoadingAction: SetRequestLoadingActionType,
+  setErrorsAction: SetRequestErrorsActionType,
+  getParams: { [key: string]: string | number } = null,
+  abortController?: AbortController
+) {
+  const url = generateURL(urls.server.grantedQualifications, null, getParams);
+
+  makeRequest(
+    "GET",
+    url,
+    null,
+    (data) => setDataAction(data.granted_qualifications),
+    setLoadingAction,
+    setErrorsAction,
+    "getGrantedQualifications error:",
     abortController
   );
 }

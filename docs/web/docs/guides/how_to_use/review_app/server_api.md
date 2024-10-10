@@ -201,6 +201,8 @@ Get all available qualifications (to select "approve" and "reject" qualification
 {
   "qualifications": [
     {
+      "creation_date": <str>,
+      "description": <str>,
       "id": <int>,
       "name": <str>,
     },
@@ -220,6 +222,52 @@ Create a new qualification
   "name": <str>,
 }
 ```
+
+---
+
+### `GET /api/qualifications/{id}`
+
+Get metadata for a qualificaition
+
+```json
+{
+  "creation_date": <str>,
+  "description": <str>,
+  "id": <int>,
+  "name": <str>,
+}
+```
+
+---
+
+### `PATCH /api/qualifications/{id}`
+
+Update a qualification
+
+```json
+{
+  "name": <str>,
+  "description": <str>,
+}
+```
+
+---
+
+### `GET /api/qualifications/{id}/details`
+
+Get additional data about a qualification
+
+```json
+{
+  "granted_qualifications_count": <int>,
+}
+```
+
+---
+
+### `DELETE /api/qualifications/{id}`
+
+Delete a qualificaition
 
 ---
 
@@ -256,6 +304,18 @@ Grant qualification to a worker
 
 ---
 
+### `PATCH /api/qualifications/{id}/workers/{id}/grant`
+
+Update value of existing granted qualification
+
+```json
+{
+  "value": <int>,
+}
+```
+
+---
+
 ### `POST /api/qualifications/{id}/workers/{id}/revoke`
 
 Revoke qualification from a worker
@@ -263,6 +323,42 @@ Revoke qualification from a worker
 ```json
 {
   "unit_ids": [<int>, ...],
+}
+```
+
+---
+
+### `PATCH /api/qualifications/{id}/workers/{id}/revoke`
+
+Revoke qualification from a worker (see the difference from `POST` in the code)
+
+---
+
+### `GET /api/granted-qualifications`
+
+Get list of all granted queslifications
+
+```json
+{
+  "granted_qualifications": [
+    {
+      "granted_at": <str>,
+      "qualification_id": <str>,
+      "qualification_name": <str>,
+      "units": [
+        {
+          "task_id": <str>,
+          "task_name": <str>, 
+          "unit_id": <str>,
+        },
+        ... // more units
+      ],
+      "value_current": <int>,
+      "worker_id": <str>,
+      "worker_name": <str>,
+    },
+    ... // more granted qualifications
+  ],
 }
 ```
 
@@ -312,7 +408,7 @@ Get full input for specified workers results (`units_ids` parameter is mandatory
       "has_task_source_review": <bool>,
       "id": <int>,
       "inputs": <json object>,  // instructions for worker
-      "metadata": <json object>,  // any metadata (e.g. Worker Opinion)
+      "metadata": <json object>,  // any metadata (e.g. Worker Opinion, Unit Reviews, etc)
       "outputs": <json object>,  // response from worker
       "prepared_inputs": <json object>,  // prepared instructions from worker
       "unit_data_folder": <str>},  // path to data dir in file system

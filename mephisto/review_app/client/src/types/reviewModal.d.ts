@@ -12,7 +12,8 @@ type FormType = {
   checkboxReviewNote: boolean;
   checkboxReviewNoteSend?: boolean;
   checkboxUnassignQualification?: boolean;
-  newQualificationValue?: string;
+  newQualificationName?: string;
+  newQualificationDescription?: string;
   qualification: string | null;
   qualificationValue: number;
   reviewNote: string;

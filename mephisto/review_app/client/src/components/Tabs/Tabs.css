@@ -1,0 +1,70 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.tabs {
+  margin-top: 20px;
+}
+
+.tabs .tabs-nav {
+  --tab-nav-height: 58px;
+  --tab-nav-item-height: 41px;
+
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  padding-left: 20px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.tabs-empty {
+  height: 0;
+}
+
+.tabs .tabs-nav .tabs-item {
+}
+
+.tabs .tabs-nav .tabs-item.disabled {
+  background: none;
+  cursor: default;
+}
+
+.tabs .tabs-nav .tabs-item:only-child {
+  display: none;
+}
+
+.tabs .tabs-nav .tabs-item .tabs-item-link {
+}
+
+.tabs .tabs-nav .tabs-item .tabs-item-link[aria-selected="true"] {
+  cursor: default;
+}
+
+.tabs .tabs-nav .tabs-item .tabs-item-link[aria-selected="false"] {
+  color: #000000;
+  background-color: var(--bs-nav-tabs-border-color);
+}
+
+.tabs .tabs-nav .tabs-item .tabs-item-link[aria-selected="false"]:hover {
+  background-color: #eeeeee;
+}
+
+.tabs .tabs-content {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.tabs .tabs-content .tabs-content-pane {
+  margin-top: 10px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.no-margins {
+  margin: 0;
+}

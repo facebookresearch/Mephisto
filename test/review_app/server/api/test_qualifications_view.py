@@ -25,6 +25,10 @@ class TestQualificationsView(BaseTestApiViewCase):
         self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(len(result["qualifications"]), 1)
         self.assertEqual(result["qualifications"][0]["id"], qualification_id)
+        self.assertTrue("creation_date" in result["qualifications"][0])
+        self.assertTrue("description" in result["qualifications"][0])
+        self.assertTrue("id" in result["qualifications"][0])
+        self.assertTrue("name" in result["qualifications"][0])
 
     def test_qualification_list_empty_success(self, *args, **kwargs):
         with self.app_context:
@@ -45,7 +49,10 @@ class TestQualificationsView(BaseTestApiViewCase):
 
         self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(result["name"], qualification_name)
+        self.assertTrue("creation_date" in result)
+        self.assertTrue("description" in result)
         self.assertTrue("id" in result)
+        self.assertTrue("name" in result)
 
     def test_qualification_create_no_passed_name_error(self, *args, **kwargs):
         with self.app_context:
