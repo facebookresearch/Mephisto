@@ -9,18 +9,19 @@ sidebar_position: 2
 
 # Managing worker qualifications
 
-To make qualifying workers easier we prepared UI in [TaskReview app](/docs/guides/how_to_use/review_app/overview/). 
-How to install and run this application you can find the information in section [Run TaskReview app](/docs/guides/how_to_use/review_app/running/).
+You can easily manage qualification via [TaskReview app](/docs/guides/how_to_use/review_app/overview/) UI.
+[This section](/docs/guides/how_to_use/review_app/running/) describes how to install and run it.
 
 # Worker Qualifications
 
-On the main page in the tab "Worker Qualifications" you can:
-- see already granted qualifications to your workers
+Once TaskReview app has started, on its main page you'll find a "Worker Qualifications" tab. There you can:
+- view worker qualifications (i.e. qualifications assigned to your workers)
 - create a new qualification
 - filter and sort worker qualifications
-- edit value of granted qualification or revoke this qualification from a worker
-- open qualification page
-- open unit page
+- edit worker qualification values
+- revoke worker qualification completely
+- access single qualification pages
+- access related task unit pages
 
 ![Worker Qualifications tab](./screenshots/worker_qualifications_list.png)
 <br/>
@@ -28,14 +29,13 @@ On the main page in the tab "Worker Qualifications" you can:
 
 # Qualification page
 
-Qualification page also contains worker qualifications, but related to this qualification.
+Qualification page lists all workers who possess that particular qualification. There you can:
 
-This page proposes you to:
-- see qualification information
-- edit qualification name and description
-- delete this qualification completely with all granted qualifications to workers
-- edit value of granted qualification or revoke this qualification from a worker
-- open unit page
+- view and edit general info about the qualification
+- delete this qualification (along with all related worker qualification records)
+- edit value of each worker qualification record
+- revoke this qualification from a worker completely
+- access related task unit pages
 
 ![Qualification page](./screenshots/qualification_page.png)
 <br/>
@@ -43,21 +43,22 @@ This page proposes you to:
 
 # Unit page
 
-All granted qualifications to a worker for exact unit you can see on Unit page.
+Among other things, a (read-only) Unit page includes a list of all qualifications that were granted to a worker in the context of that particular Unit.
 
 ![Unit page](./screenshots/unit_page.png)
 <br/>
 <br/>
 
-# Unit Review page
+# Unit review page
 
-When you review task units, you also can:
-- create qualification (approve, soft-reject)
-- grant qualification with a value (approve, soft-reject)
-- revoke qualification (reject)
-- write a note
+While reviewing task units, you can:
+- create a new qualification
+- assign qualification to a worker (approve and soft-reject actions)
+- write a note to yourself pertaining to the qualification assignment
 
-![Create qualification](./screenshots/review_unit_page_create_qualification.png)
+_Note that to completely revoke a pre-existing qualification from a worker, you will nee dto navigate to that Task Unit page via "Worker Qualifications" tab of the TaskReview app._
+
+![Create new qualification](./screenshots/review_unit_page_create_qualification.png)
 <br/>
 
 ![Grant qualification](./screenshots/review_unit_page_grant_qualification.png)

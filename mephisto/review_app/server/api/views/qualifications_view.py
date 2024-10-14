@@ -88,9 +88,9 @@ class QualificationsView(MethodView):
     def post(self) -> dict:
         """Create a new qualification"""
 
-        data: dict = request.json
-        qualification_name = data and data.get("name")
-        qualification_description = data and data.get("description")
+        data: dict = request.json or {}
+        qualification_name = data.get("name")
+        qualification_description = data.get("description")
 
         if qualification_description:
             qualification_description = qualification_description[:500]

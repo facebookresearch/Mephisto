@@ -4,11 +4,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import EditGrantedQualificationModal from "components/EditGrantedQualificationModal/EditGrantedQualificationModal";
+import EditGrantedQualificationModal, {
+  EditGrantedQualificationFormType,
+} from "components/EditGrantedQualificationModal/EditGrantedQualificationModal";
 import Preloader from "components/Preloader/Preloader";
 import TasksHeader from "components/TasksHeader/TasksHeader";
 import { DEFAULT_DATE_FORMAT } from "consts/format";
 import { setResponseErrors } from "helpers";
+import cloneDeep from "lodash/cloneDeep";
 import * as moment from "moment";
 import * as React from "react";
 import { useEffect } from "react";
@@ -29,6 +32,11 @@ import EditQualificationModal from "./EditQualificationModal/EditQualificationMo
 import GrantedQualificationsTable from "./GrantedQualificationsTable/GrantedQualificationsTable";
 import "./QualificationPage.css";
 
+type GrantedQualificationsParamsType = {
+  qualification_id?: string;
+  sort?: string;
+};
+
 type ParamsType = {
   id: string;
 };
@@ -40,12 +48,20 @@ type QualificationPagePropsType = {
 function QualificationPage(props: QualificationPagePropsType) {
   const params = useParams<ParamsType>();
 
+  const qualificationId = params.id;
+
   const [qualification, setQualification] = React.useState<QualificationType>(
     null
   );
   const [grantedQualifications, setGrantedQualifications] = React.useState<
     FullGrantedQualificationType[]
   >(null);
+  const [
+    grantedQualificationsParams,
+    setGrantedQualificationsParams,
+  ] = React.useState<GrantedQualificationsParamsType>({
+    qualification_id: qualificationId,
+  });
   const [loading, setLoading] = React.useState(false);
   const [
     editQualificationModalShow,
@@ -71,16 +87,22 @@ function QualificationPage(props: QualificationPagePropsType) {
   const onError = (response: ErrorResponseType) =>
     setResponseErrors(props.setErrors, response);
 
+  const hasGrantedQualifications =
+    grantedQualifications && grantedQualifications.length !== 0;
+
   // Methods
 
   function requestQualification() {
-    getQualification(params.id, setQualification, setLoading, onError);
+    getQualification(qualificationId, setQualification, setLoading, onError);
   }
 
   function requestGrantedQualifications() {
-    getGrantedQualifications(setGrantedQualifications, setLoading, onError, {
-      qualification_id: qualification?.id,
-    });
+    getGrantedQualifications(
+      setGrantedQualifications,
+      setLoading,
+      onError,
+      grantedQualificationsParams
+    );
   }
 
   function onClickDeleteButton() {
@@ -90,7 +112,7 @@ function QualificationPage(props: QualificationPagePropsType) {
     }
 
     getQualificationDetails(
-      qualification.id,
+      qualificationId,
       (data: QualificationDetailsType) =>
         onSuccess(data.granted_qualifications_count),
       () => null,
@@ -104,7 +126,7 @@ function QualificationPage(props: QualificationPagePropsType) {
       setEditQualificationModalShow(false);
     }
 
-    patchQualification(qualification.id, onSuccess, setLoading, onError, data);
+    patchQualification(qualificationId, onSuccess, setLoading, onError, data);
   }
 
   function onDeleteModalSubmit() {
@@ -114,13 +136,13 @@ function QualificationPage(props: QualificationPagePropsType) {
       window.location.replace(urls.client.tasks);
     }
 
-    deleteQualification(qualification.id, onSuccess, setLoading, onError);
+    deleteQualification(qualificationId, onSuccess, setLoading, onError);
   }
 
   function onEditGrantedQualificationModalSubmit(
     qualificationId: string,
     workerId: string,
-    value: number
+    data: EditGrantedQualificationFormType
   ) {
     function onSuccess() {
       requestGrantedQualifications();
@@ -133,9 +155,7 @@ function QualificationPage(props: QualificationPagePropsType) {
       onSuccess,
       setLoading,
       onError,
-      {
-        value: value,
-      }
+      data
     );
   }
 
@@ -158,6 +178,20 @@ function QualificationPage(props: QualificationPagePropsType) {
     );
   }
 
+  function onChangeTableSortParam(param: string) {
+    setGrantedQualificationsParams(
+      (oldValue: GrantedQualificationsParamsType) => {
+        const newValue = cloneDeep(oldValue);
+        if (param) {
+          newValue.sort = param;
+        } else {
+          delete newValue.sort;
+        }
+        return newValue;
+      }
+    );
+  }
+
   // Effects
   useEffect(() => {
     if (qualification === null) {
@@ -176,6 +210,10 @@ function QualificationPage(props: QualificationPagePropsType) {
 
     document.title = `Mephisto - Task Review - Qualification "${qualification.name}"`;
   }, [qualification]);
+
+  useEffect(() => {
+    requestGrantedQualifications();
+  }, [grantedQualificationsParams]);
 
   return (
     <div className={"qualification"}>
@@ -220,12 +258,19 @@ function QualificationPage(props: QualificationPagePropsType) {
         </div>
       )}
 
-      <GrantedQualificationsTable
-        grantedQualifications={grantedQualifications}
-        setEditModalGrantedQualification={setEditModalGrantedQualification}
-        setEditModalShow={setEditGrantedQualificationModalShow}
-        setErrors={props.setErrors}
-      />
+      {hasGrantedQualifications ? (
+        <GrantedQualificationsTable
+          grantedQualifications={grantedQualifications}
+          onChangeSortParam={(param: string) => onChangeTableSortParam(param)}
+          setEditModalGrantedQualification={setEditModalGrantedQualification}
+          setEditModalShow={setEditGrantedQualificationModalShow}
+          setErrors={props.setErrors}
+        />
+      ) : (
+        <div className={`empty-message`}>
+          This qualification has not been granted to any worker yet.
+        </div>
+      )}
 
       <Preloader loading={loading} />
 

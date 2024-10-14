@@ -27,7 +27,7 @@ from mephisto.generators.video_annotator.config_validation.config_validation_con
 from mephisto.review_app.server.utils.video_annotator import convert_annotation_tracks_to_webvtt
 
 
-def _find_unit_reviews(
+def _find_worker_reviews(
     db: LocalMephistoDB,
     unit_id: str,
 ) -> List[dict]:
@@ -48,7 +48,7 @@ def _find_unit_reviews(
                 status,
                 updated_qualification_id,
                 updated_qualification_value
-            FROM unit_review AS ur
+            FROM worker_review AS wr
             LEFT JOIN (
                 SELECT
                     qualification_id,
@@ -56,13 +56,13 @@ def _find_unit_reviews(
                 FROM qualifications
             ) AS q ON (
                 (
-                    ur.updated_qualification_id = q.qualification_id AND
-                    ur.revoked_qualification_id IS NULL
+                    wr.updated_qualification_id = q.qualification_id AND
+                    wr.revoked_qualification_id IS NULL
                 )
                 OR
                 (
-                    ur.revoked_qualification_id = q.qualification_id AND
-                    ur.updated_qualification_id IS NULL
+                    wr.revoked_qualification_id = q.qualification_id AND
+                    wr.updated_qualification_id IS NULL
                 )
             )
             WHERE unit_id = ?1
@@ -72,20 +72,20 @@ def _find_unit_reviews(
         )
         rows = c.fetchall()
 
-        unit_reviews = [
+        worker_reviews = [
             {
-                "blocked_worker": u["blocked_worker"],
-                "bonus": u["bonus"],
-                "creation_date": u["creation_date"],
-                "qualification_id": u["updated_qualification_id"] or ["revoked_qualification_id"],
-                "qualification_name": u["qualification_name"],
-                "review_note": u["review_note"],
-                "status": u["status"],
-                "value": u["updated_qualification_value"],
+                "blocked_worker": r["blocked_worker"],
+                "bonus": r["bonus"],
+                "creation_date": r["creation_date"],
+                "qualification_id": r["updated_qualification_id"] or ["revoked_qualification_id"],
+                "qualification_name": r["qualification_name"],
+                "review_note": r["review_note"],
+                "status": r["status"],
+                "value": r["updated_qualification_value"],
             }
-            for u in rows
+            for r in rows
         ]
-        return unit_reviews
+        return worker_reviews
 
 
 class UnitsDetailsView(MethodView):
@@ -154,7 +154,7 @@ class UnitsDetailsView(MethodView):
                 task_name = task_run.get_task().task_name
                 metadata["webvtt"] = convert_annotation_tracks_to_webvtt(task_name, inputs, outputs)
 
-            metadata["unit_reviews"] = _find_unit_reviews(app.db, unit.db_id)
+            metadata["worker_reviews"] = _find_worker_reviews(app.db, unit.db_id)
 
             # Get Unit data path
             agent = unit.get_assigned_agent()

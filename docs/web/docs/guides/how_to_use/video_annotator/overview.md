@@ -8,8 +8,8 @@ sidebar_position: 1
 
 # VideoAnnotator overview
 
-You can easily generate tasks to annotate any preuploaded video with our VideoAnnotator feature. 
-It produces UI with video and instructions, where workers can create tracks with segments which they need to annotate. 
+You can easily generate tasks to annotate any preuploaded video with our VideoAnnotator feature.
+It produces UI with video and instructions, where workers can create tracks with segments which they need to annotate.
 
 ## Live demo
 
@@ -17,48 +17,48 @@ You can find working demos of VideoAnnotator in `examples/video_annotator_demo` 
 
 For details on how to run these examples, refer to the demo's [README.md](https://github.com/facebookresearch/Mephisto/blob/main/examples/video_annotator_demo/README.md)
 
-### VideoAnnotator app UI
+## VideoAnnotator app UI
 
-Here is how VideoAnnotator app UI looks like.
+The below screenshots showcase VideoAnnotator app UI.
 
-### Just started task
+### Worker view - initial annotator
 
-![Just started task](./screenshots/initial_view.png)
+![Initial annotator](./screenshots/initial_view.png)
 <br/>
 <br/>
 
-### Annotated video
+### Worker view - completed annotations
 
-![Annotated video](./screenshots/in_progress_view.png)
+![Completed annotations](./screenshots/in_progress_view.png)
 <br/>
 <br/>
 
-### TaskReview app. Collapsed
+### Researcher view - Task Review unit page - collapsed sections
 
-![TaskReview app. Collapsed](./screenshots/review_collapsed.png)
+![Unit page - collapsed sections](./screenshots/review_collapsed.png)
 <br/>
 <br/>
 
-### TaskReview app. Open segment
+### Researcher view - Task Review unit page - segment section
 
-![TaskReview app. Open segment](./screenshots/review_open_segment.png)
+![Unit page - segment section](./screenshots/review_open_segment.png)
 <br/>
 <br/>
 
-### TaskReview app. Open WebVTT
+### Researcher view - Task Review unit page - WebVTT section
 
-![TaskReview app. Open WebVTT](./screenshots/review_open_webvtt.png)
+![Unit page - WebVTT section](./screenshots/review_open_webvtt.png)
 <br/>
 <br/>
 
-### TaskReview app. List of Units
+### Researcher view - Task Review units list
 
-![TaskReview app. List of Units](./screenshots/units_list.png)
+![Units list](./screenshots/units_list.png)
 <br/>
 <br/>
 
-### TaskReview app. Unit page
+### Researcher view - Task Review unit page
 
-![TaskReview app. Unit page](./screenshots/unit_page.png)
+![Unit page](./screenshots/unit_page.png)
 <br/>
 <br/>

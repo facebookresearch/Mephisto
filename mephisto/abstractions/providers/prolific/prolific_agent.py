@@ -104,7 +104,7 @@ class ProlificAgent(Agent):
         self,
         review_note: Optional[str] = None,
         bonus: Optional[Union[int, float]] = None,
-        skip_unit_review: bool = False,
+        skip_worker_review: bool = False,
     ) -> None:
         """Approve the work done on this specific Unit"""
         logger.debug(f"{self.log_prefix}Approving work")
@@ -131,9 +131,9 @@ class ProlificAgent(Agent):
 
         self.update_status(AgentState.STATUS_APPROVED)
 
-        if not skip_unit_review:
+        if not skip_worker_review:
             unit = self.get_unit()
-            self.db.new_unit_review(
+            self.db.new_worker_review(
                 unit_id=unit.db_id,
                 task_id=unit.task_id,
                 worker_id=unit.worker_id,
@@ -198,7 +198,7 @@ class ProlificAgent(Agent):
         self.update_status(AgentState.STATUS_REJECTED)
 
         unit = self.get_unit()
-        self.db.new_unit_review(
+        self.db.new_worker_review(
             unit_id=unit.db_id,
             task_id=unit.task_id,
             worker_id=unit.worker_id,

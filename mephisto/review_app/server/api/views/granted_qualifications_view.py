@@ -23,6 +23,7 @@ STATUSES_UNITS_FOR_QUALIFICATION = AssignmentState.completed()
 def _find_granted_qualifications(
     db: LocalMephistoDB,
     qualification_id: Optional[str] = None,
+    sort_param: Optional[str] = None,
 ) -> List[StringIDRow]:
     """Return the granted qualifications in the database"""
 
@@ -53,6 +54,12 @@ def _find_granted_qualifications(
 
         where_query = f"WHERE {joined_queries}" if joined_queries else ""
 
+        order_by_query = ""
+        if sort_param:
+            order_direction = "DESC" if sort_param.startswith("-") else "ASC"
+            order_column = sort_param[1:] if sort_param.startswith("-") else sort_param
+            order_by_query = f"ORDER BY {order_column} {order_direction}"
+
         c.execute(
             f"""
             SELECT
@@ -60,9 +67,9 @@ def _find_granted_qualifications(
                 q.qualification_name AS qualification_name,
                 gq.worker_id AS worker_id,
                 w.worker_name AS worker_name,
-                gq.value AS current_value,
+                gq.value AS value_current,
                 gq.update_date AS granted_at,
-                ur.blocked_worker AS blocked_worker
+                wr.blocked_worker AS blocked_worker
             FROM granted_qualifications AS gq
             LEFT JOIN (
                 SELECT
@@ -86,22 +93,23 @@ def _find_granted_qualifications(
                     revoked_qualification_id,
                     worker_id,
                     creation_date
-                FROM unit_review
+                FROM worker_review
                 WHERE blocked_worker = 1
-            ) AS ur ON (
-                ur.worker_id = gq.worker_id AND (
+            ) AS wr ON (
+                wr.worker_id = gq.worker_id AND (
                     (
-                        ur.updated_qualification_id = gq.qualification_id AND
-                        ur.revoked_qualification_id IS NULL
+                        wr.updated_qualification_id = gq.qualification_id AND
+                        wr.revoked_qualification_id IS NULL
                     )
                     OR
                     (
-                        ur.revoked_qualification_id = gq.qualification_id AND
-                        ur.updated_qualification_id IS NULL
+                        wr.revoked_qualification_id = gq.qualification_id AND
+                        wr.updated_qualification_id IS NULL
                     )
                 )
             )
-            {where_query};
+            {where_query}
+            {order_by_query};
             """,
             params,
         )
@@ -109,12 +117,12 @@ def _find_granted_qualifications(
         return rows
 
 
-def _find_units(
+def _find_grants(
     db: LocalMephistoDB,
     worker_id: str,
     qualification_id: str,
     statuses: Optional[List[str]] = None,
-    units_limit: Optional[int] = None,
+    limit: Optional[int] = None,
 ) -> List[StringIDRow]:
     """Return the units for granted qualification"""
 
@@ -127,9 +135,9 @@ def _find_units(
             nonesafe_int(qualification_id),
         ]
 
-        worker_query = "ur.worker_id = ?1"
+        worker_query = "wr.worker_id = ?1"
 
-        qualification_query = "ur.updated_qualification_id = ?2"
+        qualification_query = "wr.updated_qualification_id = ?2"
 
         units_statuses_string = ",".join([f"'{s}'" for s in statuses])
         status_query = f"status IN ({units_statuses_string})" if statuses else ""
@@ -148,34 +156,36 @@ def _find_units(
 
         where_query = f"WHERE {joined_queries}" if joined_queries else ""
 
-        units_limit_query = "LIMIT ?3" if units_limit else ""
-        if units_limit:
-            params.append(nonesafe_int(units_limit))
+        limit_query = "LIMIT ?3" if limit else ""
+        if limit:
+            params.append(nonesafe_int(limit))
 
         c.execute(
             f"""
             SELECT
-                ur.task_id as task_id,
+                wr.task_id as task_id,
                 t.task_name as task_name,
-                ur.unit_id as unit_id,
-                ur.updated_qualification_value
-            FROM unit_review AS ur
+                wr.unit_id as unit_id,
+                wr.updated_qualification_value as updated_qualification_value,
+                wr.creation_date as creation_date
+            FROM worker_review AS wr
             LEFT JOIN (
                 SELECT
                     task_id,
                     task_name
                 FROM tasks
-            ) AS t ON t.task_id = ur.task_id
+            ) AS t ON t.task_id = wr.task_id
             LEFT JOIN (
                 SELECT
                     unit_id,
                     status
                 FROM units
                 WHERE {status_query}
-                ORDER BY creation_date DESC {units_limit_query}
-            ) AS u ON u.unit_id = ur.unit_id
+                ORDER BY creation_date DESC
+            ) AS u ON u.unit_id = wr.unit_id
             {where_query}
-            ORDER BY creation_date DESC;
+            ORDER BY creation_date DESC
+            {limit_query};
             """,
             params,
         )
@@ -187,11 +197,13 @@ class GrantedQualificationsView(MethodView):
     def get(self) -> dict:
         """Get list of all granted queslifications."""
 
-        qualification_id = request.args.get("qualification_id")
+        qualification_id_param = request.args.get("qualification_id")
+        sort_param = request.args.get("sort")
 
         db_granted_qualifications = _find_granted_qualifications(
             db=app.db,
-            qualification_id=qualification_id,
+            qualification_id=qualification_id_param,
+            sort_param=sort_param,
         )
 
         app.logger.debug(f"Found granted qualifications in DB: {list(db_granted_qualifications)}")
@@ -200,17 +212,18 @@ class GrantedQualificationsView(MethodView):
         for gq in db_granted_qualifications:
             units = [
                 {
+                    "creation_date": u["creation_date"],
                     "task_id": u["task_id"],
                     "task_name": u["task_name"],
                     "unit_id": u["unit_id"],
                     "value": u["updated_qualification_value"],
                 }
-                for u in _find_units(
+                for u in _find_grants(
                     db=app.db,
                     worker_id=gq["worker_id"],
                     qualification_id=gq["qualification_id"],
                     statuses=STATUSES_UNITS_FOR_QUALIFICATION,
-                    units_limit=LIMIT_UNITS_FOR_QUALIFICATION,
+                    limit=LIMIT_UNITS_FOR_QUALIFICATION,
                 )
             ]
             granted_qualifications.append(
@@ -219,7 +232,7 @@ class GrantedQualificationsView(MethodView):
                     "qualification_id": gq["qualification_id"],
                     "qualification_name": gq["qualification_name"],
                     "units": units,
-                    "value_current": gq["current_value"],
+                    "value_current": gq["value_current"],
                     "worker_id": gq["worker_id"],
                     "worker_name": gq["worker_name"],
                 },

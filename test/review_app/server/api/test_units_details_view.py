@@ -66,7 +66,7 @@ class TestUnitsDetailsView(BaseTestApiViewCase):
         for unit_field in unit_fields:
             self.assertTrue(unit_field in first_unit)
 
-        self.assertIn("unit_reviews", first_unit["metadata"])
+        self.assertIn("worker_reviews", first_unit["metadata"])
 
 
 if __name__ == "__main__":

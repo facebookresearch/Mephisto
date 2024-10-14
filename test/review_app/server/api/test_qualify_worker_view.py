@@ -12,7 +12,7 @@ from mephisto.utils import http_status
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit
 from mephisto.utils.db import EntryDoesNotExistException
-from mephisto.utils.testing import find_unit_reviews
+from mephisto.utils.testing import find_worker_reviews
 from mephisto.utils.testing import get_test_qualification
 from mephisto.utils.testing import get_test_task_run
 from mephisto.utils.testing import get_test_worker
@@ -38,7 +38,12 @@ class TestQualifyWorkerView(BaseTestApiViewCase):
         qualification_id = get_test_qualification(self.db)
 
         # Unit Review
-        self.db.new_unit_review(unit_id, unit.task_id, worker_id, unit.db_status)
+        self.db.new_worker_review(
+            unit_id=unit_id,
+            task_id=unit.task_id,
+            worker_id=worker_id,
+            status=unit.db_status,
+        )
 
         with self.app_context:
             url = url_for(
@@ -49,12 +54,12 @@ class TestQualifyWorkerView(BaseTestApiViewCase):
             response = self.client.post(url, json={"unit_ids": [unit_id], "value": 10})
             result = response.json
 
-        unit_reviews = find_unit_reviews(self.db, qualification_id, worker_id, unit.task_id)
+        worker_reviews = find_worker_reviews(self.db, qualification_id, worker_id, unit.task_id)
         self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(result, {})
-        self.assertEqual(len(unit_reviews), 1)
-        self.assertEqual(unit_reviews[0]["updated_qualification_id"], qualification_id)
-        self.assertEqual(unit_reviews[0]["revoked_qualification_id"], None)
+        self.assertEqual(len(worker_reviews), 1)
+        self.assertEqual(worker_reviews[0]["updated_qualification_id"], qualification_id)
+        self.assertEqual(worker_reviews[0]["revoked_qualification_id"], None)
 
     def test_grant_no_unit_ids_error(self, *args, **kwargs):
         # Task Run
@@ -72,7 +77,12 @@ class TestQualifyWorkerView(BaseTestApiViewCase):
         qualification_id = get_test_qualification(self.db)
 
         # Unit Review
-        self.db.new_unit_review(unit_id, unit.task_id, worker_id, unit.db_status)
+        self.db.new_worker_review(
+            unit_id=unit_id,
+            task_id=unit.task_id,
+            worker_id=worker_id,
+            status=unit.db_status,
+        )
 
         with self.app_context:
             url = url_for(
@@ -102,7 +112,12 @@ class TestQualifyWorkerView(BaseTestApiViewCase):
         qualification_id = get_test_qualification(self.db)
 
         # Unit Review
-        self.db.new_unit_review(unit_id, unit.task_id, worker_id, unit.db_status)
+        self.db.new_worker_review(
+            unit_id=unit_id,
+            task_id=unit.task_id,
+            worker_id=worker_id,
+            status=unit.db_status,
+        )
 
         with self.app_context:
             url = url_for(
@@ -113,12 +128,12 @@ class TestQualifyWorkerView(BaseTestApiViewCase):
             response = self.client.post(url, json={"unit_ids": [unit_id], "value": 10})
             result = response.json
 
-        unit_reviews = find_unit_reviews(self.db, qualification_id, worker_id, unit.task_id)
+        worker_reviews = find_worker_reviews(self.db, qualification_id, worker_id, unit.task_id)
         self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertEqual(result, {})
-        self.assertEqual(len(unit_reviews), 1)
-        self.assertEqual(unit_reviews[0]["revoked_qualification_id"], qualification_id)
-        self.assertEqual(unit_reviews[0]["updated_qualification_id"], None)
+        self.assertEqual(len(worker_reviews), 1)
+        self.assertEqual(worker_reviews[0]["revoked_qualification_id"], qualification_id)
+        self.assertEqual(worker_reviews[0]["updated_qualification_id"], None)
 
     def test_revoke_no_unit_ids_error(self, *args, **kwargs):
         # Task Run
@@ -136,7 +151,12 @@ class TestQualifyWorkerView(BaseTestApiViewCase):
         qualification_id = get_test_qualification(self.db)
 
         # Unit Review
-        self.db.new_unit_review(unit_id, unit.task_id, worker_id, unit.db_status)
+        self.db.new_worker_review(
+            unit_id=unit_id,
+            task_id=unit.task_id,
+            worker_id=worker_id,
+            status=unit.db_status,
+        )
 
         with self.app_context:
             url = url_for(

@@ -34,9 +34,9 @@ class QualificationView(MethodView):
         db_qualification: StringIDRow = app.db.get_qualification(qualification_id)
         app.logger.debug(f"Found Qualification in DB: {db_qualification}")
 
-        data: dict = request.json
-        name: str = data and data.get("name")
-        description: str = data and data.get("description")
+        data: dict = request.json or {}
+        name: str = data.get("name")
+        description: str = data.get("description")
 
         if not name:
             raise BadRequest('Field "name" is required.')
@@ -59,7 +59,7 @@ class QualificationView(MethodView):
             "name": updated_qualification["qualification_name"],
         }
 
-    def delete(self, qualification_id: str = None) -> Tuple[dict, int]:
+    def delete(self, qualification_id: str = None) -> dict:
         """Delete qualification"""
 
         db_qualification: StringIDRow = app.db.get_qualification(qualification_id)

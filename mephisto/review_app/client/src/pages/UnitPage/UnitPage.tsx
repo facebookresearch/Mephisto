@@ -248,9 +248,9 @@ function UnitPage(props: UnitPagePropsType) {
         )}
 
         {/* Review history of Unit */}
-        {unitDetails?.metadata?.unit_reviews && (
+        {unitDetails?.metadata?.worker_reviews && (
           <UnitReviewsCollapsable
-            unitReviews={unitDetails?.metadata?.unit_reviews}
+            unitReviews={unitDetails?.metadata?.worker_reviews}
             open={false}
           />
         )}

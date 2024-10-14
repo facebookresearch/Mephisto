@@ -86,8 +86,8 @@ CHECK_GRANTED_QUALIFICATIONS_LATENCY = DATABASE_LATENCY.labels(
 )
 GET_GRANTED_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="get_granted_qualification")
 REVOKE_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="revoke_qualification")
-NEW_UNIT_REVIEW_LATENCY = DATABASE_LATENCY.labels(method="new_unit_review")
-UPDATE_UNIT_REVIEW_LATENCY = DATABASE_LATENCY.labels(method="update_unit_review")
+NEW_WORKER_REVIEW_LATENCY = DATABASE_LATENCY.labels(method="new_worker_review")
+UPDATE_WORKER_REVIEW_LATENCY = DATABASE_LATENCY.labels(method="update_worker_review")
 
 
 class MephistoDB(ABC):
@@ -1074,57 +1074,79 @@ class MephistoDB(ABC):
         """
         return self._revoke_qualification(qualification_id=qualification_id, worker_id=worker_id)
 
-    def _new_unit_review(
+    def _new_worker_review(
         self,
-        unit_id: Union[int, str],
-        task_id: Union[int, str],
         worker_id: Union[int, str],
-        status: str,
+        status: Optional[str] = None,
+        task_id: Optional[Union[int, str]] = None,
+        unit_id: Optional[Union[int, str]] = None,
+        qualification_id: Optional[Union[int, str]] = None,
+        value: Optional[int] = None,
         review_note: Optional[str] = None,
         bonus: Optional[str] = None,
+        revoke: bool = False,
     ) -> None:
-        """new_unit_review implementation"""
+        """new_worker_review implementation"""
         raise NotImplementedError()
 
-    @NEW_UNIT_REVIEW_LATENCY.time()
-    def new_unit_review(
+    @NEW_WORKER_REVIEW_LATENCY.time()
+    def new_worker_review(
         self,
-        unit_id: Union[int, str],
-        task_id: Union[int, str],
         worker_id: Union[int, str],
-        status: str,
+        status: Optional[str] = None,
+        task_id: Optional[Union[int, str]] = None,
+        unit_id: Optional[Union[int, str]] = None,
+        qualification_id: Optional[Union[int, str]] = None,
+        value: Optional[int] = None,
         review_note: Optional[str] = None,
         bonus: Optional[str] = None,
+        revoke: bool = False,
     ) -> None:
-        """Create unit review"""
-        return self._new_unit_review(unit_id, task_id, worker_id, status, review_note, bonus)
+        """Create worker review"""
+        return self._new_worker_review(
+            worker_id=worker_id,
+            status=status,
+            task_id=task_id,
+            unit_id=unit_id,
+            qualification_id=qualification_id,
+            value=value,
+            review_note=review_note,
+            bonus=bonus,
+            revoke=revoke,
+        )
 
     @abstractmethod
-    def _update_unit_review(
+    def _update_worker_review(
         self,
-        unit_id: int,
-        qualification_id: int,
-        worker_id: int,
+        unit_id: Union[int, str],
+        qualification_id: Union[int, str],
+        worker_id: Union[int, str],
         value: Optional[int] = None,
         revoke: bool = False,
     ) -> None:
-        """update_unit_review implementation"""
+        """update_worker_review implementation"""
         raise NotImplementedError()
 
-    @UPDATE_UNIT_REVIEW_LATENCY.time()
-    def update_unit_review(
+    @UPDATE_WORKER_REVIEW_LATENCY.time()
+    def update_worker_review(
         self,
-        unit_id: int,
-        qualification_id: int,
-        worker_id: int,
+        unit_id: Union[int, str],
+        qualification_id: Union[int, str],
+        worker_id: Union[int, str],
         value: Optional[int] = None,
         revoke: bool = False,
     ) -> None:
         """
-        Update the given unit review with the given parameters if possible,
+        Update the given worker review with the given parameters if possible,
         raise appropriate exception otherwise.
         """
-        return self._update_unit_review(unit_id, qualification_id, worker_id, value, revoke)
+        return self._update_worker_review(
+            unit_id=unit_id,
+            qualification_id=qualification_id,
+            worker_id=worker_id,
+            value=value,
+            revoke=revoke,
+        )
 
     # File/blob manipulation methods
 

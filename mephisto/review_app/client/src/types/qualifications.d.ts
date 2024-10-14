@@ -27,6 +27,7 @@ declare type WorkerGrantedQualificationsType = {
 };
 
 declare type FGQUnit = {
+  creation_date: string;
   task_id: string;
   task_name: string;
   unit_id: string;

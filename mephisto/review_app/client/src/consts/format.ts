@@ -5,3 +5,5 @@
  */
 
 export const DEFAULT_DATE_FORMAT = "MMM D, YYYY";
+
+export const DEFAULT_DATETIME_FORMAT = "MMMM Do YYYY, h:mm:ss a";

@@ -76,14 +76,14 @@ _Note that a custom view of Task results is included (at the bottom) only if you
 <br/>
 <br/>
 
-### List of units
+### Task units list
 
-![List of units](./screenshots/units_list.png)
+![Task units list](./screenshots/units_list.png)
 <br/>
 <br/>
 
-### Unit page
+### Task unit page
 
-![Unit page](./screenshots/unit_page.png)
+![Task unit page](./screenshots/unit_page.png)
 <br/>
 <br/>

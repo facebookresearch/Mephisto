@@ -140,8 +140,8 @@ class TestDumps(unittest.TestCase):
                 "requesters",
                 "task_runs",
                 "tasks",
-                "unit_review",
                 "units",
+                "worker_review",
                 "workers",
             ],
         )
@@ -223,8 +223,8 @@ class TestDumps(unittest.TestCase):
                 "requesters",
                 "task_runs",
                 "tasks",
-                "unit_review",
                 "units",
+                "worker_review",
                 "workers",
             ],
         )
@@ -288,8 +288,8 @@ class TestDumps(unittest.TestCase):
                 "requesters",
                 "task_runs",
                 "tasks",
-                "unit_review",
                 "units",
+                "worker_review",
                 "workers",
             ],
         )
@@ -371,8 +371,8 @@ class TestDumps(unittest.TestCase):
                 "requesters",
                 "task_runs",
                 "tasks",
-                "unit_review",
                 "units",
+                "worker_review",
                 "workers",
             ],
         )
@@ -436,8 +436,8 @@ class TestDumps(unittest.TestCase):
                 "requesters",
                 "task_runs",
                 "tasks",
-                "unit_review",
                 "units",
+                "worker_review",
                 "workers",
             ],
         )
@@ -519,8 +519,8 @@ class TestDumps(unittest.TestCase):
                 "requesters",
                 "task_runs",
                 "tasks",
-                "unit_review",
                 "units",
+                "worker_review",
                 "workers",
             ],
         )
@@ -597,8 +597,8 @@ class TestDumps(unittest.TestCase):
                 "requesters",
                 "task_runs",
                 "tasks",
-                "unit_review",
                 "units",
+                "worker_review",
                 "workers",
             ],
         )
@@ -682,8 +682,8 @@ class TestDumps(unittest.TestCase):
                 "requesters",
                 "task_runs",
                 "tasks",
-                "unit_review",
                 "units",
+                "worker_review",
                 "workers",
             ],
         )
@@ -764,8 +764,8 @@ class TestDumps(unittest.TestCase):
                 "requesters",
                 "task_runs",
                 "tasks",
-                "unit_review",
                 "units",
+                "worker_review",
                 "workers",
             ],
         )
@@ -866,7 +866,7 @@ class TestDumps(unittest.TestCase):
         self.assertTrue(os.path.exists(task_run_2.get_run_dir()))
         for table_name in table_names:
             rows = db_utils.select_all_table_rows(self.db, table_name)
-            if table_name in ["imported_data", "onboarding_agents", "projects", "unit_review"]:
+            if table_name in ["imported_data", "onboarding_agents", "projects", "worker_review"]:
                 self.assertEqual(len(rows), 0)
             else:
                 self.assertGreater(len(rows), 0)
@@ -921,7 +921,7 @@ class TestDumps(unittest.TestCase):
         self.assertTrue(os.path.exists(task_run_2.get_run_dir()))
         for table_name in table_names:
             rows = db_utils.select_all_table_rows(self.db, table_name)
-            if table_name in ["imported_data", "onboarding_agents", "projects", "unit_review"]:
+            if table_name in ["imported_data", "onboarding_agents", "projects", "worker_review"]:
                 self.assertEqual(len(rows), 0)
             else:
                 self.assertGreater(len(rows), 0)
@@ -984,7 +984,7 @@ class TestDumps(unittest.TestCase):
         self.assertTrue(os.path.exists(task_run_2.get_run_dir()))
         for table_name in table_names:
             rows = db_utils.select_all_table_rows(self.db, table_name)
-            if table_name in ["imported_data", "onboarding_agents", "projects", "unit_review"]:
+            if table_name in ["imported_data", "onboarding_agents", "projects", "worker_review"]:
                 self.assertEqual(len(rows), 0)
             else:
                 self.assertGreater(len(rows), 0)
@@ -1060,7 +1060,7 @@ class TestDumps(unittest.TestCase):
         self.assertTrue(os.path.exists(task_run_2.get_run_dir()))
         for table_name in table_names:
             rows = db_utils.select_all_table_rows(self.db, table_name)
-            if table_name in ["imported_data", "onboarding_agents", "projects", "unit_review"]:
+            if table_name in ["imported_data", "onboarding_agents", "projects", "worker_review"]:
                 self.assertEqual(len(rows), 0)
             else:
                 self.assertGreater(len(rows), 0)

@@ -15,7 +15,7 @@ import "./UnitReviewsCollapsable.css";
 
 type UnitReviewsCollapsablePropsType = {
   className?: string;
-  unitReviews: UnitReviewType[];
+  unitReviews: WorkerReviewType[];
   open?: boolean;
   title?: string | React.ReactElement;
 };
@@ -65,7 +65,7 @@ function UnitReviewsCollapsable(props: UnitReviewsCollapsablePropsType) {
         </thead>
         <tbody>
           {(unitReviews || [].length) &&
-            unitReviews.map((unitReview: UnitReviewType, index: number) => {
+            unitReviews.map((unitReview: WorkerReviewType, index: number) => {
               const date = moment(unitReview.creation_date).format(
                 DEFAULT_DATE_FORMAT
               );

@@ -347,7 +347,7 @@ function ModalForm(props: ModalFormPropsType) {
                   <Col>
                     <Button
                       className={"new-qualification-name-button"}
-                      variant={"secondary"}
+                      variant={"outline-primary"}
                       size={"sm"}
                       title={
                         newQualificationFormIsValid ? "" : "Name is required"

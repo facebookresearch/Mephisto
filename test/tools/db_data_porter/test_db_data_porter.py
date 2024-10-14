@@ -299,7 +299,7 @@ class TestDBDataPorter(unittest.TestCase):
                         continue
 
                     table_data = mephisto_dump[table_name]
-                    if table_name in ["onboarding_agents", "unit_review", "projects"]:
+                    if table_name in ["onboarding_agents", "worker_review", "projects"]:
                         self.assertEqual(len(table_data), 0)
                     else:
                         if table_name not in tables_without_task_run_id:
@@ -961,7 +961,7 @@ class TestDBDataPorter(unittest.TestCase):
             rows = db_utils.select_all_table_rows(self.db, table_name)
             if table_name == "imported_data":
                 self.assertEqual(len(rows), 6)
-            elif table_name in ["projects", "onboarding_agents", "unit_review"]:
+            elif table_name in ["projects", "onboarding_agents", "worker_review"]:
                 self.assertEqual(len(rows), 0)
             else:
                 self.assertEqual(len(rows), 1)

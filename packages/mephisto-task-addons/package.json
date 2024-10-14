@@ -1,6 +1,6 @@
 {
   "name": "mephisto-task-addons",
-  "version": "1.0.4",
+  "version": "1.5.1",
   "description": "A bunch of UI components to make Tasks more customizable",
   "main": "./build/bundle.js",
   "scripts": {

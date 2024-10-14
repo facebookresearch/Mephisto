@@ -43,8 +43,17 @@ class TestQualificationWorkersView(BaseTestApiViewCase):
         _, worker_id = get_test_worker(self.db)
 
         # Unit Review
-        self.db.new_unit_review(unit_id, unit.task_id, worker_id, unit.db_status)
-        self.db.update_unit_review(unit_id, qualification_id, worker_id)
+        self.db.new_worker_review(
+            unit_id=unit_id,
+            task_id=unit.task_id,
+            worker_id=worker_id,
+            status=unit.db_status,
+        )
+        self.db.update_worker_review(
+            unit_id=unit_id,
+            qualification_id=qualification_id,
+            worker_id=worker_id,
+        )
 
         # Granted Qualification
         qualification_value = 10
@@ -60,7 +69,7 @@ class TestQualificationWorkersView(BaseTestApiViewCase):
         self.assertEqual(len(result["workers"]), 1)
         self.assertEqual(first_worker["worker_id"], worker_id)
         self.assertEqual(first_worker["value"], qualification_value)
-        self.assertTrue("unit_review_id" in first_worker)
+        self.assertTrue("worker_review_id" in first_worker)
         self.assertTrue("granted_at" in first_worker)
 
 

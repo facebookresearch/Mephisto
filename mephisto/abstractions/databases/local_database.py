@@ -46,7 +46,7 @@ from .migrations import migrations
 logger = get_logger(name=__name__)
 
 
-def nonesafe_int(in_string: Optional[str]) -> Optional[int]:
+def nonesafe_int(in_string: Optional[Union[str, int]]) -> Optional[int]:
     """Cast input to an int or None"""
     if in_string is None:
         return None
@@ -1472,16 +1472,19 @@ class LocalMephistoDB(MephistoDB):
             ]
 
     @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
-    def _new_unit_review(
+    def _new_worker_review(
         self,
-        unit_id: Union[int, str],
-        task_id: Union[int, str],
         worker_id: Union[int, str],
-        status: str,
+        status: Optional[str] = None,
+        task_id: Optional[Union[int, str]] = None,
+        unit_id: Optional[Union[int, str]] = None,
+        qualification_id: Optional[Union[int, str]] = None,
+        value: Optional[int] = None,
         review_note: Optional[str] = None,
         bonus: Optional[str] = None,
+        revoke: bool = False,
     ) -> None:
-        """Create unit review"""
+        """Create worker review"""
 
         with self.table_access_condition:
             conn = self.get_connection()
@@ -1489,25 +1492,31 @@ class LocalMephistoDB(MephistoDB):
             try:
                 c.execute(
                     """
-                    INSERT INTO unit_review (
+                    INSERT INTO worker_review (
                         id,
                         unit_id,
                         worker_id,
                         task_id,
+                        updated_qualification_id,
+                        updated_qualification_value,
+                        revoked_qualification_id,
                         status,
                         review_note,
                         bonus
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?);
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                     """,
-                    (
+                    [
                         make_randomized_int_id(),
                         nonesafe_int(unit_id),
                         nonesafe_int(worker_id),
                         nonesafe_int(task_id),
+                        nonesafe_int(qualification_id) if not revoke else None,
+                        value,
+                        nonesafe_int(qualification_id) if revoke else None,
                         status,
                         review_note,
                         bonus,
-                    ),
+                    ],
                 )
                 conn.commit()
             except sqlite3.IntegrityError as e:
@@ -1515,21 +1524,21 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryAlreadyExistsException(
                         e,
                         db=self,
-                        table_name="unit_review",
+                        table_name="worker_review",
                         original_exc=e,
                     )
                 raise MephistoDBException(e)
 
-    def _update_unit_review(
+    def _update_worker_review(
         self,
-        unit_id: int,
-        qualification_id: int,
-        worker_id: int,
+        unit_id: Union[int, str],
+        qualification_id: Union[int, str],
+        worker_id: Union[int, str],
         value: Optional[int] = None,
         revoke: bool = False,
     ) -> None:
         """
-        Update the given unit review with the given parameters if possible,
+        Update the given worker review with the given parameters if possible,
         raise appropriate exception otherwise.
         """
         with self.table_access_condition:
@@ -1538,23 +1547,26 @@ class LocalMephistoDB(MephistoDB):
 
             c.execute(
                 """
-                SELECT * FROM unit_review
+                SELECT * FROM worker_review
                 WHERE (unit_id = ?) AND (worker_id = ?)
                 ORDER BY creation_date ASC;
                 """,
-                (unit_id, worker_id),
+                [
+                    nonesafe_int(unit_id),
+                    nonesafe_int(worker_id),
+                ],
             )
             results = c.fetchall()
             if not results:
                 raise EntryDoesNotExistException(
-                    f"`unit_review` was not created for this `unit_id={unit_id}`"
+                    f"`worker_review` was not created for this `unit_id={unit_id}`"
                 )
 
-            latest_unit_review_id = results[-1]["id"]
+            latest_worker_review_id = results[-1]["id"]
 
             c.execute(
                 """
-                UPDATE unit_review
+                UPDATE worker_review
                 SET
                     updated_qualification_id = ?,
                     updated_qualification_value = ?,
@@ -1562,10 +1574,10 @@ class LocalMephistoDB(MephistoDB):
                 WHERE id = ?;
                 """,
                 (
-                    qualification_id if not revoke else None,
+                    nonesafe_int(qualification_id) if not revoke else None,
                     value,
-                    qualification_id if revoke else None,
-                    latest_unit_review_id,
+                    nonesafe_int(qualification_id) if revoke else None,
+                    nonesafe_int(latest_worker_review_id),
                 ),
             )
             conn.commit()

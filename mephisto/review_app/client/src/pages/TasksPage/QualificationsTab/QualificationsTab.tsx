@@ -4,9 +4,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import EditGrantedQualificationModal from "components/EditGrantedQualificationModal/EditGrantedQualificationModal";
+import EditGrantedQualificationModal, {
+  EditGrantedQualificationFormType,
+} from "components/EditGrantedQualificationModal/EditGrantedQualificationModal";
 import Preloader from "components/Preloader/Preloader";
 import { setResponseErrors } from "helpers";
+import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
 import { useEffect } from "react";
 import { Button } from "react-bootstrap";
@@ -21,17 +24,27 @@ import CreateQualificationModal from "../CreateQualificationModal/CreateQualific
 import QualificationsTable from "../QualificationsTable/QualificationsTable";
 import "./QualificationsTab.css";
 
-interface QualificationsTabPropsType {
+const DEFAUTL_GRANTED_QUALIFICATIONS_PARAMS = {};
+
+type GrantedQualificationsParamsType = {
+  qualification_id?: string;
+  sort?: string;
+};
+
+type QualificationsTabPropsType = {
   setErrors: Function;
-}
+};
 
 function QualificationsTab(props: QualificationsTabPropsType) {
   const [grantedQualifications, setGrantedQualifications] = React.useState<
     FullGrantedQualificationType[]
   >(null);
-  const [selectedQualification, setSelectedQualification] = React.useState<
-    string
-  >(null);
+  const [
+    grantedQualificationsParams,
+    setGrantedQualificationsParams,
+  ] = React.useState<GrantedQualificationsParamsType>(
+    DEFAUTL_GRANTED_QUALIFICATIONS_PARAMS
+  );
   const [qualifications, setQualifications] = React.useState<
     QualificationType[]
   >([]);
@@ -55,14 +68,12 @@ function QualificationsTab(props: QualificationsTabPropsType) {
     getQualifications(setQualifications, setLoading, onError);
   }
 
-  function requestGrantedQualifications(
-    getParams: { [key: string]: string | number } = null
-  ) {
+  function requestGrantedQualifications() {
     getGrantedQualifications(
       setGrantedQualifications,
       setLoading,
       onError,
-      getParams
+      grantedQualificationsParams
     );
   }
 
@@ -78,7 +89,7 @@ function QualificationsTab(props: QualificationsTabPropsType) {
   function onEditModalSubmit(
     qualificationId: string,
     workerId: string,
-    value: number
+    data: EditGrantedQualificationFormType
   ) {
     function onSuccess() {
       requestGrantedQualifications();
@@ -91,9 +102,7 @@ function QualificationsTab(props: QualificationsTabPropsType) {
       onSuccess,
       setLoading,
       onError,
-      {
-        value: value,
-      }
+      data
     );
   }
 
@@ -113,6 +122,34 @@ function QualificationsTab(props: QualificationsTabPropsType) {
     );
   }
 
+  function onSelectQualification(qualificationId: string) {
+    setGrantedQualificationsParams(
+      (oldValue: GrantedQualificationsParamsType) => {
+        const newValue = cloneDeep(oldValue);
+        if (qualificationId) {
+          newValue.qualification_id = qualificationId;
+        } else {
+          delete newValue.qualification_id;
+        }
+        return newValue;
+      }
+    );
+  }
+
+  function onChangeTableSortParam(param: string) {
+    setGrantedQualificationsParams(
+      (oldValue: GrantedQualificationsParamsType) => {
+        const newValue = cloneDeep(oldValue);
+        if (param) {
+          newValue.sort = param;
+        } else {
+          delete newValue.sort;
+        }
+        return newValue;
+      }
+    );
+  }
+
   // Effects
 
   useEffect(() => {
@@ -128,13 +165,8 @@ function QualificationsTab(props: QualificationsTabPropsType) {
   }, []);
 
   useEffect(() => {
-    const getParams = {};
-    if (![null, ""].includes(selectedQualification)) {
-      getParams["qualification_id"] = selectedQualification;
-    }
-
-    requestGrantedQualifications(getParams);
-  }, [selectedQualification]);
+    requestGrantedQualifications();
+  }, [grantedQualificationsParams]);
 
   return (
     <div className={`qualifications-tab`}>
@@ -150,7 +182,7 @@ function QualificationsTab(props: QualificationsTabPropsType) {
               form-select-sm
               select-qualifications
             `}
-            onChange={(e) => setSelectedQualification(e.target.value)}
+            onChange={(e) => onSelectQualification(e.target.value)}
           >
             <option value={""} selected>
               All qualifications
@@ -179,13 +211,14 @@ function QualificationsTab(props: QualificationsTabPropsType) {
       {hasGrantedQualifications ? (
         <QualificationsTable
           grantedQualifications={grantedQualifications}
+          onChangeSortParam={(param: string) => onChangeTableSortParam(param)}
           setEditModalGrantedQualification={setEditModalGrantedQualification}
           setEditModalShow={setEditModalShow}
           setErrors={props.setErrors}
         />
       ) : (
         <div className={`empty-message`}>
-          This qualification has not been granted to any worker yet.
+          No qualifications has been granted to any worker yet.
         </div>
       )}
 

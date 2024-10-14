@@ -20,7 +20,7 @@ from mephisto.abstractions.databases.local_database import StringIDRow
 from mephisto.data_model.constants.assignment_state import AssignmentState
 
 
-def _find_unit_reviews(
+def _find_worker_reviews(
     db,
     worker_id: Optional[str] = None,
     task_id: Optional[str] = None,
@@ -71,9 +71,10 @@ def _find_unit_reviews(
         c = conn.cursor()
         c.execute(
             f"""
-            SELECT * FROM unit_review
+            SELECT * FROM worker_review
             {where_query}
-            ORDER BY creation_date ASC {limit_query};
+            ORDER BY creation_date ASC
+            {limit_query};
             """,
             params,
         )
@@ -159,7 +160,7 @@ class ReviewStatsView(MethodView):
             except ParserError:
                 raise BadRequest("Wrong date format.")
 
-        approved_unit_reviews = _find_unit_reviews(
+        approved_worker_reviews = _find_worker_reviews(
             db=app.db,
             worker_id=worker_id,
             task_id=task_id,
@@ -167,7 +168,7 @@ class ReviewStatsView(MethodView):
             since=since,
             limit=limit,
         )
-        rejected_unit_reviews = _find_unit_reviews(
+        rejected_worker_reviews = _find_worker_reviews(
             db=app.db,
             worker_id=worker_id,
             task_id=task_id,
@@ -175,7 +176,7 @@ class ReviewStatsView(MethodView):
             since=since,
             limit=limit,
         )
-        soft_rejected_unit_reviews = _find_unit_reviews(
+        soft_rejected_worker_reviews = _find_worker_reviews(
             db=app.db,
             worker_id=worker_id,
             task_id=task_id,
@@ -193,15 +194,15 @@ class ReviewStatsView(MethodView):
         )
 
         reviewed_reviews = (
-            approved_unit_reviews + rejected_unit_reviews + soft_rejected_unit_reviews
+            approved_worker_reviews + rejected_worker_reviews + soft_rejected_worker_reviews
         )
 
         return {
             "stats": {
                 "total_count": len(all_units_for_worker),  # within the scope of the filters
                 "reviewed_count": len(reviewed_reviews),
-                "approved_count": len(approved_unit_reviews),
-                "rejected_count": len(rejected_unit_reviews),
-                "soft_rejected_count": len(soft_rejected_unit_reviews),
+                "approved_count": len(approved_worker_reviews),
+                "rejected_count": len(rejected_worker_reviews),
+                "soft_rejected_count": len(soft_rejected_worker_reviews),
             },
         }

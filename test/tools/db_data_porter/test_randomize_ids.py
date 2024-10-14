@@ -89,7 +89,7 @@ class TestRandomizeIds(unittest.TestCase):
             "onboarding_agents": [],
             "qualifications": [],
             "granted_qualifications": [],
-            "unit_review": [],
+            "worker_review": [],
         }
         legacy_only = True
 
@@ -113,7 +113,7 @@ class TestRandomizeIds(unittest.TestCase):
                 "requesters": {requester_id: ANY},
                 "task_runs": {},
                 "tasks": {task_1_id: ANY},
-                "unit_review": {},
+                "worker_review": {},
                 "units": {},
                 "workers": {},
             },
@@ -165,7 +165,7 @@ class TestRandomizeIds(unittest.TestCase):
             "onboarding_agents": [],
             "qualifications": [],
             "granted_qualifications": [],
-            "unit_review": [],
+            "worker_review": [],
         }
         legacy_only = False
 
@@ -189,7 +189,7 @@ class TestRandomizeIds(unittest.TestCase):
                 "requesters": {requester_id: ANY},
                 "task_runs": {},
                 "tasks": {task_1_id: ANY, task_2_id: ANY},
-                "unit_review": {},
+                "worker_review": {},
                 "units": {},
                 "workers": {},
             },
@@ -276,7 +276,7 @@ class TestRandomizeIds(unittest.TestCase):
             "requesters": {},
             "task_runs": {task_run_id: task_run_id_substitution},
             "tasks": {task_id: task_id_substitution},
-            "unit_review": {},
+            "worker_review": {},
             "units": {unit_id: unit_id_substitution},
             "workers": {},
         }
@@ -376,7 +376,7 @@ class TestRandomizeIds(unittest.TestCase):
                 "onboarding_agents": [],
                 "qualifications": [],
                 "granted_qualifications": [],
-                "unit_review": [],
+                "worker_review": [],
             },
             PROLIFIC_PROVIDER_TYPE: {
                 "units": [
@@ -427,7 +427,7 @@ class TestRandomizeIds(unittest.TestCase):
                         "onboarding_agents": {},
                         "qualifications": {},
                         "granted_qualifications": {},
-                        "unit_review": {},
+                        "worker_review": {},
                     },
                     PROLIFIC_PROVIDER_TYPE: {
                         "participant_groups": {},
@@ -499,7 +499,7 @@ class TestRandomizeIds(unittest.TestCase):
                         "onboarding_agents": [],
                         "qualifications": [],
                         "granted_qualifications": [],
-                        "unit_review": [],
+                        "worker_review": [],
                     },
                     PROLIFIC_PROVIDER_TYPE: {
                         "units": [

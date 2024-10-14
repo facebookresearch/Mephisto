@@ -1,0 +1,33 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.column-title-with-sort {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.sort-arrows {
+  display: inline-flex;
+  flex-direction: column;
+  margin-left: 4px;
+  width: 10px;
+}
+
+.sort-arrows i {
+  font-style: initial;
+}
+
+.sort-arrows.inactive {
+  line-height: 0.4;
+  font-size: 20px;
+}
+
+.sort-arrows.asc,
+.sort-arrows.desc {
+  line-height: 1;
+  font-size: 13px;
+}

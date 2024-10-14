@@ -210,7 +210,7 @@ class TestUtilsDB(unittest.TestCase):
         self.assertEqual(sorted(task_run_ids), sorted([task_run_1_id, task_run_3_id]))
 
     def test_get_table_pk_field_name(self, *args):
-        table_names = ["tasks", "task_runs", "units", "unit_review"]
+        table_names = ["tasks", "task_runs", "units", "worker_review"]
         pk_fields = [db_utils.get_table_pk_field_name(self.db, t) for t in table_names]
 
         self.assertEqual(pk_fields, ["task_id", "task_run_id", "unit_id", "id"])
@@ -382,7 +382,7 @@ class TestUtilsDB(unittest.TestCase):
                     "sqlite_sequence",
                     "task_runs",
                     "tasks",
-                    "unit_review",
+                    "worker_review",
                     "units",
                     "workers",
                 ]
@@ -406,7 +406,7 @@ class TestUtilsDB(unittest.TestCase):
                     "requesters",
                     "task_runs",
                     "tasks",
-                    "unit_review",
+                    "worker_review",
                     "units",
                     "workers",
                 ]
@@ -537,7 +537,7 @@ class TestUtilsDB(unittest.TestCase):
                 continue
 
             table_data = db_dump_for_task_run_1[table_name]
-            if table_name in ["onboarding_agents", "unit_review", "projects"]:
+            if table_name in ["onboarding_agents", "worker_review", "projects"]:
                 self.assertEqual(len(table_data), 0)
             else:
                 if table_name not in tables_without_task_run_id:

@@ -49,7 +49,12 @@ class TestWorkerBlockView(BaseTestApiViewCase):
         unit.set_db_status(AssignmentState.COMPLETED)
 
         # Unit Review
-        self.db.new_unit_review(unit_id, unit.task_id, worker_id, unit.db_status)
+        self.db.new_worker_review(
+            unit_id=unit_id,
+            task_id=unit.task_id,
+            worker_id=worker_id,
+            status=unit.db_status,
+        )
 
         with self.app_context:
             url = url_for("worker_block", worker_id=worker_id)

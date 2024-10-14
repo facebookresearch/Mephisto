@@ -39,8 +39,17 @@ class TestGrantedQualificationsView(BaseTestApiViewCase):
         grant_test_qualification(self.db, qualification_id, worker_id, granted_value)
 
         # Unit Review
-        self.db.new_unit_review(unit_id, unit.task_id, worker_id, unit.db_status)
-        self.db.update_unit_review(unit_id, qualification_id, worker_id)
+        self.db.new_worker_review(
+            unit_id=unit_id,
+            task_id=unit.task_id,
+            worker_id=worker_id,
+            status=unit.db_status,
+        )
+        self.db.update_worker_review(
+            unit_id=unit_id,
+            qualification_id=qualification_id,
+            worker_id=worker_id,
+        )
 
         with self.app_context:
             url = url_for("granted_qualifications")

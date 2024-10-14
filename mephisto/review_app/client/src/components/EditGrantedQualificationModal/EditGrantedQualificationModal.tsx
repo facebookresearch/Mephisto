@@ -4,7 +4,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { EDIT_GRANTED_QUALIFICATION_VALUE_LENGTH } from "consts/review";
+import {
+  EDIT_GRANTED_QUALIFICATION_EXPLANATION_LENGTH,
+  EDIT_GRANTED_QUALIFICATION_VALUE_LENGTH,
+} from "consts/review";
 import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
 import { useEffect } from "react";
@@ -13,6 +16,7 @@ import "./EditGrantedQualificationModal.css";
 
 export type EditGrantedQualificationFormType = {
   value: number;
+  explanation?: string;
 };
 
 type EditGrantedQualificationModalPropsType = {
@@ -47,14 +51,15 @@ function EditGrantedQualificationModal(
   }
 
   function updateForm(fieldName: string, value: string) {
-    const re = /^[0-9\b]+$/;
-    // if value is not blank, then test the regex
-    if (value === "" || re.test(value)) {
-      setForm({ ...form, [fieldName]: value });
-    }
-
     if (fieldName === "value") {
+      const re = /^[0-9\b]+$/;
+      // if value is not blank, then test the regex
+      if (value === "" || re.test(value)) {
+        setForm({ ...form, [fieldName]: parseInt(value) });
+      }
       setValueHasChanged(true);
+    } else {
+      setForm({ ...form, [fieldName]: value });
     }
   }
 
@@ -96,7 +101,7 @@ function EditGrantedQualificationModal(
           >
             <Form.Group as={Row} className={`mb-2`} controlId={"name"}>
               <Form.Label>
-                <small>Change qualification value</small>
+                <small>Qualification value</small>
               </Form.Label>
 
               <Col>
@@ -107,6 +112,25 @@ function EditGrantedQualificationModal(
                   value={form.value || ""}
                   maxLength={EDIT_GRANTED_QUALIFICATION_VALUE_LENGTH}
                   onChange={(e) => updateForm("value", e.target.value)}
+                />
+              </Col>
+            </Form.Group>
+
+            <Form.Group as={Row} className={`mb-2`} controlId={"name"}>
+              <Form.Label>
+                <small>Explanation</small>
+              </Form.Label>
+
+              <Col>
+                <Form.Control
+                  size={"sm"}
+                  type={"textarea"}
+                  placeholder={"Explanation"}
+                  value={form.explanation || ""}
+                  as={"textarea"}
+                  rows={3}
+                  maxLength={EDIT_GRANTED_QUALIFICATION_EXPLANATION_LENGTH}
+                  onChange={(e) => updateForm("explanation", e.target.value)}
                 />
               </Col>
             </Form.Group>
@@ -148,7 +172,7 @@ function EditGrantedQualificationModal(
                     props.onSubmit(
                       props.grantedQualification.qualification_id,
                       props.grantedQualification.worker_id,
-                      form.value
+                      form
                     );
                   }
                 }}
