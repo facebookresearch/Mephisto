@@ -117,6 +117,10 @@ def init_urls(app: Flask):
         ),
     )
     app.add_url_rule(
+        "/api/workers/<int:worker_id>/qualifications/grant",
+        view_func=api_views.WorkerQualificationsGrantView.as_view("worker_qualifications_grant"),
+    )
+    app.add_url_rule(
         "/api/review-stats",
         view_func=api_views.ReviewStatsView.as_view("review-stats"),
     )

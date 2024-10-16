@@ -31,3 +31,4 @@ from .units_soft_reject_view import UnitsSoftRejectView
 from .units_view import UnitsView
 from .worker_block_view import WorkerBlockView
 from .worker_granted_qualifications_view import WorkerGrantedQualificationsView
+from .worker_qualifications_grant_view import WorkerQualificationsGrantView

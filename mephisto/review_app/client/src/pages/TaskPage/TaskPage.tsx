@@ -34,7 +34,7 @@ import {
   postUnitsReject,
   postUnitsSoftReject,
 } from "requests/units";
-import { postWorkerBlock } from "requests/workers";
+import { postWorkerBlock, postWorkerGrant } from "requests/workers";
 import urls from "urls";
 import {
   APPROVE_MODAL_DATA_STATE,
@@ -279,17 +279,16 @@ function TaskPage(props: TaskPagePropsType) {
       // Grant Qualification
       if (
         _modalData.form.checkboxAssignQualification &&
-        _modalData.form.qualification
+        _modalData.form.selectedQualifications?.length > 0
       ) {
-        postQualificationGrantWorker(
-          _modalData.form.qualification,
+        postWorkerGrant(
           currentWorkerOnReview,
           () => null,
           setLoading,
           onError,
           {
             unit_ids: unitIds,
-            value: _modalData.form.qualificationValue,
+            qualification_grants: _modalData.form.selectedQualifications,
           }
         );
       }
@@ -297,17 +296,16 @@ function TaskPage(props: TaskPagePropsType) {
       // Revoke Qualification
       if (
         _modalData.form.checkboxAssignQualification &&
-        _modalData.form.qualification
+        _modalData.form.selectQualification
       ) {
-        postQualificationRevokeWorker(
-          _modalData.form.qualification,
+        postWorkerGrant(
           currentWorkerOnReview,
           () => null,
           setLoading,
           onError,
           {
             unit_ids: unitIds,
-            value: _modalData.form.qualificationValue,
+            qualification_grants: _modalData.form.selectedQualifications,
           }
         );
       }
@@ -315,10 +313,10 @@ function TaskPage(props: TaskPagePropsType) {
       // Revoke Qualification
       if (
         _modalData.form.checkboxUnassignQualification &&
-        _modalData.form.qualification
+        _modalData.form.selectQualification
       ) {
         postQualificationRevokeWorker(
-          _modalData.form.qualification,
+          _modalData.form.selectQualification,
           currentWorkerOnReview,
           () => null,
           setLoading,

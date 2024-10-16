@@ -7,7 +7,7 @@
 import { ReviewType } from "consts/review";
 import * as React from "react";
 import { Button, Form, Modal } from "react-bootstrap";
-import ModalForm from "../ModalForm/ModalForm";
+import ReviewModalForm from "../ReviewModalForm/ReviewModalForm";
 import "./ReviewModal.css";
 
 const ReviewTypeButtonClassMapping = {
@@ -43,7 +43,7 @@ function ReviewModal(props: ReviewModalProps) {
         </Modal.Header>
 
         <Modal.Body>
-          <ModalForm
+          <ReviewModalForm
             data={props.data}
             setData={props.setData}
             setErrors={props.setErrors}

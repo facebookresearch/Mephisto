@@ -48,6 +48,7 @@ const urls = {
       API_URL + `/api/units/${id}/static/${filename}`,
     unitsOutputsFileByFieldname: (id, fieldname) =>
       API_URL + `/api/units/${id}/static/fieldname/${fieldname}`,
+    workerGrant: (id) => API_URL + `/api/workers/${id}/qualifications/grant`,
     workerGrantedQualifications: (id) =>
       API_URL + `/api/workers/${id}/qualifications`,
     workersBlock: (id) => API_URL + `/api/workers/${id}/block`,

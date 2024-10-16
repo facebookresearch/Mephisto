@@ -59,7 +59,7 @@ def _find_units_ids(
 
 class QualifyWorkerView(MethodView):
     @staticmethod
-    def _grant_worker_qualification_with_unit(
+    def grant_worker_qualification_with_unit(
         qualification: StringIDRow,
         unit: Unit,
         worker: Worker,
@@ -150,7 +150,7 @@ class QualifyWorkerView(MethodView):
 
             try:
                 if action == "grant":
-                    self._grant_worker_qualification_with_unit(
+                    self.grant_worker_qualification_with_unit(
                         qualification=db_qualification,
                         unit=unit,
                         worker=worker,

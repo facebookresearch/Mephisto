@@ -1562,25 +1562,47 @@ class LocalMephistoDB(MephistoDB):
                     f"`worker_review` was not created for this `unit_id={unit_id}`"
                 )
 
-            latest_worker_review_id = results[-1]["id"]
+            latest_worker_review = results[-1]
+            latest_worker_review_id = latest_worker_review["id"]
 
-            c.execute(
-                """
-                UPDATE worker_review
-                SET
-                    updated_qualification_id = ?,
-                    updated_qualification_value = ?,
-                    revoked_qualification_id = ?
-                WHERE id = ?;
-                """,
-                (
-                    nonesafe_int(qualification_id) if not revoke else None,
-                    value,
-                    nonesafe_int(qualification_id) if revoke else None,
-                    nonesafe_int(latest_worker_review_id),
-                ),
+            has_entry_with_qualification = (
+                latest_worker_review["updated_qualification_id"]
+                or latest_worker_review["revoked_qualification_id"]
             )
-            conn.commit()
+
+            if not has_entry_with_qualification:
+                # Update just created entry when unit was approved
+                c.execute(
+                    """
+                    UPDATE worker_review
+                    SET
+                        updated_qualification_id = ?,
+                        updated_qualification_value = ?,
+                        revoked_qualification_id = ?
+                    WHERE id = ?;
+                    """,
+                    (
+                        nonesafe_int(qualification_id) if not revoke else None,
+                        value,
+                        nonesafe_int(qualification_id) if revoke else None,
+                        nonesafe_int(latest_worker_review_id),
+                    ),
+                )
+                conn.commit()
+            else:
+                # If we try to update entry for the same unit,
+                # but it was already assigned to another qualifications,
+                # create a new entry with the same data, but with another qualification and value
+                self._new_worker_review(
+                    worker_id=worker_id,
+                    status=latest_worker_review["status"],
+                    task_id=latest_worker_review["task_id"],
+                    unit_id=unit_id,
+                    qualification_id=qualification_id,
+                    value=value,
+                    review_note=latest_worker_review["review_note"],
+                    bonus=latest_worker_review["bonus"],
+                )
 
     # File/blob manipulation methods
 

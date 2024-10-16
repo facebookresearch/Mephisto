@@ -101,7 +101,7 @@ class InhouseAgent(Agent):
                 worker_id=self.unit.worker_id,
                 status=AgentState.STATUS_APPROVED,
                 review_note=review_note,
-                bonus=str(bonus),
+                bonus=bonus and str(bonus),
             )
 
     def soft_reject_work(self, review_note: Optional[str] = None) -> None:

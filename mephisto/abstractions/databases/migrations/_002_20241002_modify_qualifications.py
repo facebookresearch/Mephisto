@@ -7,8 +7,8 @@
 """
 List of changes:
 1. Add `description` field into `qualifications` table
-2. Make unit-related fields nullable in table `worker_review`
-3. Rename `unit_review` table into `worker_review`
+2. Rename `unit_review` table into `worker_review` and
+    make unit-related fields nullable in table `unit_review`
 """
 
 
@@ -16,11 +16,12 @@ MODIFY_QUALIFICATIONS = """
     /* 1. Add `description` field into `qualifications` table */
     ALTER TABLE qualifications ADD COLUMN description CHAR(500);
 
-    /* 2. Make unit-related fields nullable in table `worker_review` */
     /* Disable FK constraints */
     PRAGMA foreign_keys = off;
 
-    CREATE TABLE IF NOT EXISTS _worker_review (
+    /* 2. Rename `unit_review` table into `worker_review` and
+        make unit-related fields nullable in table `unit_review` */
+    CREATE TABLE IF NOT EXISTS worker_review (
         id INTEGER PRIMARY KEY,
         unit_id INTEGER,
         worker_id INTEGER NOT NULL,
@@ -40,12 +41,9 @@ MODIFY_QUALIFICATIONS = """
         FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
         FOREIGN KEY (task_id) REFERENCES tasks (task_id)
     );
-    INSERT INTO _worker_review SELECT * FROM unit_review;
+    INSERT INTO worker_review SELECT * FROM unit_review;
     DROP INDEX IF EXISTS unit_review_by_unit_index;
     DROP TABLE IF EXISTS unit_review;
-
-    /* 3. Rename `unit_review` table into `worker_review` */
-    ALTER TABLE _worker_review RENAME TO worker_review;
 
     /* Enable FK constraints back */
     PRAGMA foreign_keys = on;

@@ -650,6 +650,34 @@ Permanently block a worker.
 
 ---
 
+### `POST /api/workers/{id}/qualifications/grant`
+
+Grant multiple qualifications to a worker with units.
+
+**URL parameters**:
+- `id` - id of a worker
+
+**Request**:
+```json
+{
+  "unit_ids": [<int>, ...], // Required
+  "qualification_grants": [ // Required
+    {
+      "qualification_id": <int>,
+      "value": <int>,
+    },
+    ...
+  ],  
+}
+```
+
+**Response**:
+```json
+{}
+```
+
+---
+
 ### `GET /api/workers/{id}/qualifications`
 
 Get list of all granted qualifications for a worker.

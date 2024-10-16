@@ -26,6 +26,16 @@ declare type WorkerGrantedQualificationsType = {
   [key: string]: GrantedQualificationType;
 };
 
+declare type SelectedQualificationType = {
+  qualification_id: string;
+  qualification_name: string;
+  value: number;
+};
+
+declare type SelectedQualificationsType = {
+  [key: string]: SelectedQualificationType;
+};
+
 declare type FGQUnit = {
   creation_date: string;
   task_id: string;

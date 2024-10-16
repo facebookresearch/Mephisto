@@ -50,3 +50,27 @@ export function getWorkerGrantedQualifications(
     abortController
   );
 }
+
+export function postWorkerGrant(
+  id: string,
+  setDataAction: SetRequestDataActionType,
+  setLoadingAction: SetRequestLoadingActionType,
+  setErrorsAction: SetRequestErrorsActionType,
+  data: {
+    [key: string]: string | number | string[] | FormSelectedQualificationType[];
+  },
+  abortController?: AbortController
+) {
+  const url = generateURL(urls.server.workerGrant, [id], null);
+
+  makeRequest(
+    "POST",
+    url,
+    JSON.stringify(data),
+    (data) => setDataAction(data),
+    setLoadingAction,
+    setErrorsAction,
+    "postWorkerGrant error:",
+    abortController
+  );
+}
