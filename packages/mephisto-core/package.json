@@ -1,7 +1,7 @@
 {
-  "name": "mephisto-task",
-  "version": "2.0.4",
-  "description": "",
+  "name": "mephisto-core",
+  "version": "1.5.1",
+  "description": "Core Mephisto logic, related to websockets (successor of `mephisto-task`)",
   "main": "build/bundle.js",
   "scripts": {
     "dev": "webpack --mode=development",
@@ -10,7 +10,7 @@
     "prepublishOnly": "NODE_ENV=production webpack --mode=production"
   },
   "keywords": [],
-  "author": "",
+  "author": "meta-paul",
   "license": "ISC",
   "devDependencies": {
     "@babel/cli": "^7.18.10",

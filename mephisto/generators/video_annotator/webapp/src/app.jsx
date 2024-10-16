@@ -4,10 +4,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {
-  ErrorBoundary,
-  useMephistoRemoteProcedureTask,
-} from "mephisto-task-multipart";
+import { ErrorBoundary, useMephistoRemoteProcedureTask } from "mephisto-core";
 import React from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter, Route, Routes } from "react-router-dom";

@@ -10,7 +10,7 @@ import {
   FormComposerBaseFrontend,
   LoadingScreen,
 } from "./components/core_components_dynamic.jsx";
-import { useMephistoTask, ErrorBoundary } from "mephisto-task-multipart";
+import { useMephistoTask, ErrorBoundary } from "mephisto-core";
 
 /* ================= Application Components ================= */
 

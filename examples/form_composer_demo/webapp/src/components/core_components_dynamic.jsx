@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import { FormComposer } from "mephisto-task-addons";
+import { FormComposer } from "mephisto-addons";
 
 // Required import for custom validators
 import * as customValidators from "custom-validators";

@@ -16,7 +16,7 @@ WorkerOpinion widget currently may contain a set of textarea form fields, and a 
 
 ## How to enable `WorkerOpinion`
 
-1. Add `mephisto-task-addons` library to your webpack config
+1. Add `mephisto-addons` library to your webpack config
 2. Import `WorkerOpinion` component to your Task's React application code and define questions.
 
 ### 1. Webpack config
@@ -30,9 +30,9 @@ module.exports = {
   resolve: {
     alias: {
       ...
-      "mephisto-task-addons": path.resolve(
+      "mephisto-addons": path.resolve(
         __dirname,
-        `${PATH_TO_PACKAGES}/packages/mephisto-task-addons`
+        `${PATH_TO_PACKAGES}/packages/mephisto-addons`
       ),
     }
   }
@@ -42,7 +42,7 @@ module.exports = {
 ### 2. `WorkerOpinion` component
 
 ```jsx
-import { WorkerOpinion } from "mephisto-task-addons";
+import { WorkerOpinion } from "mephisto-addons";
 ...
 return(
   <div ...>

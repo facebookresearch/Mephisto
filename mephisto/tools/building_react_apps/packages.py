@@ -68,12 +68,12 @@ def clean_mephisto_task_package(remove_package_locks: bool, verbose: bool = Fals
 
 
 def clean_mephisto_task_multipart_package(remove_package_locks: bool, verbose: bool = False):
-    webapp_path = os.path.join(PACKAGES_PATH, "mephisto-task-multipart")
+    webapp_path = os.path.join(PACKAGES_PATH, "mephisto-core")
     clean_single_react_app(webapp_path, remove_package_locks=remove_package_locks, verbose=verbose)
 
 
 def clean_mephisto_task_addons_package(remove_package_locks: bool, verbose: bool = False):
-    webapp_path = os.path.join(PACKAGES_PATH, "mephisto-task-addons")
+    webapp_path = os.path.join(PACKAGES_PATH, "mephisto-addons")
     clean_single_react_app(webapp_path, remove_package_locks=remove_package_locks, verbose=verbose)
 
 
@@ -195,24 +195,24 @@ def build_mephisto_task_package(force_rebuild: bool = False, verbose: bool = Fal
 
 def build_mephisto_task_multipart_package(force_rebuild: bool = False, verbose: bool = False):
     if verbose:
-        logger.info(f"[blue]Building '{PACKAGES_PATH}/mephisto-task-multipart'[/blue]")
+        logger.info(f"[blue]Building '{PACKAGES_PATH}/mephisto-core'[/blue]")
 
     build_custom_bundle(
         PACKAGES_PATH,
         force_rebuild=force_rebuild,
-        webapp_name="mephisto-task-multipart",
+        webapp_name="mephisto-core",
         build_command="build",
     )
 
 
 def build_mephisto_task_addons_package(force_rebuild: bool = False, verbose: bool = False):
     if verbose:
-        logger.info(f"[blue]Building '{PACKAGES_PATH}/mephisto-task-addons'[/blue]")
+        logger.info(f"[blue]Building '{PACKAGES_PATH}/mephisto-addons'[/blue]")
 
     build_custom_bundle(
         PACKAGES_PATH,
         force_rebuild=force_rebuild,
-        webapp_name="mephisto-task-addons",
+        webapp_name="mephisto-addons",
         build_command="build",
     )
 

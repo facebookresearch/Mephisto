@@ -4,36 +4,36 @@
   LICENSE file in the root directory of this source tree.
 -->
 
-# mephisto-task-addons
+# mephisto-addons
 
 The WorkerOpinion component will allow researchers to receive opinions about their Tasks or some ideas how to improve them.
 
 ## Installation
 
 ```bash
-npm install --save mephisto-task-addons
+npm install --save mephisto-addons
 ```
 
 Install from local folder (e.g. for local development):
 
 ```bash
-cd packages/mephisto-task-addons
+cd packages/mephisto-addons
 npm link
 
 cd <app folder>
-npm link mephisto-task-addons
+npm link mephisto-addons
 
 # If you're getting an invalid hooks error (https://reactjs.org/warnings/invalid-hook-call-warning.html),
 # you can also do the following to ensure that both the app
-# and mephisto-task-addons are using the same version of React:
+# and mephisto-addons are using the same version of React:
 # 
-# cd packages/mephisto-task-addons
+# cd packages/mephisto-addons
 # npm link ../<app folder>/node_modules/react
 ```
 
 ## Usage(`WorkerOpinion`)
 ```jsx
-import { WorkerOpinion } from "mephisto-task-addons";
+import { WorkerOpinion } from "mephisto-addons";
 
 return(
   <div>

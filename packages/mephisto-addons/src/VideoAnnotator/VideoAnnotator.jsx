@@ -223,8 +223,9 @@ function VideoAnnotator({
     e.preventDefault();
     e.stopPropagation();
 
-    // Pass data to `mephisto-task` library
     setOnSubmitLoading(true);
+
+    // Pass data to `mephisto-core` library
     onSubmit(annotationTracksData);
 
     // Clean presaved data, because it was already sent to the server

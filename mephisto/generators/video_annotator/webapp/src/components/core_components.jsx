@@ -9,7 +9,7 @@ import {
   VideoAnnotator,
   prepareRemoteProcedures,
   prepareVideoAnnotatorData,
-} from "mephisto-task-addons";
+} from "mephisto-addons";
 import * as customValidators from "custom-validators";
 import * as customTriggers from "custom-triggers";
 

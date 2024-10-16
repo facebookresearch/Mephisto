@@ -4,7 +4,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { useMephistoTask } from "mephisto-task-multipart";
+import { useMephistoTask } from "mephisto-core";
 import React from "react";
 import { handleWorkerOpinionSubmit, isSubmitButtonDisabled } from "./Functions";
 

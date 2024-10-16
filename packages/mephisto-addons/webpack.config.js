@@ -12,7 +12,7 @@ module.exports = {
   output: {
     path: __dirname,
     filename: "build/bundle.js",
-    library: "mephisto-task-addons",
+    library: "mephisto-addons",
     libraryTarget: "umd",
   },
   target: "web",
@@ -22,10 +22,7 @@ module.exports = {
   resolve: {
     alias: {
       // Use local library with code that can submit metadata with files
-      "mephisto-task-multipart": path.resolve(
-        __dirname,
-        "../../packages/mephisto-task-multipart"
-      ),
+      "mephisto-core": path.resolve(__dirname, "../../packages/mephisto-core"),
     },
     fallback: {
       net: false,

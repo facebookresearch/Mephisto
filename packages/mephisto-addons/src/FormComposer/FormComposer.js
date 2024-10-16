@@ -140,8 +140,9 @@ function FormComposer({
 
     const formData = prepareFormDataForSubmit(formState, formFields);
 
-    // Pass data to `mephisto-task` library
     setOnSubmitLoading(true);
+
+    // Pass data to `mephisto-core` library
     onSubmit(formData);
   }
 

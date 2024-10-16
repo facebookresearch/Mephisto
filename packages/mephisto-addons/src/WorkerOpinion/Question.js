@@ -55,7 +55,7 @@ const Question = forwardRef(
       />
       {state.status === 5 && state.errorIndexes.has(index) && (
         <div
-          className="mephisto-task-addons-worker-opinion__red-box"
+          className="mephisto-addons-worker-opinion__red-box"
           style={{ width: textAreaWidth }}
         >
           {state.text}

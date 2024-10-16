@@ -11,12 +11,12 @@ sidebar_position: 1
 
 ## Overview
 
-The `mephisto-task-addons` package provides:
+The `mephisto-addons` package provides:
 - `WorkerOpinion` widget: collect workers' feedback for each completed unit
 
 ## Usage
 
-1. Add `mephisto-task-addons` library to your webpack config:
+1. Add `mephisto-addons` library to your webpack config:
 ```js
 // Specifies location of your packages (e.g. `../../dir`)
 var PATH_TO_PACKAGES = "<path>"
@@ -26,19 +26,19 @@ module.exports = {
   resolve: {
     alias: {
       ...
-      "mephisto-task-addons": path.resolve(
+      "mephisto-addons": path.resolve(
         __dirname,
-        `${PATH_TO_PACKAGES}/packages/mephisto-task-addons`
+        `${PATH_TO_PACKAGES}/packages/mephisto-addons`
       ),
     }
   }
 };
 ```
 
-2. Import desired widgets from `mephisto-task-addons` in your code like so:
+2. Import desired widgets from `mephisto-addons` in your code like so:
 
 ```jsx
-import { WorkerOpinion } from "mephisto-task-addons";
+import { WorkerOpinion } from "mephisto-addons";
 ...
 <WorkerOpinion
   maxTextLength={500}

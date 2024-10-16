@@ -1,5 +1,5 @@
-// NOTE: that `mephisto-task-addons` library must be set in webpack config as an alias.
-import { validateFieldValue } from "mephisto-task-addons";
+// NOTE: that `mephisto-addons` library must be set in webpack config as an alias.
+import { validateFieldValue } from "mephisto-addons";
 
 export function onChangeCountry(
   formData, // React state for the entire form

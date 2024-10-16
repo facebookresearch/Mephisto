@@ -15,14 +15,14 @@ const HIDE_ALERT_DELAY = 5000;
 /**
  * Creates a Worker Opinion item in the format that is accepted
  * by the handleMetadataSubmit function from the
- * mephisto-task library.
+ * `mephisto-core` library.
  *
  * @param {string} generalText The general Worker Opinion text
  * @param {string[]} questionsTexts
  * @param {string[]} questions
  * @param {bool} containsQuestions
  * @return {{data: [{question: string, text: string}], type: string}} An object that can be used
- *  as a parameter of the handleSubmitMetadata() method in the mephisto-task package
+ *  as a parameter of the handleSubmitMetadata() method in the `mephisto-core` package
  */
 export function createWorkerOpinion(
   generalText,

@@ -11,7 +11,7 @@ import {
   OnboardingComponent,
   LoadingScreen,
 } from "./components/core_components.jsx";
-import { useMephistoTask, ErrorBoundary } from "mephisto-task-multipart";
+import { useMephistoTask, ErrorBoundary } from "mephisto-core";
 
 /* ================= Application Components ================= */
 

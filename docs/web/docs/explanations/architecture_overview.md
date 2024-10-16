@@ -54,6 +54,6 @@ This is a quick guide over file directories in Mephisto project. Note that some 
     - `review_app` - builds React app for TaskReview, and launches a server to display TaskReview in a browser
 - `outputs` - exhaust produced by running the code (logs, database dumps, etc)
 - `packages` - npm packages (can be used locally, and some are also in npm repo)
-    - `mephisto-task-addons` - package for FC React component
+    - `mephisto-addons` - package with FC React component
 - `scripts` - command-line utilities for code upkeep
 - `test` - All tests (Back-end and Front-end, Unittests and Integration tests)

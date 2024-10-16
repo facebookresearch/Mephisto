@@ -4,7 +4,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { VideoAnnotator } from "mephisto-task-addons";
+import { VideoAnnotator } from "mephisto-addons";
 import React from "react";
 
 function LoadingScreen() {

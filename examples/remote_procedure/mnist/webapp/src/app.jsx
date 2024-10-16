@@ -16,7 +16,7 @@ import {
   MephistoContext,
   useMephistoRemoteProcedureTask,
   ErrorBoundary,
-} from "mephisto-task-multipart";
+} from "mephisto-core";
 
 /* ================= Application Components ================= */
 

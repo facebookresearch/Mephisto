@@ -27,6 +27,8 @@ jobs:
       tools: ${{ steps.filter.outputs.tools }}
       mephisto-task: ${{ steps.filter.outputs.mephisto-task }}
       mephisto-worker-addons: ${{ steps.filter.outputs.mephisto-worker-addons }}
+      mephisto-core: ${{ steps.filter.outputs.mephisto-core }}
+      mephisto-addons: ${{ steps.filter.outputs.mephisto-addons }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -66,6 +68,10 @@ jobs:
               - 'packages/mephisto-task/src/**'
             mephisto-worker-addons:
               - 'packages/mephisto-worker-addons/src/**'
+            mephisto-core:
+              - 'packages/mephisto-core/src/**'
+            mephisto-addons:
+              - 'packages/mephisto-addons/src/**'
 
   # Learn more about this test here: https://github.com/facebookresearch/Mephisto/pull/881
   simple_static_task:
@@ -307,7 +313,7 @@ jobs:
   # Learn more about this test here: https://github.com/facebookresearch/Mephisto/pull/833
   static_react_task_with_worker_opinion:
     needs: changes
-    if: ${{ (needs.changes.outputs.static_react_task_with_worker_opinion == 'true') || (needs.changes.outputs.mephisto-task == 'true') || (needs.changes.outputs.mephisto-task-addons == 'true') || (needs.changes.outputs.abstractions == 'true') || (needs.changes.outputs.data_model == 'true') || (needs.changes.outputs.operations == 'true') || (needs.changes.outputs.tools == 'true')}}
+    if: ${{ (needs.changes.outputs.static_react_task_with_worker_opinion == 'true') || (needs.changes.outputs.mephisto-task == 'true') || (needs.changes.outputs.mephisto-addons == 'true') || (needs.changes.outputs.abstractions == 'true') || (needs.changes.outputs.data_model == 'true') || (needs.changes.outputs.operations == 'true') || (needs.changes.outputs.tools == 'true')}}
     runs-on: ubuntu-latest
     steps:
       - name: 🔀 Checking out repo

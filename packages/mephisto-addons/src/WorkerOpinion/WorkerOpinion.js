@@ -33,7 +33,7 @@ function WorkerOpinion({
   required,
 }) {
   // To make classNames more readable
-  const stylePrefix = `mephisto-task-addons-worker-opinion__`;
+  const stylePrefix = `mephisto-addons-worker-opinion__`;
 
   // Setting defaults
   const maxTextAreaLength = maxTextLength
