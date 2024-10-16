@@ -46,7 +46,7 @@ from .migrations import migrations
 logger = get_logger(name=__name__)
 
 
-def nonesafe_int(in_string: Optional[str]) -> Optional[int]:
+def nonesafe_int(in_string: Optional[Union[str, int]]) -> Optional[int]:
     """Cast input to an int or None"""
     if in_string is None:
         return None
@@ -784,7 +784,7 @@ class LocalMephistoDB(MephistoDB):
         self, unit_id: str, agent_id: Optional[str] = None, status: Optional[str] = None
     ) -> None:
         """
-        Update the given task with the given parameters if possible,
+        Update the given unit with the given parameters if possible,
         raise appropriate exception otherwise.
         """
         if status not in AssignmentState.valid_unit():
@@ -1117,7 +1117,9 @@ class LocalMephistoDB(MephistoDB):
             rows = c.fetchall()
             return [Agent(self, str(r["agent_id"]), row=r, _used_new_call=True) for r in rows]
 
-    def _make_qualification(self, qualification_name: str) -> str:
+    def _make_qualification(
+        self, qualification_name: str, description: Optional[str] = None
+    ) -> str:
         """
         Make a new qualification, throws an error if a qualification by the given name
         already exists. Return the id for the qualification.
@@ -1128,8 +1130,8 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             try:
                 c.execute(
-                    "INSERT INTO qualifications(qualification_name) VALUES (?);",
-                    (qualification_name,),
+                    "INSERT INTO qualifications(qualification_name, description) VALUES (?, ?);",
+                    (qualification_name, description),
                 )
                 qualification_id = str(c.lastrowid)
                 return qualification_id
@@ -1194,6 +1196,38 @@ class LocalMephistoDB(MephistoDB):
                 "DELETE FROM qualifications WHERE qualification_name = ?1;",
                 (qualification_name,),
             )
+
+    def _update_qualification(
+        self,
+        qualification_id: str,
+        name: str,
+        description: Optional[str] = None,
+    ) -> None:
+        """
+        Update the given qualification with the given parameters if possible,
+        raise appropriate exception otherwise.
+        """
+        with self.table_access_condition, self.get_connection() as conn:
+            c = conn.cursor()
+            try:
+                c.execute(
+                    """
+                    UPDATE qualifications
+                    SET qualification_name = ?2, description = ?3
+                    WHERE qualification_id = ?1;
+                    """,
+                    [
+                        nonesafe_int(qualification_id),
+                        name,
+                        description,
+                    ],
+                )
+            except sqlite3.IntegrityError as e:
+                if is_key_failure(e):
+                    raise EntryDoesNotExistException(
+                        f"Given qualification_id {qualification_id} not found in the database"
+                    )
+                raise MephistoDBException(e)
 
     def _grant_qualification(self, qualification_id: str, worker_id: str, value: int = 1) -> None:
         """
@@ -1438,16 +1472,19 @@ class LocalMephistoDB(MephistoDB):
             ]
 
     @retry_generate_id(caught_excs=[EntryAlreadyExistsException])
-    def _new_unit_review(
+    def _new_worker_review(
         self,
-        unit_id: Union[int, str],
-        task_id: Union[int, str],
         worker_id: Union[int, str],
-        status: str,
+        status: Optional[str] = None,
+        task_id: Optional[Union[int, str]] = None,
+        unit_id: Optional[Union[int, str]] = None,
+        qualification_id: Optional[Union[int, str]] = None,
+        value: Optional[int] = None,
         review_note: Optional[str] = None,
         bonus: Optional[str] = None,
+        revoke: bool = False,
     ) -> None:
-        """Create unit review"""
+        """Create worker review"""
 
         with self.table_access_condition:
             conn = self.get_connection()
@@ -1455,25 +1492,31 @@ class LocalMephistoDB(MephistoDB):
             try:
                 c.execute(
                     """
-                    INSERT INTO unit_review (
+                    INSERT INTO worker_review (
                         id,
                         unit_id,
                         worker_id,
                         task_id,
+                        updated_qualification_id,
+                        updated_qualification_value,
+                        revoked_qualification_id,
                         status,
                         review_note,
                         bonus
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?);
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                     """,
-                    (
+                    [
                         make_randomized_int_id(),
                         nonesafe_int(unit_id),
                         nonesafe_int(worker_id),
                         nonesafe_int(task_id),
+                        nonesafe_int(qualification_id) if not revoke else None,
+                        value,
+                        nonesafe_int(qualification_id) if revoke else None,
                         status,
                         review_note,
                         bonus,
-                    ),
+                    ],
                 )
                 conn.commit()
             except sqlite3.IntegrityError as e:
@@ -1481,21 +1524,21 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryAlreadyExistsException(
                         e,
                         db=self,
-                        table_name="unit_review",
+                        table_name="worker_review",
                         original_exc=e,
                     )
                 raise MephistoDBException(e)
 
-    def _update_unit_review(
+    def _update_worker_review(
         self,
-        unit_id: int,
-        qualification_id: int,
-        worker_id: int,
+        unit_id: Union[int, str],
+        qualification_id: Union[int, str],
+        worker_id: Union[int, str],
         value: Optional[int] = None,
         revoke: bool = False,
     ) -> None:
         """
-        Update the given unit review with the given parameters if possible,
+        Update the given worker review with the given parameters if possible,
         raise appropriate exception otherwise.
         """
         with self.table_access_condition:
@@ -1504,37 +1547,62 @@ class LocalMephistoDB(MephistoDB):
 
             c.execute(
                 """
-                SELECT * FROM unit_review
+                SELECT * FROM worker_review
                 WHERE (unit_id = ?) AND (worker_id = ?)
                 ORDER BY creation_date ASC;
                 """,
-                (unit_id, worker_id),
+                [
+                    nonesafe_int(unit_id),
+                    nonesafe_int(worker_id),
+                ],
             )
             results = c.fetchall()
             if not results:
                 raise EntryDoesNotExistException(
-                    f"`unit_review` was not created for this `unit_id={unit_id}`"
+                    f"`worker_review` was not created for this `unit_id={unit_id}`"
                 )
 
-            latest_unit_review_id = results[-1]["id"]
+            latest_worker_review = results[-1]
+            latest_worker_review_id = latest_worker_review["id"]
 
-            c.execute(
-                """
-                UPDATE unit_review
-                SET
-                    updated_qualification_id = ?,
-                    updated_qualification_value = ?,
-                    revoked_qualification_id = ?
-                WHERE id = ?;
-                """,
-                (
-                    qualification_id if not revoke else None,
-                    value,
-                    qualification_id if revoke else None,
-                    latest_unit_review_id,
-                ),
+            has_entry_with_qualification = (
+                latest_worker_review["updated_qualification_id"]
+                or latest_worker_review["revoked_qualification_id"]
             )
-            conn.commit()
+
+            if not has_entry_with_qualification:
+                # Update just created entry when unit was approved
+                c.execute(
+                    """
+                    UPDATE worker_review
+                    SET
+                        updated_qualification_id = ?,
+                        updated_qualification_value = ?,
+                        revoked_qualification_id = ?
+                    WHERE id = ?;
+                    """,
+                    (
+                        nonesafe_int(qualification_id) if not revoke else None,
+                        value,
+                        nonesafe_int(qualification_id) if revoke else None,
+                        nonesafe_int(latest_worker_review_id),
+                    ),
+                )
+                conn.commit()
+            else:
+                # If we try to update entry for the same unit,
+                # but it was already assigned to another qualifications,
+                # create a new entry with the same data, but with another qualification and value
+                self._new_worker_review(
+                    worker_id=worker_id,
+                    status=latest_worker_review["status"],
+                    task_id=latest_worker_review["task_id"],
+                    unit_id=unit_id,
+                    qualification_id=qualification_id,
+                    value=value,
+                    review_note=latest_worker_review["review_note"],
+                    bonus=latest_worker_review["bonus"],
+                )
 
     # File/blob manipulation methods
 

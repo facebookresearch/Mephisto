@@ -7,7 +7,7 @@
 import { ReviewType } from "consts/review";
 import * as React from "react";
 import { Button, Form, Modal } from "react-bootstrap";
-import ModalForm from "../ModalForm/ModalForm";
+import ReviewModalForm from "../ReviewModalForm/ReviewModalForm";
 import "./ReviewModal.css";
 
 const ReviewTypeButtonClassMapping = {
@@ -38,12 +38,12 @@ function ReviewModal(props: ReviewModalProps) {
   return (
     props.show && (
       <Modal className={"review-modal"} show={props.show} onHide={onModalClose}>
-        <Modal.Header closeButton={false}>
+        <Modal.Header closeButton={true}>
           <Modal.Title>{props.data.title}</Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
-          <ModalForm
+          <ReviewModalForm
             data={props.data}
             setData={props.setData}
             setErrors={props.setErrors}
@@ -54,11 +54,11 @@ function ReviewModal(props: ReviewModalProps) {
         <Modal.Footer>
           <div className={"review-buttons"}>
             <Button
-              variant={"cancel-button link"}
+              variant={"outline-secondary"}
               size={"sm"}
               onClick={onModalClose}
             >
-              <b>{props.data.buttonCancel}</b>
+              {props.data.buttonCancel}
             </Button>
             <Button
               variant={ReviewTypeButtonClassMapping[props.data.type]}

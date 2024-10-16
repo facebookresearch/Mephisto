@@ -179,7 +179,7 @@ TABLES_UNIQUE_LOOKUP_FIELDS = {
         AGENTS_TABLE_NAME: None,
         "onboarding_agents": None,
         "granted_qualifications": ["worker_id", "qualification_id"],
-        "unit_review": None,
+        "worker_review": None,
     },
     PROLIFIC_PROVIDER_TYPE: {
         "workers": ["worker_id"],

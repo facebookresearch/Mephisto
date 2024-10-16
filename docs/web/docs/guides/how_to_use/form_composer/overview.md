@@ -16,36 +16,36 @@ You can find working demos of FormComposer in `examples/form_composer_demo` repo
 
 For details on how to run these examples, refer to the demo's [README.md](https://github.com/facebookresearch/Mephisto/blob/main/examples/form_composer_demo/README.md)
 
-### FormComposer app UI
+## FormComposer app UI
 
-Here is how FormComposer app UI looks like.
+The below screenshots showcase FormComposer app UI.
 
-### Just started task
+### Worker view - initial form
 
-![List of tasks](./screenshots/initial_view.png)
+![Initial form](./screenshots/initial_view.png)
 <br/>
 <br/>
 
-### Filled form
+### Worker view - completed form
 
-![List of tasks](./screenshots/in_progress_view.png)
+![Completed form](./screenshots/in_progress_view.png)
 <br/>
 <br/>
 
-### TaskReview app
+### Researcher view - Task Review main page
 
-![List of tasks](./screenshots/review.png)
+![Task Review main page](./screenshots/review.png)
 <br/>
 <br/>
 
-### TaskReview app. List of Units
+### Researcher view - Task Review units list
 
-![TaskReview app. List of Units](./screenshots/units_list.png)
+![Task Review units list](./screenshots/units_list.png)
 <br/>
 <br/>
 
-### TaskReview app. Unit page
+### Researcher view - Task Review unit page
 
-![TaskReview app. Unit page](./screenshots/unit_page.png)
+![Task Review unit page](./screenshots/unit_page.png)
 <br/>
 <br/>

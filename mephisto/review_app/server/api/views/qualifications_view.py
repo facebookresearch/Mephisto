@@ -71,6 +71,8 @@ class QualificationsView(MethodView):
 
         qualifications = [
             {
+                "creation_date": q.creation_date,
+                "description": q.description,
                 "id": q.db_id,
                 "name": q.qualification_name,
             }
@@ -86,8 +88,12 @@ class QualificationsView(MethodView):
     def post(self) -> dict:
         """Create a new qualification"""
 
-        data: dict = request.json
-        qualification_name = data and data.get("name")
+        data: dict = request.json or {}
+        qualification_name = data.get("name")
+        qualification_description = data.get("description")
+
+        if qualification_description:
+            qualification_description = qualification_description[:500]
 
         if not qualification_name:
             raise BadRequest('Field "name" is required.')
@@ -97,10 +103,15 @@ class QualificationsView(MethodView):
         if db_qualifications:
             raise BadRequest(f'Qualification with name "{qualification_name}" already exists.')
 
-        db_qualification_id: str = app.db.make_qualification(qualification_name)
+        db_qualification_id: str = app.db.make_qualification(
+            qualification_name,
+            qualification_description,
+        )
         db_qualification: StringIDRow = app.db.get_qualification(db_qualification_id)
 
         return {
+            "creation_date": db_qualification["creation_date"],
+            "description": db_qualification["description"],
             "id": db_qualification["qualification_id"],
             "name": db_qualification["qualification_name"],
         }

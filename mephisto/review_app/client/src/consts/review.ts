@@ -53,3 +53,18 @@ export const VIDEO_TYPES_BY_EXT = {
   mpeg: "video/mpeg",
   webm: "video/webm",
 };
+
+export const NEW_QUALIFICATION_NAME_LENGTH = 50;
+
+export const NEW_QUALIFICATION_DESCRIPTION_LENGTH = 500;
+
+export const EDIT_GRANTED_QUALIFICATION_VALUE_LENGTH = 50;
+
+export const EDIT_GRANTED_QUALIFICATION_EXPLANATION_LENGTH = 500;
+
+export const STATUS_COLOR_CLASS_MAPPING = {
+  accepted: "text-success",
+  approved: "text-success",
+  rejected: "text-danger",
+  soft_rejected: "text-warning",
+};

@@ -8,6 +8,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min";
 import Errors from "components/Errors/Errors";
 import HomePage from "pages/HomePage/HomePage";
+import QualificationPage from "pages/QualificationPage/QualificationPage";
 import TaskPage from "pages/TaskPage/TaskPage";
 import TasksPage from "pages/TasksPage/TasksPage";
 import TaskStatsPage from "pages/TaskStatsPage/TaskStatsPage";
@@ -57,6 +58,10 @@ function App() {
         <Route
           path={urls.client.tasks}
           element={<TasksPage setErrors={setErrors} />}
+        />
+        <Route
+          path={urls.client.qualification(":id")}
+          element={<QualificationPage setErrors={setErrors} />}
         />
       </Routes>
 

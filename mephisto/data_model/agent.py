@@ -506,7 +506,7 @@ class Agent(_AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBac
         self,
         review_note: Optional[str] = None,
         bonus: Optional[Union[int, float]] = None,
-        skip_unit_review: bool = False,
+        skip_worker_review: bool = False,
     ) -> None:
         """Approve the work done on this agent's specific Unit"""
         raise NotImplementedError()
@@ -520,11 +520,11 @@ class Agent(_AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBac
         # qualification automatically if a threshold of
         # soft rejects as a proportion of total accepts
         # is exceeded
-        self.approve_work(review_note=review_note, skip_unit_review=True)
+        self.approve_work(review_note=review_note, skip_worker_review=True)
         self.update_status(AgentState.STATUS_SOFT_REJECTED)
 
         unit = self.get_unit()
-        self.db.new_unit_review(
+        self.db.new_worker_review(
             unit_id=unit.db_id,
             task_id=unit.task_id,
             worker_id=unit.worker_id,

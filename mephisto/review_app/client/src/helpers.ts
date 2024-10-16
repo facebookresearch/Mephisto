@@ -4,6 +4,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { SortArrowsState } from "components/ColumnTitleWithSort/ColumnTitleWithSort";
 import cloneDeep from "lodash/cloneDeep";
 
 export const updateModalState = (
@@ -30,4 +31,33 @@ export function setPageTitle(title: string) {
 
 export function capitalizeString(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+export function setResponseErrors(
+  setErrorsFunc: Function,
+  errorResponse: ErrorResponseType | null
+) {
+  if (errorResponse) {
+    setErrorsFunc((oldErrors) => [...oldErrors, ...[errorResponse.error]]);
+  }
+}
+
+export function onClickSortTableColumn(
+  columnName: string,
+  state: SortArrowsState,
+  onChangeSortParamFunc: Function,
+  setCurrentSortFunc: Function
+) {
+  let _sortParam = "";
+  if (state === SortArrowsState.INACTIVE) {
+    _sortParam = "";
+  } else if (state === SortArrowsState.ASC) {
+    _sortParam = columnName;
+  } else if (state === SortArrowsState.DESC) {
+    _sortParam = `-${columnName}`;
+  } else {
+  }
+
+  onChangeSortParamFunc(_sortParam);
+  setCurrentSortFunc({ column: columnName, state: state });
 }

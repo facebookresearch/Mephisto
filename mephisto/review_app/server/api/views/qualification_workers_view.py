@@ -34,7 +34,7 @@ def _find_granted_qualifications(db: LocalMephistoDB, qualification_id: str) -> 
         return results
 
 
-def _find_unit_reviews(
+def _find_worker_reviews(
     db,
     qualification_id: str,
     worker_id: str,
@@ -54,7 +54,7 @@ def _find_unit_reviews(
         c = conn.cursor()
         c.execute(
             f"""
-            SELECT * FROM unit_review
+            SELECT * FROM worker_review
             WHERE (updated_qualification_id = ?1) AND (worker_id = ?2) {task_query}
             ORDER BY creation_date ASC;
             """,
@@ -84,12 +84,17 @@ class QualificationWorkersView(MethodView):
         workers = []
 
         for gq in db_granted_qualifications:
-            unit_reviews = _find_unit_reviews(app.db, qualification_id, gq["worker_id"], task_id)
+            worker_reviews = _find_worker_reviews(
+                app.db,
+                qualification_id,
+                gq["worker_id"],
+                task_id,
+            )
 
-            if unit_reviews:
-                latest_unit_review = unit_reviews[-1]
-                unit_review_id = latest_unit_review["id"]
-                granted_at = latest_unit_review["creation_date"]
+            if worker_reviews:
+                latest_worker_review = worker_reviews[-1]
+                worker_review_id = latest_worker_review["id"]
+                granted_at = latest_worker_review["creation_date"]
             else:
                 continue
 
@@ -97,8 +102,8 @@ class QualificationWorkersView(MethodView):
                 {
                     "worker_id": gq["worker_id"],
                     "value": gq["value"],
-                    "unit_review_id": unit_review_id,  # latest grant of this qualification
-                    "granted_at": granted_at,  # maps to `unit_review.creation_date` column
+                    "worker_review_id": worker_review_id,  # latest grant of this qualification
+                    "granted_at": granted_at,  # maps to `worker_review.creation_date` column
                 }
             )
 

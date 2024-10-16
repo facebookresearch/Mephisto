@@ -1,0 +1,114 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.tasks-table {
+  width: 100%;
+}
+
+.tasks-table .titles-row th {
+  background-color: #ecdadf;
+}
+
+.tasks-table .titles-row .task {
+  width: 350px;
+  max-width: 350px;
+}
+
+.tasks-table .titles-row .reviewed {
+  width: 80px;
+  text-align: center;
+}
+
+.tasks-table .titles-row .units {
+  width: 80px;
+  text-align: center;
+}
+
+.tasks-table .titles-row .date {
+  width: 130px;
+  text-align: center;
+}
+
+.tasks-table .titles-row .stats {
+  width: 80px;
+  text-align: center;
+}
+
+.tasks-table .titles-row .timeline {
+  width: 80px;
+  text-align: center;
+}
+
+.tasks-table .titles-row .worker-opinions {
+  width: 80px;
+  text-align: center;
+}
+
+.tasks-table .titles-row .display-units {
+  width: 115px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.tasks-table .value-row:not(.no-hover) {
+  cursor: pointer;
+}
+
+.tasks-table .value-row:not(.no-hover):hover td {
+  background-color: rgba(236, 218, 223, 0.3);
+}
+
+.tasks-table .value-row .task {
+  width: 350px;
+  max-width: 350px;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tasks-table .value-row .task.text-primary {
+  cursor: pointer;
+}
+.tasks-table .value-row .task.text-primary:hover {
+  text-decoration: underline;
+}
+
+.tasks-table .value-row .export-loading {
+  padding-left: 20px;
+}
+
+.tasks-table .value-row .download-button {
+  cursor: pointer;
+}
+.tasks-table .value-row .download-button:hover {
+  text-decoration: underline;
+}
+
+.tasks-table .value-row .stats a,
+.tasks-table .value-row .timeline a,
+.tasks-table .value-row .display-units a,
+.tasks-table .value-row .worker-opinions a {
+  cursor: pointer;
+  text-decoration: unset;
+}
+
+.tasks-table .value-row .stats a:hover,
+.tasks-table .value-row .timeline a:hover,
+.tasks-table .value-row .display-units a:hover,
+.tasks-table .value-row .worker-opinions a:hover {
+  text-decoration: underline;
+}
+
+.tasks-table .value-row .reviewed,
+.tasks-table .value-row .units,
+.tasks-table .value-row .stats,
+.tasks-table .value-row .timeline,
+.tasks-table .value-row .worker-opinions,
+.tasks-table .value-row .display-units,
+.tasks-table .value-row .date {
+  text-align: center;
+}

@@ -12,7 +12,7 @@ from mephisto.abstractions.databases.local_database import StringIDRow
 
 class TaskView(MethodView):
     def get(self, task_id: str = None) -> dict:
-        """Get all available tasks (to select one for review)"""
+        """Get task"""
 
         db_task: StringIDRow = app.db.get_task(task_id)
         app.logger.debug(f"Found Task in DB: {db_task}")

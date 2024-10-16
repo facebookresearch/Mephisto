@@ -27,8 +27,18 @@ class TestStatsView(BaseTestApiViewCase):
         unit: Unit = Unit.get(self.db, unit_id)
         unit.set_db_status(AssignmentState.ACCEPTED)
         qualification_id = get_test_qualification(self.db)
-        self.db.new_unit_review(unit_id, unit.task_id, worker_id, AgentState.STATUS_APPROVED)
-        self.db.update_unit_review(unit_id, qualification_id, worker_id)
+
+        self.db.new_worker_review(
+            unit_id=unit_id,
+            task_id=unit.task_id,
+            worker_id=worker_id,
+            status=AgentState.STATUS_APPROVED,
+        )
+        self.db.update_worker_review(
+            unit_id=unit_id,
+            qualification_id=qualification_id,
+            worker_id=worker_id,
+        )
 
         with self.app_context:
             url = url_for("review-stats") + f"?task_id={unit.task_id}"

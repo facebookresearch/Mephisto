@@ -61,9 +61,12 @@ class TestUnitsDetailsView(BaseTestApiViewCase):
             "outputs",
             "prepared_inputs",
             "unit_data_folder",
+            "metadata",
         ]
         for unit_field in unit_fields:
             self.assertTrue(unit_field in first_unit)
+
+        self.assertIn("worker_reviews", first_unit["metadata"])
 
 
 if __name__ == "__main__":

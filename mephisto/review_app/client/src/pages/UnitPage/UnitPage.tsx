@@ -6,6 +6,7 @@
 
 import InitialParametersCollapsable from "components/InitialParametersCollapsable/InitialParametersCollapsable";
 import { InReviewFileModal } from "components/InReviewFileModal/InReviewFileModal";
+import Preloader from "components/Preloader/Preloader";
 import ResultsCollapsable from "components/ResultsCollapsable/ResultsCollapsable";
 import TasksHeader from "components/TasksHeader/TasksHeader";
 import VideoAnnotatorWebVTTCollapsable from "components/VideoAnnotatorWebVTTCollapsable/VideoAnnotatorWebVTTCollapsable";
@@ -14,15 +15,15 @@ import {
   MESSAGES_IFRAME_DATA_KEY,
   MESSAGES_IN_REVIEW_FILE_DATA_KEY,
 } from "consts/review";
-import { setPageTitle } from "helpers";
+import { setPageTitle, setResponseErrors } from "helpers";
 import * as React from "react";
 import { useEffect } from "react";
-import { Spinner } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import { getTask } from "requests/tasks";
 import { getUnits, getUnitsDetails } from "requests/units";
 import urls from "urls";
 import "./UnitPage.css";
+import UnitReviewsCollapsable from "./UnitReviewsCollapsable/UnitReviewsCollapsable";
 
 type ParamsType = {
   taskId: string;
@@ -118,11 +119,8 @@ function UnitPage(props: UnitPagePropsType) {
     setInReviewFileModalShow(true);
   }
 
-  function onError(errorResponse: ErrorResponseType | null) {
-    if (errorResponse) {
-      props.setErrors((oldErrors) => [...oldErrors, ...[errorResponse.error]]);
-    }
-  }
+  const onError = (response: ErrorResponseType) =>
+    setResponseErrors(props.setErrors, response);
 
   // [RECEIVING WIDGET DATA]
   // ---
@@ -222,13 +220,7 @@ function UnitPage(props: UnitPagePropsType) {
 
       <div className={"content"}>
         {/* Preloader when we request unit */}
-        {loading && (
-          <div className={"loading"}>
-            <Spinner animation="border" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </Spinner>
-          </div>
-        )}
+        <Preloader loading={loading} />
 
         {/* Initial Unit parameters */}
         {unitDetails?.inputs && (
@@ -251,6 +243,14 @@ function UnitPage(props: UnitPagePropsType) {
         {unitDetails?.metadata?.webvtt && (
           <VideoAnnotatorWebVTTCollapsable
             data={unitDetails?.metadata?.webvtt}
+            open={false}
+          />
+        )}
+
+        {/* Review history of Unit */}
+        {unitDetails?.metadata?.worker_reviews && (
+          <UnitReviewsCollapsable
+            unitReviews={unitDetails?.metadata?.worker_reviews}
             open={false}
           />
         )}

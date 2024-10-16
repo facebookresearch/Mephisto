@@ -309,7 +309,7 @@ def delete_exported_data(
             "agents",
             "assignments",
             "task_runs",
-            "unit_review",
+            "worker_review",
             "units",
         ]
         if delete_tasks:

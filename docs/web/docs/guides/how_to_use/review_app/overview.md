@@ -75,3 +75,15 @@ _Note that a custom view of Task results is included (at the bottom) only if you
 ![Task statistics](./screenshots/task_worker_opinions.png)
 <br/>
 <br/>
+
+### Task units list
+
+![Task units list](./screenshots/units_list.png)
+<br/>
+<br/>
+
+### Task unit page
+
+![Task unit page](./screenshots/unit_page.png)
+<br/>
+<br/>

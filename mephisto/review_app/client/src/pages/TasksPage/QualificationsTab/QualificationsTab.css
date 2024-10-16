@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.qualifications-tab {
+  width: 100%;
+}
+
+.qualifications-tab .qualification-actions {
+  height: 60px;
+  padding-left: 10px;
+  padding-right: 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.qualifications-tab .qualification-actions .filter-qualifications {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.qualifications-tab
+  .qualification-actions
+  .filter-qualifications
+  .select-qualifications-label {
+  white-space: nowrap;
+}
+.qualifications-tab
+  .qualification-actions
+  .filter-qualifications
+  .select-qualifications {
+  min-width: 300px;
+  max-width: 300px;
+}
+
+.qualifications-tab .empty-message {
+  margin: 10px;
+}

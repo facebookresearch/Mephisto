@@ -4,11 +4,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import Preloader from "components/Preloader/Preloader";
 import TasksHeader from "components/TasksHeader/TasksHeader";
-import { setPageTitle } from "helpers";
+import { setPageTitle, setResponseErrors } from "helpers";
 import * as React from "react";
 import { useEffect } from "react";
-import { Spinner } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import { getTaskStats } from "requests/tasks";
 import { Histogram } from "./Histogram";
@@ -30,13 +30,10 @@ function TaskStatsPage(props: TaskStatsPagePropsType) {
   const [taskStats, setTaskStats] = React.useState<TaskRusultStatsType>(null);
   const [loading, setLoading] = React.useState(false);
 
-  const hasStats = taskStats && Object.keys(taskStats.stats).length != 0;
+  const hasStats = taskStats && Object.keys(taskStats.stats).length !== 0;
 
-  function onError(errorResponse: ErrorResponseType | null) {
-    if (errorResponse) {
-      props.setErrors((oldErrors) => [...oldErrors, ...[errorResponse.error]]);
-    }
-  }
+  const onError = (response: ErrorResponseType) =>
+    setResponseErrors(props.setErrors, response);
 
   // Effects
   useEffect(() => {
@@ -82,11 +79,7 @@ function TaskStatsPage(props: TaskStatsPagePropsType) {
       <div className={"content"}>
         {/* Preloader when we request task stats */}
         {loading ? (
-          <div className={"loading"}>
-            <Spinner animation="border" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </Spinner>
-          </div>
+          <Preloader loading={loading} />
         ) : (
           <>
             <div className={"explanation"}>

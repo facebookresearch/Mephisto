@@ -27,20 +27,20 @@ def _find_granted_qualifications(db: LocalMephistoDB, worker_id: str) -> List[St
                 gq.worker_id,
                 gq.qualification_id,
                 gq.granted_qualification_id,
-                ur.creation_date AS granted_at
+                wr.creation_date AS granted_at
             FROM granted_qualifications AS gq
             LEFT JOIN (
                 SELECT
                     updated_qualification_id,
                     creation_date
-                FROM unit_review
+                FROM worker_review
                 ORDER BY creation_date DESC
                 /*
-                We’re retrieving unit_review data only
+                We’re retrieving `worker_review` data only
                 for the latest update of the worker-qualification pair.
                 */
                 LIMIT 1
-            ) AS ur ON ur.updated_qualification_id = gq.qualification_id
+            ) AS wr ON wr.updated_qualification_id = gq.qualification_id
             WHERE gq.worker_id = ?1
             """,
             (worker_id,),
@@ -70,7 +70,7 @@ class WorkerGrantedQualificationsView(MethodView):
                     "worker_id": gq["worker_id"],
                     "qualification_id": gq["qualification_id"],
                     "value": int(gq["value"]),
-                    "granted_at": gq["granted_at"],  # maps to `unit_review.creation_date` column
+                    "granted_at": gq["granted_at"],  # maps to `worker_review.creation_date` column
                 },
             )
 

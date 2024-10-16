@@ -4,7 +4,10 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from .granted_qualifications_view import GrantedQualificationsView
 from .home_view import HomeView
+from .qualification_details_view import QualificationDetailsView
+from .qualification_view import QualificationView
 from .qualification_workers_view import QualificationWorkersView
 from .qualifications_view import QualificationsView
 from .qualify_worker_view import QualifyWorkerView
@@ -28,3 +31,4 @@ from .units_soft_reject_view import UnitsSoftRejectView
 from .units_view import UnitsView
 from .worker_block_view import WorkerBlockView
 from .worker_granted_qualifications_view import WorkerGrantedQualificationsView
+from .worker_qualifications_grant_view import WorkerQualificationsGrantView

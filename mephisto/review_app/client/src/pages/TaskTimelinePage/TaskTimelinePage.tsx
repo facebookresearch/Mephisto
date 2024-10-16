@@ -4,11 +4,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import Preloader from "components/Preloader/Preloader";
 import TasksHeader from "components/TasksHeader/TasksHeader";
-import { setPageTitle } from "helpers";
+import { setPageTitle, setResponseErrors } from "helpers";
 import * as React from "react";
 import { useEffect } from "react";
-import { Spinner } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import { getTaskTimeline } from "requests/tasks";
 import "./TaskTimelinePage.css";
@@ -29,11 +29,8 @@ function TaskTimelinePage(props: TaskTimelinePagePropsType) {
   );
   const [loading, setLoading] = React.useState(false);
 
-  function onError(errorResponse: ErrorResponseType | null) {
-    if (errorResponse) {
-      props.setErrors((oldErrors) => [...oldErrors, ...[errorResponse.error]]);
-    }
-  }
+  const onError = (response: ErrorResponseType) =>
+    setResponseErrors(props.setErrors, response);
 
   // Effects
   useEffect(() => {
@@ -76,11 +73,7 @@ function TaskTimelinePage(props: TaskTimelinePagePropsType) {
       <div className={"content"}>
         {/* Preloader when we request task timeline */}
         {loading ? (
-          <div className={"loading"}>
-            <Spinner animation="border" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </Spinner>
-          </div>
+          <Preloader loading={loading} />
         ) : (
           <>
             {!taskTimeline.server_is_available && (

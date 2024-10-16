@@ -6,6 +6,7 @@
 
 import InitialParametersCollapsable from "components/InitialParametersCollapsable/InitialParametersCollapsable";
 import { InReviewFileModal } from "components/InReviewFileModal/InReviewFileModal";
+import Preloader from "components/Preloader/Preloader";
 import ResultsCollapsable from "components/ResultsCollapsable/ResultsCollapsable";
 import VideoAnnotatorWebVTTCollapsable from "components/VideoAnnotatorWebVTTCollapsable/VideoAnnotatorWebVTTCollapsable";
 import WorkerOpinionCollapsable from "components/WorkerOpinionCollapsable/WorkerOpinionCollapsable";
@@ -14,11 +15,11 @@ import {
   MESSAGES_IN_REVIEW_FILE_DATA_KEY,
   ReviewType,
 } from "consts/review";
-import { setPageTitle, updateModalState } from "helpers";
+import { setPageTitle, setResponseErrors, updateModalState } from "helpers";
 import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
 import { useEffect } from "react";
-import { Button, Spinner } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   postQualificationGrantWorker,
@@ -33,7 +34,7 @@ import {
   postUnitsReject,
   postUnitsSoftReject,
 } from "requests/units";
-import { postWorkerBlock } from "requests/workers";
+import { postWorkerBlock, postWorkerGrant } from "requests/workers";
 import urls from "urls";
 import {
   APPROVE_MODAL_DATA_STATE,
@@ -127,6 +128,9 @@ function TaskPage(props: TaskPagePropsType) {
   const [inReviewFileModalData, setInReviewFileModalData] = React.useState<
     InReviewFileModalDataType
   >({});
+
+  const onError = (response: ErrorResponseType) =>
+    setResponseErrors(props.setErrors, response);
 
   function getUnitDataFolder(): string {
     const unitDataFolderStartIndex = currentUnitDetails.unit_data_folder.indexOf(
@@ -275,17 +279,16 @@ function TaskPage(props: TaskPagePropsType) {
       // Grant Qualification
       if (
         _modalData.form.checkboxAssignQualification &&
-        _modalData.form.qualification
+        _modalData.form.selectedQualifications?.length > 0
       ) {
-        postQualificationGrantWorker(
-          _modalData.form.qualification,
+        postWorkerGrant(
           currentWorkerOnReview,
           () => null,
           setLoading,
           onError,
           {
             unit_ids: unitIds,
-            value: _modalData.form.qualificationValue,
+            qualification_grants: _modalData.form.selectedQualifications,
           }
         );
       }
@@ -293,17 +296,16 @@ function TaskPage(props: TaskPagePropsType) {
       // Revoke Qualification
       if (
         _modalData.form.checkboxAssignQualification &&
-        _modalData.form.qualification
+        _modalData.form.selectQualification
       ) {
-        postQualificationRevokeWorker(
-          _modalData.form.qualification,
+        postWorkerGrant(
           currentWorkerOnReview,
           () => null,
           setLoading,
           onError,
           {
             unit_ids: unitIds,
-            value: _modalData.form.qualificationValue,
+            qualification_grants: _modalData.form.selectedQualifications,
           }
         );
       }
@@ -311,10 +313,10 @@ function TaskPage(props: TaskPagePropsType) {
       // Revoke Qualification
       if (
         _modalData.form.checkboxUnassignQualification &&
-        _modalData.form.qualification
+        _modalData.form.selectQualification
       ) {
         postQualificationRevokeWorker(
-          _modalData.form.qualification,
+          _modalData.form.selectQualification,
           currentWorkerOnReview,
           () => null,
           setLoading,
@@ -418,12 +420,6 @@ function TaskPage(props: TaskPagePropsType) {
       // Save current state of the modal data
       updateModalState(setModalState, modalData.type, modalData);
       setIframeLoaded(false);
-    }
-  }
-
-  function onError(errorResponse: ErrorResponseType | null) {
-    if (errorResponse) {
-      props.setErrors((oldErrors) => [...oldErrors, ...[errorResponse.error]]);
     }
   }
 
@@ -647,13 +643,7 @@ function TaskPage(props: TaskPagePropsType) {
 
       <div className={"content"}>
         {/* Preloader when we request tasks */}
-        {loading && (
-          <div className={"loading"}>
-            <Spinner animation="border" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </Spinner>
-          </div>
-        )}
+        <Preloader loading={loading} />
 
         {/* Initial Unit parameters */}
         {currentUnitDetails?.inputs && (

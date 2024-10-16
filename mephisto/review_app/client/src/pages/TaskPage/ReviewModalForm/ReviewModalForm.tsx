@@ -4,13 +4,19 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { ReviewType } from "consts/review";
+import {
+  NEW_QUALIFICATION_DESCRIPTION_LENGTH,
+  NEW_QUALIFICATION_NAME_LENGTH,
+  ReviewType,
+} from "consts/review";
+import { setResponseErrors } from "helpers";
+import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
 import { useEffect } from "react";
 import { Button, Col, Form, Row } from "react-bootstrap";
 import { getQualifications, postQualification } from "requests/qualifications";
-import "./ModalForm.css";
 import { getWorkerGrantedQualifications } from "requests/workers";
+import "./ReviewModalForm.css";
 
 const BONUS_FOR_WORKER_ENABLED = true;
 const FEEDBACK_FOR_WORKER_ENABLED = true;
@@ -19,14 +25,14 @@ const QUALIFICATION_VALUE_MAX = 10;
 
 const range = (start, end) => Array.from(Array(end + 1).keys()).slice(start);
 
-type ModalFormProps = {
+type ModalFormPropsType = {
   data: ModalDataType;
   setData: React.Dispatch<React.SetStateAction<ModalDataType>>;
   setErrors: Function;
   workerId: string | null;
 };
 
-function ModalForm(props: ModalFormProps) {
+function ReviewModalForm(props: ModalFormPropsType) {
   const [
     workerGrantedQualifications,
     setWorkerGrantedQualifications,
@@ -36,65 +42,77 @@ function ModalForm(props: ModalFormProps) {
   >(null);
   const [loading, setLoading] = React.useState(false);
   const [_, setCreateQualificationLoading] = React.useState(false);
+  const [
+    newQualificationFormIsValid,
+    setNewQualificationFormIsValid,
+  ] = React.useState<boolean>(false);
+  const [selectedQualifications, setSelectedQualifications] = React.useState<
+    SelectedQualificationsType
+  >({});
 
-  const onChangeAssign = (value: boolean) => {
+  const onError = (response: ErrorResponseType) =>
+    setResponseErrors(props.setErrors, response);
+
+  // Methods
+  function onChangeAssign(value: boolean) {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.checkboxAssignQualification = value;
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeUnassign = (value: boolean) => {
+  function onChangeUnassign(value: boolean) {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.checkboxUnassignQualification = value;
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeAssignQualification = (value: string) => {
+  function onChangeAssignQualification(value: string) {
     let prevFormData: FormType = Object(props.data.form);
 
     if (value === "+") {
       prevFormData.showNewQualification = true;
-      prevFormData.newQualificationValue = "";
+      prevFormData.newQualificationName = "";
+      prevFormData.newQualificationDescription = "";
     } else {
-      prevFormData.qualification = value;
+      prevFormData.selectQualification = value;
 
       const prevGrantedQualification = workerGrantedQualifications[value];
       const prevGrantedQualificationValue = prevGrantedQualification?.value;
       if (prevGrantedQualificationValue !== undefined) {
         // Set to previous granted value for selected qualification
-        prevFormData.qualificationValue = prevGrantedQualificationValue;
+        prevFormData.selectQualificationValue = prevGrantedQualificationValue;
       } else {
         // Set to default value
-        prevFormData.qualificationValue = QUALIFICATION_VALUE_MIN;
+        prevFormData.selectQualificationValue = QUALIFICATION_VALUE_MIN;
       }
     }
 
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeAssignQualificationValue = (value: string) => {
+  function onChangeAssignQualificationValue(value: string) {
     let prevFormData: FormType = Object(props.data.form);
-    prevFormData.qualificationValue = Number(value);
+    prevFormData.selectQualificationValue = Number(value);
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeUnassignQualification = (id: string) => {
+  function onChangeUnassignQualification(id: string) {
     onChangeAssignQualification(id);
-  };
+  }
 
-  const onChangeGiveBonus = (value: boolean) => {
+  function onChangeGiveBonus(value: boolean) {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.checkboxGiveBonus = value;
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeBonus = (value: string) => {
+  function onChangeBonus(value: string) {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.bonus = Number(value);
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeBanWorker = (value: boolean) => {
+  function onChangeBanWorker(value: boolean) {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.checkboxBanWorker = value;
 
@@ -111,92 +129,119 @@ function ModalForm(props: ModalFormProps) {
     }
 
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeWriteReviewNote = (value: boolean) => {
+  function onChangeWriteReviewNote(value: boolean) {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.checkboxReviewNote = value;
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeReviewNote = (value: string) => {
+  function onChangeReviewNote(value: string) {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.reviewNote = value;
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeWriteReviewNoteSend = (value: boolean) => {
+  function onChangeWriteReviewNoteSend(value: boolean) {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.checkboxReviewNoteSend = value;
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onChangeNewQualificationValue = (value: string) => {
+  function onChangeNewQualificationValue(fieldName: string, value: string) {
     let prevFormData: FormType = Object(props.data.form);
-    prevFormData.newQualificationValue = value;
+    prevFormData[fieldName] = value;
     props.setData({ ...props.data, form: prevFormData });
-  };
+  }
 
-  const onClickAddNewQualification = (value: string) => {
-    createNewQualification(value);
-  };
+  function onClickAddNewQualification() {
+    createNewQualification(
+      props.data.form.newQualificationName,
+      props.data.form.newQualificationDescription
+    );
+  }
 
-  const onError = (errorResponse: ErrorResponseType | null) => {
-    if (errorResponse) {
-      props.setErrors((oldErrors) => [...oldErrors, ...[errorResponse.error]]);
-    }
-  };
-
-  const onCreateNewQualificationSuccess = () => {
+  function onCreateNewQualificationSuccess() {
     // Clear input
     let prevFormData: FormType = Object(props.data.form);
-    prevFormData.newQualificationValue = "";
+    prevFormData.newQualificationName = "";
+    prevFormData.newQualificationDescription = "";
     prevFormData.showNewQualification = false;
     props.setData({ ...props.data, form: prevFormData });
 
     // Update select with Qualifications
     requestQualifications();
-  };
+  }
 
-  const onGetWorkerGrantedQualificationsSuccess = (
+  function onGetWorkerGrantedQualificationsSuccess(
     grantedQualifications: GrantedQualificationType[]
-  ) => {
+  ) {
     const _workerGrantedQualifications = {};
 
     grantedQualifications.forEach((gq: GrantedQualificationType) => {
       _workerGrantedQualifications[gq.qualification_id] = gq;
     });
     setWorkerGrantedQualifications(_workerGrantedQualifications);
-  };
+  }
 
-  const requestQualifications = () => {
+  function requestQualifications() {
     let params;
     if (props.data.type === ReviewType.REJECT) {
       params = { worker_id: props.workerId };
     }
 
     getQualifications(setQualifications, setLoading, onError, params);
-  };
+  }
 
-  const requestWorkerGrantedQualifications = () => {
+  function requestWorkerGrantedQualifications() {
     getWorkerGrantedQualifications(
       props.workerId,
       onGetWorkerGrantedQualificationsSuccess,
       setLoading,
       onError
     );
-  };
+  }
 
-  const createNewQualification = (name: string) => {
+  function createNewQualification(name: string, description: string) {
     postQualification(
       onCreateNewQualificationSuccess,
       setCreateQualificationLoading,
       onError,
-      { name: name }
+      {
+        name: name,
+        description: description,
+      }
     );
-  };
+  }
 
-  // Effiects
+  function onClickSelectQualification() {
+    setSelectedQualifications((oldValue: SelectedQualificationsType) => {
+      const newValue = cloneDeep(oldValue);
+
+      const selectedQualificationId = props.data.form.selectQualification;
+      const selectedQualification = qualifications.find(
+        (q: QualificationType) => q.id === selectedQualificationId
+      );
+
+      newValue[props.data.form.selectQualification] = {
+        qualification_id: selectedQualificationId,
+        qualification_name: selectedQualification.name,
+        value: props.data.form.selectQualificationValue,
+      };
+      return newValue;
+    });
+  }
+
+  function onClickRemoveQualification(qualificationId: string) {
+    setSelectedQualifications((oldValue: SelectedQualificationsType) => {
+      const newValue = cloneDeep(oldValue);
+      delete newValue[qualificationId];
+      return newValue;
+    });
+  }
+
+  // Effects
   useEffect(() => {
     requestWorkerGrantedQualifications();
 
@@ -204,6 +249,30 @@ function ModalForm(props: ModalFormProps) {
       requestQualifications();
     }
   }, []);
+
+  useEffect(() => {
+    if (props.data.form.newQualificationName) {
+      setNewQualificationFormIsValid(true);
+    } else {
+      setNewQualificationFormIsValid(false);
+    }
+  }, [props.data.form.newQualificationName]);
+
+  useEffect(() => {
+    let prevFormData: FormType = Object(props.data.form);
+    const _formSelectedQualifications = Object.values(
+      selectedQualifications
+    ).map(
+      (q: SelectedQualificationType): FormSelectedQualificationType => {
+        return {
+          qualification_id: q.qualification_id,
+          value: q.value,
+        };
+      }
+    );
+    prevFormData.selectedQualifications = _formSelectedQualifications;
+    props.setData({ ...props.data, form: prevFormData });
+  }, [selectedQualifications]);
 
   if (loading) {
     return;
@@ -231,44 +300,50 @@ function ModalForm(props: ModalFormProps) {
 
           {props.data.form.checkboxAssignQualification && (
             <>
-              <Row className={"second-line"}>
+              <Row className={"assign-quallification"}>
                 <Col xs={9}>
                   <Form.Select
                     id={"assignQualification"}
                     size={"sm"}
-                    value={props.data.form.qualification || ""}
+                    value={props.data.form.selectQualification || ""}
                     onChange={(e) =>
                       onChangeAssignQualification(e.target.value)
                     }
                   >
-                    <option value={""}>---</option>
-                    <option value={"+"}>+ Add new qualification</option>
-                    {qualifications &&
-                      qualifications.map((q: QualificationType) => {
-                        const prevGrantedQualification =
-                          workerGrantedQualifications[q.id];
-                        const prevGrantedQualificationValue =
-                          prevGrantedQualification?.value;
+                    <optgroup>
+                      <option value={""}>---</option>
+                      <option value={"+"}>+ Create new qualification</option>
+                    </optgroup>
 
-                        let nameSuffix = "";
-                        if (prevGrantedQualificationValue !== undefined) {
-                          nameSuffix = ` (granted value: ${prevGrantedQualificationValue})`;
-                        }
-                        const qualificationName = `${q.name}${nameSuffix}`;
+                    <optgroup>
+                      {qualifications &&
+                        qualifications.map((q: QualificationType) => {
+                          const prevGrantedQualification =
+                            workerGrantedQualifications[q.id];
+                          const prevGrantedQualificationValue =
+                            prevGrantedQualification?.value;
 
-                        return (
-                          <option key={"qual" + q.id} value={q.id}>
-                            {qualificationName}
-                          </option>
-                        );
-                      })}
+                          let nameSuffix = "";
+                          if (prevGrantedQualificationValue !== undefined) {
+                            nameSuffix = ` (granted value: ${prevGrantedQualificationValue})`;
+                          }
+                          const qualificationName = `${q.name}${nameSuffix}`;
+
+                          return (
+                            <option key={`qual-${q.id}`} value={q.id}>
+                              {qualificationName}
+                            </option>
+                          );
+                        })}
+                    </optgroup>
                   </Form.Select>
                 </Col>
-                <Col>
+
+                <Col className={`inline-column ps-0`} xs={3}>
                   <Form.Select
                     id={"assignQualificationValue"}
                     size={"sm"}
-                    value={props.data.form.qualificationValue}
+                    value={props.data.form.selectQualificationValue}
                     onChange={(e) =>
                       onChangeAssignQualificationValue(e.target.value)
                     }
@@ -280,36 +355,134 @@ function ModalForm(props: ModalFormProps) {
                       return <option key={"qualVal" + i}>{i}</option>;
                     })}
                   </Form.Select>
+
+                  <Button
+                    className={`select-qualification`}
+                    variant={"outline-success"}
+                    size={"sm"}
+                    type={"button"}
+                    onClick={() => onClickSelectQualification()}
+                  >
+                    <i className={`las la-check`} />
+                  </Button>
                 </Col>
               </Row>
+
+              <Row className={`explanation`}>
+                <Col xs={12}>
+                  Please press "Add" button to assign indicated qualification
+                </Col>
+              </Row>
+
+              {Object.keys(selectedQualifications).length > 0 && (
+                <div className={`selected-qualifications`}>
+                  {Object.values(selectedQualifications).map(
+                    (
+                      selectedQualification: SelectedQualificationType,
+                      index: number
+                    ) => {
+                      return (
+                        <Row className={`selected-qualification`}>
+                          <Col xs={9}>
+                            {selectedQualification.qualification_name}
+                          </Col>
+
+                          <Col xs={3} className={`inline-column ps-0`}>
+                            <div className={`selected-value`}>
+                              {selectedQualification.value}
+                            </div>
+
+                            <Button
+                              className={`remove-qualification`}
+                              variant={"outline-danger"}
+                              size={"sm"}
+                              type={"button"}
+                              onClick={() => {
+                                onClickRemoveQualification(
+                                  selectedQualification.qualification_id
+                                );
+                              }}
+                            >
+                              <i className={`las la-times`} />
+                            </Button>
+                          </Col>
+                        </Row>
+                      );
+                    }
+                  )}
+                </div>
+              )}
+
               {props.data.form.showNewQualification && (
-                <Row className={"third-line"}>
-                  <Col xs={9}>
-                    <Form.Control
-                      size={"sm"}
-                      type={"input"}
-                      placeholder={"New qualification name"}
-                      value={props.data.form.newQualificationValue || ""}
-                      onChange={(e) =>
-                        onChangeNewQualificationValue(e.target.value)
-                      }
-                    />
-                  </Col>
-                  <Col>
-                    <Button
-                      className={"new-qualification-name-button"}
-                      variant={"secondary"}
-                      size={"sm"}
-                      onClick={() =>
-                        onClickAddNewQualification(
-                          props.data.form.newQualificationValue
-                        )
-                      }
-                    >
-                      Add
-                    </Button>
-                  </Col>
-                </Row>
+                <>
+                  <Row className={`separator`}>
+                    <Col xs={12}>
+                      <hr />
+                    </Col>
+                  </Row>
+
+                  <Row className={"new-qualification"}>
+                    <Col xs={9}>
+                      <Form.Control
+                        className={`mb-1`}
+                        size={"sm"}
+                        type={"input"}
+                        maxLength={NEW_QUALIFICATION_NAME_LENGTH}
+                        placeholder={"New qualification name"}
+                        value={props.data.form.newQualificationName || ""}
+                        onChange={(e) =>
+                          onChangeNewQualificationValue(
+                            "newQualificationName",
+                            e.target.value
+                          )
+                        }
+                      />
+
+                      <Form.Control
+                        size={"sm"}
+                        type={"texarea"}
+                        as={"textarea"}
+                        rows={2}
+                        maxLength={NEW_QUALIFICATION_DESCRIPTION_LENGTH}
+                        placeholder={"Description"}
+                        value={
+                          props.data.form.newQualificationDescription || ""
+                        }
+                        onChange={(e) =>
+                          onChangeNewQualificationValue(
+                            "newQualificationDescription",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </Col>
+
+                    <Col xs={3} className={`ps-0`}>
+                      <Button
+                        className={"new-qualification-name-button"}
+                        variant={"outline-primary"}
+                        size={"sm"}
+                        title={
+                          newQualificationFormIsValid ? "" : "Name is required"
+                        }
+                        disabled={!newQualificationFormIsValid}
+                        onClick={() =>
+                          newQualificationFormIsValid &&
+                          onClickAddNewQualification()
+                        }
+                      >
+                        Create
+                      </Button>
+                    </Col>
+                  </Row>
+
+                  <Row className={`explanation`}>
+                    <Col xs={12}>
+                      Create new qualification that can be assigned to this or
+                      other workers
+                    </Col>
+                  </Row>
+                </>
               )}
             </>
           )}
@@ -334,7 +507,7 @@ function ModalForm(props: ModalFormProps) {
                 <Form.Select
                   id={"unassignQualification"}
                   size={"sm"}
-                  value={props.data.form.qualification || ""}
+                  value={props.data.form.selectQualification || ""}
                   onChange={(e) =>
                     onChangeUnassignQualification(e.target.value)
                   }
@@ -454,4 +627,4 @@ function ModalForm(props: ModalFormProps) {
   );
 }
 
-export default ModalForm;
+export default ReviewModalForm;

@@ -4,6 +4,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+declare type FormSelectedQualificationType = {
+  qualification_id: string;
+  value: number;
+};
+
 type FormType = {
   bonus: number | null;
   checkboxAssignQualification?: boolean;
@@ -12,10 +17,12 @@ type FormType = {
   checkboxReviewNote: boolean;
   checkboxReviewNoteSend?: boolean;
   checkboxUnassignQualification?: boolean;
-  newQualificationValue?: string;
-  qualification: string | null;
-  qualificationValue: number;
+  newQualificationDescription?: string;
+  newQualificationName?: string;
   reviewNote: string;
+  selectQualification: string | null;
+  selectQualificationValue: number;
+  selectedQualifications?: FormSelectedQualificationType[];
   showNewQualification?: boolean;
 };
 

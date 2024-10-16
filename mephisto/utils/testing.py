@@ -224,7 +224,7 @@ def grant_test_qualification(db: MephistoDB, qualification_id: str, worker_id: s
     return db.grant_qualification(qualification_id, worker_id, value)
 
 
-def find_unit_reviews(
+def find_worker_reviews(
     db,
     qualification_id: str,
     worker_id: str,
@@ -244,7 +244,7 @@ def find_unit_reviews(
         c = conn.cursor()
         c.execute(
             f"""
-            SELECT * FROM unit_review
+            SELECT * FROM worker_review
             WHERE
                 (updated_qualification_id = ?1) OR
                 (revoked_qualification_id = ?1) AND

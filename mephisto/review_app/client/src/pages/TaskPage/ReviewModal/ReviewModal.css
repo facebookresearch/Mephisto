@@ -16,6 +16,11 @@
   font-size: 26px;
 }
 
+.review-modal .modal-dialog .modal-header .btn-close {
+  position: absolute;
+  right: 14px;
+}
+
 /* Body */
 .review-modal .modal-dialog .modal-content {
   border-radius: initial;
@@ -26,17 +31,6 @@
   width: 100%;
   display: flex;
   justify-content: space-between;
-}
-
-.review-modal
-  .modal-dialog
-  .modal-content
-  .modal-footer
-  .review-buttons
-  .btn-cancel-button {
-  text-decoration: none;
-  color: grey;
-  border: none;
 }
 
 .review-modal

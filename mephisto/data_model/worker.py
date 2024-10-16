@@ -171,7 +171,11 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
             return False
         return bool(qualification.value)
 
-    def revoke_qualification(self, qualification_name) -> bool:
+    def revoke_qualification(
+        self,
+        qualification_name: str,
+        skip_crowd: Optional[bool] = False,
+    ) -> bool:
         """
         Remove this user's qualification if it exists
 
@@ -183,19 +187,29 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
             return False
 
         logger.debug(f"Revoking qualification {qualification_name} from worker {self}.")
+
+        # Revoke local qualification
         self.db.revoke_qualification(granted_qualification.qualification_id, self.db_id)
-        try:
-            self.revoke_crowd_qualification(qualification_name)
-            return True
-        except Exception as e:
-            logger.exception(
-                f"Found error while trying to revoke qualification: {repr(e)}",
-                exc_info=True,
-            )
-            return False
+
+        # Revoke crowd qualification
+        if not skip_crowd:
+            try:
+                self.revoke_crowd_qualification(qualification_name)
+            except Exception as e:
+                logger.exception(
+                    f"Found error while trying to revoke qualification: {repr(e)}",
+                    exc_info=True,
+                )
+                return False
+
         return True
 
-    def grant_qualification(self, qualification_name: str, value: int = 1, skip_crowd=False):
+    def grant_qualification(
+        self,
+        qualification_name: str,
+        value: int = 1,
+        skip_crowd: Optional[bool] = False,
+    ) -> bool:
         """
         Grant a positive or negative qualification to this worker
 
@@ -207,18 +221,23 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
             raise Exception(f"No qualification by the name {qualification_name} found in the db")
 
         logger.debug(f"Granting worker {self} qualification {qualification_name}: {value}")
+
+        # Grant local qualification
         qualification = found_qualifications[0]
         self.db.grant_qualification(qualification.db_id, self.db_id, value=value)
+
+        # Grant crowd qualification
         if not skip_crowd:
             try:
                 self.grant_crowd_qualification(qualification_name, value)
-                return True
             except Exception as e:
                 logger.exception(
                     f"Found error while trying to grant qualification: {repr(e)}",
                     exc_info=True,
                 )
                 return False
+
+        return True
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.db_id})"

@@ -4,18 +4,18 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model._db_backed_meta import (
-    MephistoDBBackedMeta,
-    MephistoDataModelComponentMixin,
-)
+from typing import Any
+from typing import Mapping
+from typing import Optional
+from typing import TYPE_CHECKING
 
-from typing import Optional, Mapping, TYPE_CHECKING, Any
-
+from mephisto.data_model._db_backed_meta import MephistoDataModelComponentMixin
+from mephisto.data_model._db_backed_meta import MephistoDBBackedMeta
+from mephisto.utils.logger_core import get_logger
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
 
-from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -72,11 +72,16 @@ class Qualification(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedM
                 "now deprecated in favor of calling Qualification.get(db, id). "
             )
         self.db: "MephistoDB" = db
+
         if row is None:
             row = db.get_qualification(db_id)
+
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
+
         self.db_id: str = row["qualification_id"]
         self.qualification_name: str = row["qualification_name"]
+        self.description: str = row["description"]
+        self.creation_date: str = row["creation_date"]
 
 
 class GrantedQualification:
@@ -90,9 +95,14 @@ class GrantedQualification:
         row: Optional[Mapping[str, Any]] = None,
     ):
         self.db: "MephistoDB" = db
+
         if row is None:
             row = db.get_granted_qualification(qualification_id, worker_id)
+
         assert row is not None, f"Granted qualification did not exist in given db"
+
         self.worker_id: str = row["worker_id"]
         self.qualification_id: str = row["qualification_id"]
         self.value: str = row["value"]
+        self.creation_date: str = row["creation_date"]
+        self.update_date: str = row["update_date"]

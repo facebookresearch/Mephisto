@@ -140,7 +140,7 @@ class TestImportDump(unittest.TestCase):
                 "onboarding_agents": [],
                 "qualifications": [],
                 "granted_qualifications": [],
-                "unit_review": [],
+                "worker_review": [],
             },
             "mock": {"requesters": [], "units": [], "workers": []},
         }
@@ -218,7 +218,7 @@ class TestImportDump(unittest.TestCase):
                 "onboarding_agents": [],
                 "qualifications": [],
                 "granted_qualifications": [],
-                "unit_review": [],
+                "worker_review": [],
             },
             "mock": {"requesters": [], "units": [], "workers": []},
         }

@@ -16,13 +16,13 @@ from mephisto.data_model.worker import Worker
 from mephisto.utils.db import EntryDoesNotExistException
 
 
-def _update_blocked_worker_in_unit_review(
+def _update_blocked_worker_in_worker_review(
     db,
     unit_id: int,
     worker_id: int,
     block: bool = False,
 ) -> None:
-    """Update unit review in the db with blocking Worker value"""
+    """Update worker review in the db with blocking Worker value"""
 
     with db.table_access_condition:
         conn = db.get_connection()
@@ -30,7 +30,7 @@ def _update_blocked_worker_in_unit_review(
 
         c.execute(
             """
-            SELECT * FROM unit_review
+            SELECT * FROM worker_review
             WHERE (unit_id = ?) AND (worker_id = ?)
             ORDER BY creation_date ASC;
             """,
@@ -39,21 +39,21 @@ def _update_blocked_worker_in_unit_review(
         results = c.fetchall()
         if not results:
             raise EntryDoesNotExistException(
-                f"`unit_review` was not created for this `unit_id={unit_id}`"
+                f"`worker_review` was not created for this `unit_id={unit_id}`"
             )
 
-        latest_unit_review_id = results[-1]["id"]
+        latest_worker_review_id = results[-1]["id"]
 
         c.execute(
             """
-            UPDATE unit_review
+            UPDATE worker_review
             SET
                 blocked_worker = ?
             WHERE id = ?;
             """,
             (
                 block,
-                latest_unit_review_id,
+                latest_worker_review_id,
             ),
         )
         conn.commit()
@@ -63,9 +63,9 @@ class WorkerBlockView(MethodView):
     def post(self, worker_id: int) -> dict:
         """Permanently block a worker"""
 
-        data: dict = request.json
-        unit_ids: Optional[str] = data and data.get("unit_ids")
-        review_note = data and data.get("review_note")
+        data: dict = request.json or {}
+        unit_ids: Optional[str] = data.get("unit_ids")
+        review_note = data.get("review_note")
 
         # Validate params
         if not review_note:
@@ -79,6 +79,6 @@ class WorkerBlockView(MethodView):
         if unit_ids:
             for unit_id in unit_ids:
                 unit: Unit = Unit.get(app.db, str(unit_id))
-                _update_blocked_worker_in_unit_review(app.db, int(unit.db_id), worker_id, True)
+                _update_blocked_worker_in_worker_review(app.db, int(unit.db_id), worker_id, True)
 
         return {}

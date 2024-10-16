@@ -77,7 +77,7 @@ class InhouseAgent(Agent):
         self,
         review_note: Optional[str] = None,
         bonus: Optional[Union[int, float]] = None,
-        skip_unit_review: bool = False,
+        skip_worker_review: bool = False,
     ) -> None:
         """Approve the work done on this specific Unit"""
         logger.debug(f"{self.log_prefix}Approving work")
@@ -94,14 +94,14 @@ class InhouseAgent(Agent):
 
         self.update_status(AgentState.STATUS_APPROVED)
 
-        if not skip_unit_review:
-            self.db.new_unit_review(
+        if not skip_worker_review:
+            self.db.new_worker_review(
                 unit_id=self.unit.db_id,
                 task_id=self.unit.task_id,
                 worker_id=self.unit.worker_id,
                 status=AgentState.STATUS_APPROVED,
                 review_note=review_note,
-                bonus=str(bonus),
+                bonus=bonus and str(bonus),
             )
 
     def soft_reject_work(self, review_note: Optional[str] = None) -> None:
@@ -129,7 +129,7 @@ class InhouseAgent(Agent):
 
         self.update_status(AgentState.STATUS_REJECTED)
 
-        self.db.new_unit_review(
+        self.db.new_worker_review(
             unit_id=self.unit.db_id,
             task_id=self.unit.task_id,
             worker_id=self.unit.worker_id,

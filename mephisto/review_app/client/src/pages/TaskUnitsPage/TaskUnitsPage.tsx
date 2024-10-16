@@ -4,23 +4,20 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import Preloader from "components/Preloader/Preloader";
 import TasksHeader from "components/TasksHeader/TasksHeader";
-import { capitalizeString, setPageTitle } from "helpers";
+import { DEFAULT_DATE_FORMAT } from "consts/format";
+import { STATUS_COLOR_CLASS_MAPPING } from "consts/review";
+import { capitalizeString, setPageTitle, setResponseErrors } from "helpers";
 import * as moment from "moment/moment";
 import * as React from "react";
 import { useEffect } from "react";
-import { Spinner, Table } from "react-bootstrap";
+import { Table } from "react-bootstrap";
 import { Link, useParams } from "react-router-dom";
 import { getTask } from "requests/tasks";
 import { getUnits } from "requests/units";
 import urls from "urls";
 import "./TaskUnitsPage.css";
-
-const STATUS_COLOR_CLASS_MAPPING = {
-  accepted: "text-success",
-  rejected: "text-danger",
-  soft_rejected: "text-warning",
-};
 
 type ParamsType = {
   id: string;
@@ -37,11 +34,8 @@ function TaskUnitsPage(props: TaskUnitsPagePropsType) {
   const [units, setUnits] = React.useState<Array<UnitType>>(null);
   const [loading, setLoading] = React.useState(false);
 
-  function onError(errorResponse: ErrorResponseType | null) {
-    if (errorResponse) {
-      props.setErrors((oldErrors) => [...oldErrors, ...[errorResponse.error]]);
-    }
-  }
+  const onError = (response: ErrorResponseType) =>
+    setResponseErrors(props.setErrors, response);
 
   useEffect(() => {
     // Set default title
@@ -101,8 +95,7 @@ function TaskUnitsPage(props: TaskUnitsPagePropsType) {
         <tbody>
           {units &&
             units.map((unit: UnitType, index: number) => {
-              const date = moment(unit.created_at).format("MMM D, YYYY");
-              const nonClickable = !unit.is_reviewed;
+              const date = moment(unit.created_at).format(DEFAULT_DATE_FORMAT);
               const statusColorClass = STATUS_COLOR_CLASS_MAPPING[unit.status];
 
               return (
@@ -137,13 +130,7 @@ function TaskUnitsPage(props: TaskUnitsPagePropsType) {
       </Table>
 
       {/* Preloader when we request units */}
-      {loading && (
-        <div className={"loading"}>
-          <Spinner animation="border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </Spinner>
-        </div>
-      )}
+      <Preloader loading={loading} />
     </div>
   );
 }

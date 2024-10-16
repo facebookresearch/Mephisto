@@ -48,6 +48,7 @@ These are the API specs enabling TaskReview app UI.
 
 Get all available tasks (to select one for review)
 
+**Response**:
 ```json
 {
   "tasks": [
@@ -72,6 +73,10 @@ Get all available tasks (to select one for review)
 
 Get metadata for a task
 
+**URL parameters**:
+- `id` - id of a task
+
+**Response**:
 ```json
 {
   "id": <int>,
@@ -85,13 +90,30 @@ Get metadata for a task
 
 ### `GET /api/tasks/{id}/export-results`
 
-Compose on the server-side a single file with reviewed task results (empty API response).
+Compose on the server-side a single file with reviewed task results.
+
+**URL parameters**:
+- `id` - id of a task
+
+**Response**:
+```json
+{
+  "file_created": <bool>,
+}
+```
 
 ---
 
 ### `GET /api/tasks/{id}/{n_units}/export-results.json`
 
-Serve a single composed file with reviewed task results (API response is a file download).
+Serve a single composed file with reviewed task results.
+
+**URL parameters**:
+- `id` - id of a task
+- `n_units` - amount of units. Needed to clear cached file on server and return a new one
+
+**Response**:
+Text file with JSON
 
 ---
 
@@ -99,6 +121,10 @@ Serve a single composed file with reviewed task results (API response is a file 
 
 Assemble stats with results for a Task.
 
+**URL parameters**:
+- `id` - id of a task
+
+**Response**:
 ```json
 {
   "stats": {
@@ -120,6 +146,10 @@ Assemble stats with results for a Task.
 
 Check if Grafana server is available and redirect or return error.
 
+**URL parameters**:
+- `id` - id of a task
+
+**Response**:
 ```json
 {
   "dashboard_url": <str> | null,
@@ -134,6 +164,10 @@ Check if Grafana server is available and redirect or return error.
 
 Returns all Worker Opinions related to a Task.
 
+**URL parameters**:
+- `id` - id of a task
+
+**Response**:
 ```json
 {
   "task_name": <str>,
@@ -179,6 +213,10 @@ Returns all Worker Opinions related to a Task.
 
 Get full, unpaginated list of unit IDs within a task (for subsequent client-side grouping by worker_id and `GET /task-units` pagination)
 
+**URL parameters**:
+- `id` - id of a task
+
+**Response**:
 ```json
 {
   "worker_units_ids": [
@@ -193,14 +231,20 @@ Get full, unpaginated list of unit IDs within a task (for subsequent client-side
 
 ---
 
-### `GET /api/qualifications`
+### `GET /api/qualifications?{worker_id=}`
 
-Get all available qualifications (to select "approve" and "reject" qualifications)
+Get all available qualifications (to select "approve" and "reject" qualifications).
 
+**GET parameters**:
+- `worker_id` - id of a worker, whom these qualification were granted to
+
+**Response**:
 ```json
 {
   "qualifications": [
     {
+      "creation_date": <str>,
+      "description": <str>,
       "id": <int>,
       "name": <str>,
     },
@@ -213,11 +257,99 @@ Get all available qualifications (to select "approve" and "reject" qualification
 
 ### `POST /api/qualifications`
 
-Create a new qualification
+Create a new qualification.
 
+**Request**:
 ```json
 {
+  "description": <str>,
+  "name": <str>, // Required
+}
+```
+
+**Response**:
+```json
+{
+  "creation_date": <str>,
+  "description": <str>,
+  "id": <int>,
   "name": <str>,
+}
+```
+
+---
+
+### `GET /api/qualifications/{id}`
+
+Get metadata for a qualificaition.
+
+**URL parameters**:
+- `id` - id of a qualification
+
+**Response**:
+```json
+{
+  "creation_date": <str>,
+  "description": <str>,
+  "id": <int>,
+  "name": <str>,
+}
+```
+
+---
+
+### `PATCH /api/qualifications/{id}`
+
+Update a qualification.
+
+**URL parameters**:
+- `id` - id of a qualification
+
+**Request**:
+```json
+{
+  "description": <str>,
+  "name": <str>, // Required
+}
+```
+
+**Response**:
+```json
+{
+  "creation_date": <str>,
+  "description": <str>,
+  "id": <int>,
+  "name": <str>,
+}
+```
+
+---
+
+### `DELETE /api/qualifications/{id}`
+
+Delete a qualificaition.
+
+**URL parameters**:
+- `id` - id of a qualification
+
+**Response**:
+```json
+{}
+```
+
+---
+
+### `GET /api/qualifications/{id}/details`
+
+Get additional data about a qualification.
+
+**URL parameters**:
+- `id` - id of a qualification
+
+**Response**:
+```json
+{
+  "granted_qualifications_count": <int>,
 }
 ```
 
@@ -227,14 +359,21 @@ Create a new qualification
 
 Get list of all bearers of a qualification.
 
+**URL parameters**:
+- `id` - id of a qualification
+
+**GET parameters**:
+- `task_id` - id of a task
+
+**Response**:
 ```json
 {
   "workers": [
     {
       "worker_id": <int>,
       "value": <int>,
-      "unit_review_id": <int>,  // latest grant of this qualification
-      "granted_at": <int>,   // maps to `unit_review.creation_date` column
+      "worker_review_id": <int>,  // latest grant of this qualification
+      "granted_at": <int>,   // maps to `worker_review.creation_date` column
     },
     ...  // more qualified workers
   ]
@@ -243,37 +382,137 @@ Get list of all bearers of a qualification.
 
 ---
 
-### `POST /api/qualifications/{id}/workers/{id}/grant`
+### `POST /api/qualifications/{id}/workers/{worker_id}/grant`
 
-Grant qualification to a worker
+Grant qualification to a worker.
 
+**URL parameters**:
+- `id` - id of a qualification
+- `worker_id` - id of a worker
+
+**Request**:
 ```json
 {
-  "unit_ids": [<int>, ...],
+  "unit_ids": [<int>, ...], // Required
   "value": <int>,
 }
 ```
 
+**Response**:
+```json
+{}
+```
+
 ---
 
-### `POST /api/qualifications/{id}/workers/{id}/revoke`
+### `PATCH /api/qualifications/{id}/workers/{worker_id}/grant`
 
-Revoke qualification from a worker
+Update value of existing granted qualification.
 
+**URL parameters**:
+- `id` - id of a qualification
+- `worker_id` - id of a worker
+
+**Request**:
 ```json
 {
-  "unit_ids": [<int>, ...],
+  "explanation": <str>,
+  "value": <int>,
+}
+```
+
+**Response**:
+```json
+{}
+```
+
+---
+
+### `POST /api/qualifications/{id}/workers/{worker_id}/revoke`
+
+Revoke qualification from a worker.
+
+**URL parameters**:
+- `id` - id of a qualification
+- `worker_id` - id of a worker
+
+**Request**:
+```json
+{
+  "unit_ids": [<int>, ...], // Required
+}
+```
+
+**Response**:
+```json
+{}
+```
+
+---
+
+### `PATCH /api/qualifications/{id}/workers/{worker_id}/revoke`
+
+Revoke qualification from a worker (see the difference from `POST` in the code)
+
+**URL parameters**:
+- `id` - id of a qualification
+- `worker_id` - id of a worker
+
+**Response**:
+```json
+{}
+```
+
+---
+
+### `GET /api/granted-qualifications?{qualification_id=}&{sort=}`
+
+Get list of all granted queslifications
+
+**GET parameters**:
+- `qualification_id` - id of a qualification that was granted to a workers
+- `sort` - field name and order to sort resonse results (e.g. `value_current`, `-value_current`)
+
+**Response**:
+```json
+{
+  "granted_qualifications": [
+    {
+      "granted_at": <str>,
+      "qualification_id": <str>,
+      "qualification_name": <str>,
+      "units": [
+        {
+          "creation_date": <str>,
+          "task_id": <str>,
+          "task_name": <str>, 
+          "unit_id": <str>,
+          "value": <int>,
+        },
+        ... // more units
+      ],
+      "value_current": <int>,
+      "worker_id": <str>,
+      "worker_name": <str>,
+    },
+    ... // more granted qualifications
+  ],
 }
 ```
 
 ---
 
-### `GET /api/units?{task_id=}{unit_ids=}`
+### `GET /api/units?{task_id=}&{unit_ids=}&{completed=}`
 
-Get workers' results (filtered by task_id and/or unit_ids, etc) - without full details of input/output. At least one filtering parameter must be specified
+Get workers' results (filtered by task_id and/or unit_ids, etc) - without full details of input/output. 
+At least one filtering parameter must be specified.
 
-_NOTE: this edpoint is not currently used in TaskReview app_
+**GET parameters**:
+- `task_id` - id of a task
+- `unit_ids` - ids of units
+- `completed` - show completed units or all (`true`/`false`)
 
+**Response**:
 ```json
 {
   "units": [
@@ -289,8 +528,8 @@ _NOTE: this edpoint is not currently used in TaskReview app_
         "outputs_preview": <json str>,  // optional
       },
       "review": {
-        "tips": <int>,
-        "feedback": <str>,
+        "bonus": <int>,
+        "review_note": <str>,
       },
       "status": <str>,
       "task_id": <int>,
@@ -303,8 +542,12 @@ _NOTE: this edpoint is not currently used in TaskReview app_
 
 ### `GET /api/units/details?{unit_ids=}`
 
-Get full input for specified workers results (`units_ids` parameter is mandatory)
+Get full input for specified workers results (`units_ids` parameter is mandatory).
 
+**GET parameters**:
+- `unit_ids` - ids of units (Required)
+
+**Response**:
 ```json
 {
   "units": [
@@ -312,7 +555,7 @@ Get full input for specified workers results (`units_ids` parameter is mandatory
       "has_task_source_review": <bool>,
       "id": <int>,
       "inputs": <json object>,  // instructions for worker
-      "metadata": <json object>,  // any metadata (e.g. Worker Opinion)
+      "metadata": <json object>,  // any metadata (e.g. Worker Opinion, Unit Reviews, etc)
       "outputs": <json object>,  // response from worker
       "prepared_inputs": <json object>,  // prepared instructions from worker
       "unit_data_folder": <str>},  // path to data dir in file system
@@ -326,61 +569,123 @@ Get full input for specified workers results (`units_ids` parameter is mandatory
 
 ### `POST /api/units/approve`
 
-Approve worker's result
+Approve worker's result.
 
+**Request**:
 ```json
 {
-  "unit_ids": [<int>, ...],
-  "feedback": <str>,  // optional
-  "tips": <int>,  // optional
+  "unit_ids": [<int>, ...], // Required
+  "review_note": <str>,  // optional
+  "bonus": <int>,  // optional
+  "send_to_worker": <bool>,  // optional
 }
+```
+
+**Response**:
+```json
+{}
 ```
 
 ---
 
 ### `POST /api/units/reject`
 
-Reject worker's result
+Reject worker's result.
 
+**Request**:
 ```json
 {
-  "unit_ids": [<int>, ...],
-  "feedback": <str>,  // optional
+  "unit_ids": [<int>, ...], // Required
+  "review_note": <str>,  // optional
+  "send_to_worker": <bool>,  // optional
 }
+```
+
+**Response**:
+```json
+{}
 ```
 
 ---
 
 ### `POST /api/units/soft-reject`
 
-Soft-reject worker's result
+Soft-reject worker's result.
 
+**Request**:
 ```json
 {
-  "unit_ids": [<int>, ...],
-  "feedback": <str>,  // optional
+  "unit_ids": [<int>, ...], // Required
+  "review_note": <str>,  // optional
+  "send_to_worker": <bool>,  // optional
 }
+```
+
+**Response**:
+```json
+{}
 ```
 
 ---
 
 ### `POST /api/workers/{id}/block`
 
-Permanently block a worker
+Permanently block a worker.
 
+**URL parameters**:
+- `id` - id of a worker
+
+**Request**:
 ```json
 {
-  "unit_id": <int>,
-  "feedback": <str>,
+  "unit_ids": [<int>, ...], // optional
+  "review_note": <str>,  // Required
 }
+```
+
+**Response**:
+```json
+{}
+```
+
+---
+
+### `POST /api/workers/{id}/qualifications/grant`
+
+Grant multiple qualifications to a worker with units.
+
+**URL parameters**:
+- `id` - id of a worker
+
+**Request**:
+```json
+{
+  "unit_ids": [<int>, ...], // Required
+  "qualification_grants": [ // Required
+    {
+      "qualification_id": <int>,
+      "value": <int>,
+    },
+    ...
+  ],  
+}
+```
+
+**Response**:
+```json
+{}
 ```
 
 ---
 
 ### `GET /api/workers/{id}/qualifications`
 
-Get list of all granted qualifications for a worker
+Get list of all granted qualifications for a worker.
 
+**URL parameters**:
+- `id` - id of a worker
+
+**Response**:
 ```json
 {
   "granted_qualifications": [
@@ -388,7 +693,7 @@ Get list of all granted qualifications for a worker
       "worker_id": <int>,
       "qualification_id": <int>,
       "value": <int>,
-      "granted_at": <int>,  // maps to `unit_review.creation_date` column
+      "granted_at": <int>,  // maps to `worker_review.creation_date` column
     }
   ],
   ...  // more granted qualifications
@@ -397,10 +702,17 @@ Get list of all granted qualifications for a worker
 
 ---
 
-### `GET /api/review-stats?{task_id=}{worker_id=}{since=}{limit=}`
+### `GET /api/review-stats?{task_id=}&{worker_id=}&{since=}&{limit=}`
 
 Get stats of (recent) approvals. Either `task_id` or `worker_id` (or both) must be present.
 
+**GET parameters**:
+- `task_id` - id of a task (Required)
+- `worker_id` - id of a worker (Required)
+- `since` - show stats since date or datetime
+- `limit` - limit amount or items in results
+
+**Response**:
 ```json
 {
   "stats": {
@@ -419,7 +731,12 @@ Get stats of (recent) approvals. Either `task_id` or `worker_id` (or both) must 
 
 Return static file from `data` directory for specific unit.
 
-Response: file.
+**URL parameters**:
+- `unit_id` - id of a unit
+- `filename` - name of a file, that was uploaded by a worker
+
+**Response**: 
+File that was uploaded during unit completion by a worker
 
 ---
 

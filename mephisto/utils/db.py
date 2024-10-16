@@ -459,7 +459,7 @@ def mephisto_db_to_dict_for_task_runs(
 
     tables_with_task_relations = [
         "tasks",
-        "unit_review",
+        "worker_review",
     ]
 
     # Find and serialize tables with `task_run_id` field

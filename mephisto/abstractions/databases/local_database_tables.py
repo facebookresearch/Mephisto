@@ -219,5 +219,5 @@ CREATE_IF_NOT_EXISTS_CORE_INDICES = """
     CREATE INDEX IF NOT EXISTS assignment_by_task_run_index ON assignments(task_run_id);
     CREATE INDEX IF NOT EXISTS task_run_by_requester_index ON task_runs(requester_id);
     CREATE INDEX IF NOT EXISTS task_run_by_task_index ON task_runs(task_id);
-    CREATE INDEX IF NOT EXISTS unit_review_by_unit_index ON unit_review(unit_id);
+    CREATE INDEX IF NOT EXISTS worker_review_by_unit_index ON worker_review(unit_id);
 """  # noqa: E501
