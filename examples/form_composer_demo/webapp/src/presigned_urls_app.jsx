@@ -10,10 +10,7 @@ import {
   FormComposerBaseFrontend,
   LoadingScreen,
 } from "./components/core_components_presigned_url.jsx";
-import {
-  useMephistoRemoteProcedureTask,
-  ErrorBoundary,
-} from "mephisto-task-multipart";
+import { useMephistoRemoteProcedureTask, ErrorBoundary } from "mephisto-core";
 
 /* ================= Application Components ================= */
 

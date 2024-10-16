@@ -1,5 +1,5 @@
 {
-  "name": "mephisto-task-addons",
+  "name": "mephisto-addons",
   "version": "1.5.1",
   "description": "A bunch of UI components to make Tasks more customizable",
   "main": "./build/bundle.js",
@@ -23,7 +23,6 @@
     "bootstrap-select": "^1.13.18",
     "jquery": "^3.6.0",
     "lodash": "^4.17.21",
-    "mephisto-task": "2.0.4",
     "prop-types": "^15.8.1",
     "raw-loader": "^4.0.2",
     "react": "^18.2.0",

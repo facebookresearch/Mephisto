@@ -212,22 +212,22 @@ During development of your form config, you can use a few available helper funct
 
   Example of use:
 
-  1. Add `mephisto-task-addons` in webpack config
+  1. Add `mephisto-addons` in webpack config
 
   ```js
   resolve: {
     alias: {
       ...
-      "mephisto-task-addons": path.resolve(
+      "mephisto-addons": path.resolve(
         __dirname,
-        "<relativePath>/packages/mephisto-task-addons"
+        "<relativePath>/packages/mephisto-addons"
       ),
     },
   }
   ```
   2. Add import
   ```js
-  import { validateFieldValue } from "mephisto-task-addons";
+  import { validateFieldValue } from "mephisto-addons";
   ```
   3. Validate a value before assigning it to form field
   ```js

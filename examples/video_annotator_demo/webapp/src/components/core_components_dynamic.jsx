@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import { VideoAnnotator } from "mephisto-task-addons";
+import { VideoAnnotator } from "mephisto-addons";
 
 // Required import for custom validators
 import * as customValidators from "custom-validators";

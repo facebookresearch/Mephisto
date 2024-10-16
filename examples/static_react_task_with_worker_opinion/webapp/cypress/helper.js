@@ -4,6 +4,5 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-export const workerOpinionClassNamePrefix =
-  "mephisto-task-addons-worker-opinion__";
+export const workerOpinionClassNamePrefix = "mephisto-addons-worker-opinion__";
 export const tipClassNamePrefix = "mephisto-worker-addons-tips__";

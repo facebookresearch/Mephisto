@@ -4,6 +4,8 @@
   LICENSE file in the root directory of this source tree.
 -->
 
+> NOTE: This is outdated package, use `mephisto-core` instead
+
 # mephisto-task
 
 This package provides two hooks to faciliate React-based front-end development for Mephisto tasks.

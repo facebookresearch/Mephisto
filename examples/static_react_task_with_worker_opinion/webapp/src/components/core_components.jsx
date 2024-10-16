@@ -5,7 +5,7 @@
  */
 
 import React, { useState } from "react";
-import { WorkerOpinion } from "mephisto-task-addons";
+import { WorkerOpinion } from "mephisto-addons";
 
 function OnboardingComponent({ onSubmit }) {
   return (

@@ -17,14 +17,14 @@ module.exports = {
     alias: {
       react: path.resolve("./node_modules/react"),
       // Use local library with code that can submit FormData
-      "mephisto-task-multipart": path.resolve(
+      "mephisto-core": path.resolve(
         __dirname,
-        "../../../packages/mephisto-task-multipart"
+        "../../../packages/mephisto-core"
       ),
-      // Use local library with code that can use FormComposer and  submit Worker Opinion
-      "mephisto-task-addons": path.resolve(
+      // Use local library with code that can use FormComposer and submit Worker Opinion
+      "mephisto-addons": path.resolve(
         __dirname,
-        "../../../packages/mephisto-task-addons"
+        "../../../packages/mephisto-addons"
       ),
     },
     fallback: {

@@ -4,8 +4,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { WorkerOpinion } from "mephisto-task-addons";
-import { ErrorBoundary, useMephistoTask } from "mephisto-task-multipart";
+import { WorkerOpinion } from "mephisto-addons";
+import { ErrorBoundary, useMephistoTask } from "mephisto-core";
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter, Route, Routes } from "react-router-dom";

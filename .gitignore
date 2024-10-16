@@ -13,6 +13,8 @@ mephisto/server/blueprints/**/build/*
 
 **/*.log
 **/build/*
+!**/packages/mephisto-core/build/*
+!**/packages/mephisto-addons/build/*
 **/_generated/*
 **/outputs/*
 mephisto/scripts/metrics/*
