@@ -44,13 +44,6 @@ export const COLORS = [
   "brown",
 ];
 
-export const INIT_SECTION = {
-  description: "",
-  end_sec: 0,
-  start_sec: 0,
-  title: "",
-};
-
 export const MIN_SEGMENT_WIDTH_PX = 6;
 
 export const POPOVER_INVALID_SEGMENT_CLASS = "with-segment-validation";

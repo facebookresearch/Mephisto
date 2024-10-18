@@ -94,8 +94,7 @@
 }
 
 .form-label-group.floating-label > input,
-.form-label-group.floating-label > textarea,
-.form-label-group.floating-label > label {
+.form-label-group.floating-label > textarea {
   padding: var(--input-padding-y) var(--input-padding-x);
   min-height: 45px;
 }
@@ -106,12 +105,16 @@
   left: 0;
   display: block;
   width: 100%;
+  height: 25px;
   margin-bottom: 0; /* Override default `<label>` margin */
+  padding: var(--input-padding-y) var(--input-padding-x);
   font-size: 0.875rem;
   line-height: 1.5;
   color: var(--label-color);
-  border: 1px solid transparent;
-  border-radius: 0.25rem;
+  background: transparent;
+  border: 1px solid #ced4da;
+  border-bottom: none;
+  border-radius: 0.25rem 0.25rem 0 0;
   transition: all 0.1s ease-in-out;
   -moz-transition: all 0.1s ease-in-out;
   -o-transition: all 0.1s ease-in-out;
@@ -156,4 +159,20 @@
   padding-bottom: calc(var(--input-padding-y) / 3);
   font-size: 12px;
   color: var(--label-color);
+  background-color: var(--input-bg-color);
+}
+
+.form-label-group.floating-label textarea:not(:placeholder-shown):focus ~ label,
+.form-label-group.floating-label input:not(:placeholder-shown):focus ~ label {
+  background-color: #fff; /* Boostrap color (they do not have a var for this color) */
+}
+
+.form-label-group.floating-label textarea:focus ~ label,
+.form-label-group.floating-label input:focus ~ label {
+  border-color: #80bdff; /* Boostrap color (they do not have a var for this color) */
+}
+
+.form-label-group.floating-label textarea.is-invalid ~ label,
+.form-label-group.floating-label input.is-invalid ~ label {
+  border-color: #dc3545; /* Boostrap color (they do not have a var for this color) */
 }

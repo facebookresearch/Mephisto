@@ -8,10 +8,10 @@ import css from "!raw-loader!./WorkerOpinion.css";
 import bootstrapCss from "!raw-loader!bootstrap/dist/css/bootstrap.css";
 import React, { useEffect, useReducer, useState } from "react";
 import { usePopperTooltip } from "react-popper-tooltip";
-import Question from "./Question";
+import Question from "./Question.jsx";
 import { workerOpinionReducer } from "./Reducers";
-import SubmitButton from "./SubmitButton";
-import TextArea from "./TextArea";
+import SubmitButton from "./SubmitButton.jsx";
+import TextArea from "./TextArea.jsx";
 
 const DEFAULT_MAX_TEXT_LENGTH = 700;
 const DEFAULT_TEXTAREA_ROWS = 3;

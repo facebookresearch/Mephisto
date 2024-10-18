@@ -7,7 +7,7 @@
 import { Popover } from "bootstrap";
 import React from "react";
 import { MIN_SEGMENT_WIDTH_PX } from "./constants";
-import { secontsToTime } from "./helpers.jsx";
+import { secontsToTime } from "./helpers";
 import "./TrackSegment.css";
 
 function TrackSegment({

@@ -6,7 +6,7 @@
 
 import React from "react";
 import { runCustomTrigger } from "../utils";
-import { Errors } from "./Errors";
+import { Errors } from "./Errors.jsx";
 import "./RadioField.css";
 
 const DEFAULT_VALUE = "";

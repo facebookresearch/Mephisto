@@ -7,12 +7,12 @@
 import React from "react";
 import { runCustomTrigger } from "../utils";
 import { checkFieldRequiredness } from "../validation/helpers";
-import { Errors } from "./Errors";
-import "./TextareaField.css";
+import { Errors } from "./Errors.jsx";
+import "./InputField.css";
 
 const DEFAULT_VALUE = "";
 
-function TextareaField({
+function InputField({
   field,
   formData,
   updateFormData,
@@ -25,7 +25,6 @@ function TextareaField({
   customTriggers,
   className,
   cleanErrorsOnChange,
-  rows,
 }) {
   const [value, setValue] = React.useState(DEFAULT_VALUE);
 
@@ -51,7 +50,11 @@ function TextareaField({
   }
 
   function onChange(e) {
+    // Update widget value
+    setValue(e.target.value);
+    // Update form data
     updateFormData(field.name, e.target.value, e);
+    // Run custom triggers
     _runCustomTrigger("onChange");
   }
 
@@ -78,7 +81,13 @@ function TextareaField({
 
   // Value in formData is updated
   React.useEffect(() => {
-    setValue(formData[field.name] || DEFAULT_VALUE);
+    const formDataValue = formData[field.name];
+
+    // Do not update value until it was updated only outside the widget.
+    // Otherwise, it will put cursor caret to the end of string every typed character
+    if (formDataValue !== value) {
+      setValue(formDataValue || DEFAULT_VALUE);
+    }
   }, [formData[field.name]]);
 
   return (
@@ -87,15 +96,16 @@ function TextareaField({
     //  - is-invalid
 
     <>
-      <textarea
+      <input
         className={`
           form-control
-          fc-textarea-field
+          fc-input-field
           ${className || ""}
           ${invalidField ? "is-invalid" : ""}
         `}
         id={field.id}
         name={field.name}
+        type={field.type}
         placeholder={field.placeholder}
         style={field.style}
         required={checkFieldRequiredness(field)}
@@ -111,7 +121,6 @@ function TextareaField({
         onFocus={onFocus}
         onClick={onClick}
         disabled={disabled}
-        rows={rows}
       />
 
       <Errors messages={errors} />
@@ -119,4 +128,4 @@ function TextareaField({
   );
 }
 
-export { TextareaField };
+export { InputField };

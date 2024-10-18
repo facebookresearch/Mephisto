@@ -10,7 +10,7 @@ import $ from "jquery";
 import React from "react";
 import { runCustomTrigger } from "../utils";
 import { checkFieldRequiredness } from "../validation/helpers";
-import { Errors } from "./Errors";
+import { Errors } from "./Errors.jsx";
 import "./SelectField.css";
 
 function SelectField({

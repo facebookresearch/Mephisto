@@ -10,7 +10,7 @@ import {
   ProcedureName,
   WAIT_FOR_AGENT_ID_MSEC,
 } from "../FormComposer/utils";
-import { secontsToTime } from "./helpers.jsx";
+import { secontsToTime } from "./helpers";
 
 let urlToTokenProcedureMapping = {};
 

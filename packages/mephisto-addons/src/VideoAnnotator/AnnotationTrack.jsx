@@ -15,12 +15,11 @@ import {
   COLORS,
   DELAY_CLICK_ON_SECTION_MSEC,
   DELAY_SHOW_OVERLAPPING_MESSAGE_MSEC,
-  INIT_SECTION,
   POPOVER_INVALID_SEGMENT_CLASS,
   POPOVER_INVALID_SEGMENT_PROPS,
   START_NEXT_SECTION_PLUS_SEC,
 } from "./constants";
-import { secontsToTime } from "./helpers.jsx";
+import { secontsToTime } from "./helpers";
 import TrackSegment from "./TrackSegment.jsx";
 import { validateTimeFieldsOnSave } from "./utils";
 
@@ -138,11 +137,33 @@ function AnnotationTrack({
     }
   }
 
+  function getCleanSegmentToChangeData() {
+    const typeDefaultValueMapping = {
+      [FieldType.CHECKBOX]: null,
+      [FieldType.EMAIL]: "",
+      [FieldType.FILE]: "",
+      [FieldType.HIDDEN]: "",
+      [FieldType.INPUT]: "",
+      [FieldType.NUMBER]: "",
+      [FieldType.PASSWORD]: "",
+      [FieldType.RADIO]: null,
+      [FieldType.SELECT]: null,
+      [FieldType.TEXTAREA]: "",
+    };
+    const _segmentToChange = {};
+    segmentFields.map((field, i) => {
+      const fieldDefaultValue = typeDefaultValueMapping[field.type] || "";
+      _segmentToChange[field.name] = fieldDefaultValue;
+    });
+
+    return _segmentToChange;
+  }
+
   function onClickAddSegment(e) {
     const segmentsCount = Object.keys(annotationTrack.segments).length;
 
-    const newSegment = cloneDeep(INIT_SECTION);
-    newSegment.title = `Segment #${segmentsCount + 1} `;
+    const newSegment = cloneDeep(getCleanSegmentToChangeData());
+    newSegment.title = `Segment #${segmentsCount + 1}`;
 
     // Get current video time and set it to new segment
     let currentVideoTime = null;
@@ -212,7 +233,11 @@ function AnnotationTrack({
     }, DELAY_CLICK_ON_SECTION_MSEC);
   }
 
-  function onClickSaveFormField(fieldName, value, e) {
+  function updateSegmentToChangeFormData(fieldName, value, e) {
+    if (e) {
+      e.preventDefault();
+    }
+
     setSegmentToChange((prevState) => {
       return {
         ...prevState,
@@ -442,7 +467,7 @@ function AnnotationTrack({
                 className={`btn btn-sm btn-outline-dark`}
                 type={"button"}
                 onClick={(e) =>
-                  onClickSaveFormField(
+                  updateSegmentToChangeFormData(
                     "start_sec",
                     player ? player.currentTime() : 0,
                     e
@@ -468,7 +493,7 @@ function AnnotationTrack({
                 className={`btn btn-sm btn-outline-dark`}
                 type={"button"}
                 onClick={(e) =>
-                  onClickSaveFormField(
+                  updateSegmentToChangeFormData(
                     "end_sec",
                     player ? player.currentTime() : 0,
                     e
@@ -539,7 +564,7 @@ function AnnotationTrack({
                       className={`form-control-sm`}
                       field={_field}
                       formData={segmentToChange}
-                      updateFormData={onClickSaveFormField}
+                      updateFormData={updateSegmentToChangeFormData}
                       disabled={inReviewState}
                       initialFormData={segmentToChange}
                       inReviewState={inReviewState}
@@ -555,7 +580,7 @@ function AnnotationTrack({
                       className={`form-control-sm`}
                       field={_field}
                       formData={segmentToChange}
-                      updateFormData={onClickSaveFormField}
+                      updateFormData={updateSegmentToChangeFormData}
                       disabled={inReviewState}
                       initialFormData={segmentToChange}
                       inReviewState={inReviewState}
@@ -571,7 +596,7 @@ function AnnotationTrack({
                     <FormComposerFields.CheckboxField
                       field={_field}
                       formData={segmentToChange}
-                      updateFormData={onClickSaveFormField}
+                      updateFormData={updateSegmentToChangeFormData}
                       disabled={inReviewState}
                       initialFormData={segmentToChange}
                       inReviewState={inReviewState}
@@ -586,7 +611,7 @@ function AnnotationTrack({
                     <FormComposerFields.RadioField
                       field={_field}
                       formData={segmentToChange}
-                      updateFormData={onClickSaveFormField}
+                      updateFormData={updateSegmentToChangeFormData}
                       disabled={inReviewState}
                       initialFormData={segmentToChange}
                       inReviewState={inReviewState}
@@ -601,7 +626,7 @@ function AnnotationTrack({
                     <FormComposerFields.SelectField
                       field={_field}
                       formData={segmentToChange}
-                      updateFormData={onClickSaveFormField}
+                      updateFormData={updateSegmentToChangeFormData}
                       disabled={inReviewState}
                       initialFormData={segmentToChange}
                       inReviewState={inReviewState}
