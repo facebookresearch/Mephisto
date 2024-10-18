@@ -13,7 +13,7 @@ import {
 } from "../constants";
 import { runCustomTrigger } from "../utils";
 import { checkFieldRequiredness } from "../validation/helpers";
-import { Errors } from "./Errors";
+import { Errors } from "./Errors.jsx";
 import "./FileField.css";
 
 const DEFAULT_VALUE = "";

@@ -5,7 +5,7 @@
  */
 
 import React, { forwardRef } from "react";
-import TextArea from "./TextArea";
+import TextArea from "./TextArea.jsx";
 
 const Question = forwardRef(
   (

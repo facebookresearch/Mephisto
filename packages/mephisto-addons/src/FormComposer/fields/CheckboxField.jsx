@@ -7,7 +7,7 @@
 import React from "react";
 import { runCustomTrigger } from "../utils";
 import "./CheckboxField.css";
-import { Errors } from "./Errors";
+import { Errors } from "./Errors.jsx";
 
 const DEFAULT_VALUE = {};
 

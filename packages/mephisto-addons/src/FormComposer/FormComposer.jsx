@@ -5,8 +5,8 @@
  */
 
 import React from "react";
-import TaskInstructionButton from "../TaskInstructionModal/TaskInstructionButton";
-import TaskInstructionModal from "../TaskInstructionModal/TaskInstructionModal";
+import TaskInstructionButton from "../TaskInstructionModal/TaskInstructionButton.jsx";
+import TaskInstructionModal from "../TaskInstructionModal/TaskInstructionModal.jsx";
 import {
   DEFAULT_COLLAPSABLE,
   DEFAULT_INITIALLY_COLLAPSED,
@@ -23,9 +23,9 @@ import {
   TextareaField,
 } from "./fields";
 import "./FormComposer.css";
-import { FormErrors } from "./FormErrors";
-import { SectionErrors } from "./SectionErrors";
-import { SectionErrorsCountBadge } from "./SectionErrorsCountBadge";
+import { FormErrors } from "./FormErrors.jsx";
+import { SectionErrors } from "./SectionErrors.jsx";
+import { SectionErrorsCountBadge } from "./SectionErrorsCountBadge.jsx";
 import {
   getDefaultFormFieldValue,
   getFormatStringWithTokensFunction,

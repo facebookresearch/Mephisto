@@ -8,8 +8,8 @@ import { Popover } from "bootstrap";
 import React from "react";
 import { VIDEO_TYPES_BY_EXT } from "../constants";
 import { getFormatStringWithTokensFunction } from "../FormComposer/utils";
-import TaskInstructionButton from "../TaskInstructionModal/TaskInstructionButton";
-import TaskInstructionModal from "../TaskInstructionModal/TaskInstructionModal";
+import TaskInstructionButton from "../TaskInstructionModal/TaskInstructionButton.jsx";
+import TaskInstructionModal from "../TaskInstructionModal/TaskInstructionModal.jsx";
 import AnnotationTracks from "./AnnotationTracks.jsx";
 import {
   DEFAULT_SEGMENT_FIELDS,
@@ -18,8 +18,8 @@ import {
   POPOVER_INVALID_SEGMENT_PROPS,
   STORAGE_PRESAVED_ANNOTATION_TRACKS_KEY,
 } from "./constants";
+import { getExtFromFilePath } from "./helpers";
 import "./VideoAnnotator.css";
-import { getExtFromFilePath } from "./helpers.jsx";
 import VideoPlayer from "./VideoPlayer.jsx";
 
 function VideoAnnotator({

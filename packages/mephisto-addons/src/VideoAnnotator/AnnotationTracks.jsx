@@ -16,7 +16,7 @@ import {
 import {
   convertAnnotationTasksDataObjectsRoLists,
   convertInitialDataListsToObjects,
-} from "./helpers.jsx";
+} from "./helpers";
 
 function AnnotationTracks({
   className,

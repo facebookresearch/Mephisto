@@ -12,8 +12,8 @@ import {
   TOKEN_START_SYMBOLS,
 } from "./FormComposer/constants";
 import * as FormComposerFields from "./FormComposer/fields";
-import { Errors as ListErrors } from "./FormComposer/fields/Errors";
-import { FormComposer } from "./FormComposer/FormComposer";
+import { Errors as ListErrors } from "./FormComposer/fields/Errors.jsx";
+import { FormComposer } from "./FormComposer/FormComposer.jsx";
 import {
   prepareFormData,
   prepareRemoteProcedures,
@@ -21,12 +21,12 @@ import {
   validateFieldValue,
 } from "./FormComposer/utils";
 import * as helpers from "./helpers";
-import TaskInstructionButton from "./TaskInstructionModal/TaskInstructionButton";
-import TaskInstructionModal from "./TaskInstructionModal/TaskInstructionModal";
+import TaskInstructionButton from "./TaskInstructionModal/TaskInstructionButton.jsx";
+import TaskInstructionModal from "./TaskInstructionModal/TaskInstructionModal.jsx";
 import { prepareVideoAnnotatorData } from "./VideoAnnotator/utils";
 import VideoAnnotator from "./VideoAnnotator/VideoAnnotator.jsx";
 import VideoPlayer from "./VideoAnnotator/VideoPlayer.jsx";
-import WorkerOpinion from "./WorkerOpinion/WorkerOpinion";
+import WorkerOpinion from "./WorkerOpinion/WorkerOpinion.jsx";
 
 export {
   FormComposer,

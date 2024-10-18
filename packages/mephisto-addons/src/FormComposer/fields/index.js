@@ -1,7 +1,7 @@
-export { CheckboxField } from "./CheckboxField";
-export { FileField } from "./FileField";
-export { HiddenField } from "./HiddenField";
-export { InputField } from "./InputField";
-export { RadioField } from "./RadioField";
-export { SelectField } from "./SelectField";
-export { TextareaField } from "./TextareaField";
+export { CheckboxField } from "./CheckboxField.jsx";
+export { FileField } from "./FileField.jsx";
+export { HiddenField } from "./HiddenField.jsx";
+export { InputField } from "./InputField.jsx";
+export { RadioField } from "./RadioField.jsx";
+export { SelectField } from "./SelectField.jsx";
+export { TextareaField } from "./TextareaField.jsx";
