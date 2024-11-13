@@ -84,7 +84,7 @@
 
 <h3 id="appjsx"><code>app.jsx</code></h3>
 
-<p>The <code>app.jsx</code> file contains most of the logic to ensure we can render HTML, including being able to attach and execute the arbitrary scripts that are included or linked in the given HTML file. It creates a react application using the <code>mephisto-task</code> package, and creates an empty form with a submit button. It then populates the inner form using two primary methods:</p>
+<p>The <code>app.jsx</code> file contains most of the logic to ensure we can render HTML, including being able to attach and execute the arbitrary scripts that are included or linked in the given HTML file. It creates a react application using the <code>mephisto-core</code> package, and creates an empty form with a submit button. It then populates the inner form using two primary methods:</p>
 
 <ul>
 <li><code>handleUpdatingRemainingScripts</code>: This method walks through the list of scripts that are given in the attached HTML, either loading the external script and putting it into the head, or directly evaluating the content of local scripts. As the page has already loaded by the time we are loading in the remaining scripts, this all must be injected in an asynchronous manner. _Ultimately_ this isn't incredibly safe if you don't trust the attached scripts.</li>

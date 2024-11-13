@@ -97,7 +97,7 @@
 <span class="n">FLASK_SERVER_SOURCE_ROOT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROUTER_ROOT_DIR</span><span class="p">,</span> <span class="s2">&quot;flask&quot;</span><span class="p">)</span>
 <span class="n">CROWD_SOURCE_PATH</span> <span class="o">=</span> <span class="s2">&quot;static/wrap_crowd_source.js&quot;</span>
 <span class="n">TASK_CONFIG_PATH</span> <span class="o">=</span> <span class="s2">&quot;static/task_config.json&quot;</span>
-<span class="n">CURR_MEPHISTO_TASK_VERSION</span> <span class="o">=</span> <span class="s2">&quot;2.0.0&quot;</span>
+<span class="n">CURR_MEPHISTO_CORE_PACKAGE_VERSION</span> <span class="o">=</span> <span class="s2">&quot;1.5.1&quot;</span>
 
 
 <span class="k">def</span> <span class="nf">can_build</span><span class="p">(</span><span class="n">build_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">task_run</span><span class="p">:</span> <span class="s2">&quot;TaskRun&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -179,7 +179,7 @@
     <span class="n">blueprint</span> <span class="o">=</span> <span class="n">task_run</span><span class="o">.</span><span class="n">get_blueprint</span><span class="p">()</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">local_task_config_path</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">task_fp</span><span class="p">:</span>
         <span class="n">frontend_args</span> <span class="o">=</span> <span class="n">blueprint</span><span class="o">.</span><span class="n">get_frontend_args</span><span class="p">()</span>
-        <span class="n">frontend_args</span><span class="p">[</span><span class="s2">&quot;mephisto_task_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CURR_MEPHISTO_TASK_VERSION</span>
+        <span class="n">frontend_args</span><span class="p">[</span><span class="s2">&quot;mephisto_core_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CURR_MEPHISTO_CORE_PACKAGE_VERSION</span>
         <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">frontend_args</span><span class="p">,</span> <span class="n">task_fp</span><span class="p">)</span>
 
     <span class="c1"># Consolidate task files as defined by the task</span>
@@ -365,7 +365,7 @@ validation step that should be run before build_router.</p>
     <span class="n">blueprint</span> <span class="o">=</span> <span class="n">task_run</span><span class="o">.</span><span class="n">get_blueprint</span><span class="p">()</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">local_task_config_path</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">task_fp</span><span class="p">:</span>
         <span class="n">frontend_args</span> <span class="o">=</span> <span class="n">blueprint</span><span class="o">.</span><span class="n">get_frontend_args</span><span class="p">()</span>
-        <span class="n">frontend_args</span><span class="p">[</span><span class="s2">&quot;mephisto_task_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CURR_MEPHISTO_TASK_VERSION</span>
+        <span class="n">frontend_args</span><span class="p">[</span><span class="s2">&quot;mephisto_core_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CURR_MEPHISTO_CORE_PACKAGE_VERSION</span>
         <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">frontend_args</span><span class="p">,</span> <span class="n">task_fp</span><span class="p">)</span>
 
     <span class="c1"># Consolidate task files as defined by the task</span>
