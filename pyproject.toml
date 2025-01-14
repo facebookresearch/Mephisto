@@ -71,7 +71,7 @@ rich = { version = "^12.5.1", optional = false }
 rich-click = { version = "^1.5.1", optional = false }
 
 # metrics
-prometheus-client = { version = "^0.13.1", optional = false }
+prometheus-client = { version = ">=0.13.1,<0.22.0", optional = false }
 
 # flask_architect
 flask = { version = "^3.0.3", optional = false }
